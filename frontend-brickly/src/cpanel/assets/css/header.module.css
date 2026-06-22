@@ -1,0 +1,36 @@
+body{
+    font-size: 16px;
+}
+
+.menu{
+    position: fixed;
+    height: calc(100vh - 60px);
+    box-shadow: 1px 0 3px 0 rgb(207, 207, 207);
+    box-sizing: border-box;
+    min-width: 210px;
+    z-index: 999;
+    background-color: #fff;
+    transition: transform .3s ease-in-out;
+    /* padding-left: 1.5rem;
+    padding-right: 1.5rem; */
+}
+
+.main {
+    flex: 1;
+    margin-left: 210px;
+    padding: 30px;
+    transition: margin-left 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+}
+
+@media only screen and (max-width: 992px){
+    .main{
+        margin-left: 0;
+        padding: 0;
+    }
+    .menu{
+        transform: translateX(calc(-210px - 1.5rem));
+    }
+    .active{
+        transform: translateX(0);
+    }
+}

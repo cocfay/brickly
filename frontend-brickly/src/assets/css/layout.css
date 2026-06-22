@@ -1,0 +1,213 @@
+.banner{
+    background-image: url("../images/imagenes_de_fondo/fondo.webp");
+    background-position: top;
+    background-repeat: no-repeat;
+    height: 100dvh;
+    background-size: 100%;
+    padding: .1px;
+    color: #fff;
+}
+
+.banner a{
+    color: #fff;
+}
+
+/* Contenedor del menú */
+.menu-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1030;
+  transition: all 0.3s ease;
+}
+
+.no-arrow .dropdown-toggle::after {
+  display: none !important;
+}
+
+/* .menu-overlay a{
+    color: #fff !important;
+} */
+
+/* .menu-fixed > .container > div{
+    padding-bottom: 1.5rem;
+    padding-top: 1.5rem;
+} */
+
+/* En tu archivo CSS global */
+select.form-select-custom option {
+  background-color: #1a1a1a;
+  color: white !important;
+}
+
+select.form-select-custom option:hover {
+  background-color: #333333;
+  color: white !important;
+}
+
+/* select.form-select-custom option:checked {
+  background-color: #2563eb;
+  color: white !important;
+} */
+
+ol.breadcrumb{
+  margin-bottom: 0;
+}
+
+ol.breadcrumb a{
+  color: #000000;
+}
+
+.dropdown-toggle.nav-link{
+  color: #000000;
+}
+
+.dropdown-menu{
+  box-sizing: border-box;
+  padding: 1rem;
+  width: 200px;
+}
+
+.dropdown-item:focus, .dropdown-item:hover, .dropdown-item.active, .dropdown-item:active{
+  background-color: transparent;
+  color: inherit;
+}
+
+.menu-fixed .btn-login{
+  border: 1px solid #fff;
+}
+
+.menu-sticky .btn-login{
+  border: 1px solid #000000;
+}
+
+/* Cuando está sobre el banner (transparente) */
+.menu-overlay {
+  background: transparent;
+  backdrop-filter: none;
+  /* transition: all .5s ease-in-out; */
+}
+
+/* Cuando es sticky (con fondo después de hacer scroll) */
+.menu-sticky {
+  background: #ffffffff !important;
+  /* backdrop-filter: blur(10px); */
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* .menu-sticky > .container > div{
+    padding-bottom: 1rem;
+    padding-top: 1rem;
+} */
+
+.menu-sticky a, .menu-sticky a.nav-link, .menu-sticky button i{
+    color: #000000 !important;
+}
+
+/* Asegurar que el contenido del banner esté debajo del menú */
+.banner {
+  position: relative;
+  z-index: 1;
+}
+
+/* Ajuste para el logo - transición suave */
+/* .menu-fixed img {
+  transition: transform 0.3s ease;
+} */
+
+/* .menu-sticky img {
+  transform: scale(0.9);
+} */
+
+/* Ajustes para enlaces del menú */
+.menu-overlay .nav-link {
+  color: white !important;
+  opacity: 0.9;
+  transition: opacity 0.3s ease;
+}
+
+.menu-overlay .nav-link:hover {
+  opacity: 1;
+}
+
+.menu-sticky .nav-link {
+  color: white !important;
+}
+
+.no-arrow .dropdown-menu{
+  width: 260px;
+  transform: translate3d(-80%, 54px, 0px) !important;
+}
+
+/** SELECT */
+.select-container{
+    width: min-content;
+    /* margin:1rem auto; */
+}
+.select-label{
+    text-transform:uppercase;
+    /* font-size:14px;
+    margin-bottom:10px; */
+}
+.select{
+    width: min-content;
+    position:relative;
+}
+.selected-option{
+    display:flex;
+    justify-content:space-between;
+    background-color: #000000;
+    font-size: 1rem;
+    font-weight: 400;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.arrow-down{
+    padding: 4px 14px 4px 0;
+    color: white;
+}
+.select-value{
+    padding: 0 10px;
+}
+.options{
+    position:absolute;
+    background-color: #212529;
+    width: 230px;
+    padding:15px 0;
+    font-size: 1rem;
+    font-weight: 400;
+    border-radius: var(--bs-border-radius);
+    margin-top:5px;
+    text-align: left;
+    z-index: 10;
+}
+.options[data-toggle="collapsed"]{
+    display:none;
+}
+.option{
+    padding:10px 15px;
+    cursor:pointer;
+}
+.option:hover{
+    background-color: #f5f5f5bd;
+    color: black;
+}
+
+
+@media only screen and (max-width: 1200px) {
+  .banner{
+    height: 55dvw;
+  }
+}
+
+
+@media only screen and (max-width: 993px) {
+    .banner{
+        background-image: url("../images/imagenes_de_fondo/home_movil.webp");
+        background-size: cover;
+        height: auto;
+        min-height: 100dvh;
+        padding-bottom: 3rem;
+    }
+}

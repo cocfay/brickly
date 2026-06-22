@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://www.bricklyhomes.com/</loc>
+    <priority>1.0</priority>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://www.bricklyhomes.com/propiedades</loc>
+    <priority>0.9</priority>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://www.bricklyhomes.com/agentes</loc>
+    <priority>0.8</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://www.bricklyhomes.com/asociados</loc>
+    <priority>0.8</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://www.bricklyhomes.com/precios</loc>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <!-- <url>
+    <loc>https://www.bricklyhomes.com/arquitectos</loc>
+    <priority>0.8</priority>
+    <changefreq>weekly</changefreq>
+  </url> -->
+  <!-- <url>
+    <loc>https://www.bricklyhomes.com/proyectos</loc>
+    <priority>0.8</priority>
+    <changefreq>weekly</changefreq>
+  </url> -->
+  <url>
+    <loc>https://www.bricklyhomes.com/registro</loc>
+    <priority>0.3</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+</urlset>

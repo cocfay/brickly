@@ -1,0 +1,8 @@
+# robots.txt - Brickly Homes
+# https://www.bricklyhomes.com
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://www.bricklyhomes.com/sitemap.xml

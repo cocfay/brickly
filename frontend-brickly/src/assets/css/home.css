@@ -1,0 +1,219 @@
+.row-section1-imgs{
+    height: 500px;
+}
+
+.second-img-section1{
+    height: 50%;
+}
+
+
+.container-second-img{
+    height: 100%;
+}
+
+.banner2{
+    background-image: url("../images/imagenes_de_fondo/constructoras.webp");
+    min-height: 700px;
+    background-attachment: fixed;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: 100%;
+}
+
+.unete{
+    background-image: url("../images/imagenes_de_fondo/unete.webp");
+    min-height: 650px;
+    background-attachment: fixed;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: 100%;
+}
+
+.gap-80{
+    gap: 80px;
+}
+
+.top-propiedades .position-relative::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 50%; /* Controla qué tanto sube el oscurecimiento */
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+}
+
+.icons-small-description{
+    font-size: 14px;
+    color: #393939;
+}
+
+/* ===== Skeleton / Placeholder Styles ===== */
+.skeleton {
+    background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton-img {
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    border-radius: 8px;
+}
+
+.skeleton-img-square {
+    aspect-ratio: 4 / 4;
+    width: 100%;
+    border-radius: 8px;
+}
+
+.skeleton-text {
+    height: 16px;
+    width: 80%;
+    margin-bottom: 8px;
+}
+
+.skeleton-text-short {
+    height: 16px;
+    width: 50%;
+    margin-bottom: 8px;
+}
+
+.skeleton-title {
+    height: 32px;
+    width: 70%;
+    margin-bottom: 12px;
+}
+
+.skeleton-price {
+    height: 28px;
+    width: 40%;
+    margin-bottom: 12px;
+}
+
+.skeleton-badge {
+    height: 24px;
+    width: 100px;
+    border-radius: 20px;
+}
+
+.skeleton-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+}
+
+.skeleton-button {
+    height: 36px;
+    width: 140px;
+    border-radius: 4px;
+}
+
+.skeleton-main-layout {
+    display: flex;
+    gap: 24px;
+}
+
+.skeleton-main-img {
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    border-radius: 8px;
+    height: 100%;
+    min-height: 300px;
+}
+
+.skeleton-secondary-imgs {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100%;
+}
+
+.skeleton-secondary-img {
+    aspect-ratio: 4 / 3;
+    width: 100%;
+    border-radius: 8px;
+    flex: 1;
+}
+
+.skeleton-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 16px;
+}
+
+@media only screen and (max-width: 1200px) {
+    .banner2{
+        aspect-ratio: 16 / 9;
+        background-attachment: unset;
+        min-height: 0;
+    }
+    .unete-movil{
+        background-image: url("../images/imagenes_de_fondo/unete_movil.webp");
+        background-repeat: no-repeat;
+        background-size: cover;
+        aspect-ratio: 16 / 9;
+        min-height: 0;
+    }
+
+    .row-section1-imgs{
+        height: 100%;
+    }
+
+    .row-section1-imgs{
+        height: 100%;
+    }
+
+    /* En móvil, las imágenes secundarias en fila (una al lado de la otra) */
+    .container-second-img{
+        flex-direction: row !important;
+        gap: 12px !important;
+        height: auto !important;
+    }
+    .second-img-section1{
+        height: auto !important;
+        flex: 1 1 0px !important;
+        min-height: 0;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    .carrusel .items img{
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+    }
+}
+
+
+@media only screen and (max-width: 991px) {
+    .carrusel .slick-prev,
+    .carrusel .slick-next {
+        display: none !important;
+    }
+    .carrusel-slide-wrapper {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+}
+
+@media only screen and (max-width: 768px) {
+    .banner2{
+        background-image: url("../images/imagenes_de_fondo/constructoras_movil.webp");
+        aspect-ratio: 4 / 5;
+        background-attachment: unset;
+        min-height: 0;
+    }
+    .gap-80{
+        gap: 20px;
+    }
+    .container{
+        padding-right: calc(var(--bs-gutter-x) * .9) !important;
+        padding-left: calc(var(--bs-gutter-x) * .9) !important;
+    }
+}

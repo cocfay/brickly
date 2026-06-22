@@ -1,0 +1,31 @@
+node_modules/
+dist/
+build/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Temporary task/output files
+output.txt
+response.txt
+task_progress.md
+users_response.json
+
+# Dependency/cache folders
+.cache/
+.vite/
+coverage/

@@ -1,0 +1,126 @@
+.main{
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.vintage{
+  overflow: hidden;
+}
+.vintage img{
+    transition: all .3s ease-in-out;
+    filter: grayscale();
+}
+
+.vintage:hover img{
+    filter: none;
+    transform: scale(1.1);
+}
+
+/* .containerCol{
+    --bs-gutter-x: 13.5rem;
+    --bs-gutter-y: 0;
+    padding-left: calc(var(--bs-gutter-x) * .5);
+    padding-right: calc(var(--bs-gutter-x) * .5);
+    max-width: 1320px;
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+} */
+
+.col-divider {
+  position: relative;
+}
+
+.col-divider::after{
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(14vh);
+    width: 1.5px;
+    height: 36%;
+    background-color: #ddd; /* Color de la línea */
+}
+
+.containerCol {
+  width: 100%;
+  padding-left: calc(var(--bs-gutter-x) * 0.5);
+  padding-right: calc(var(--bs-gutter-x) * 0.5);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Para pantallas pequeñas (menos de 576px) */
+@media (max-width: 575.98px) {
+  .containerCol {
+    max-width: 100%;
+  }
+}
+
+/* Breakpoints de Bootstrap que coinciden con Container */
+@media (min-width: 576px) {
+  .containerCol {
+    max-width: 540px;
+  }
+}
+
+@media (min-width: 768px) {
+  .containerCol {
+    max-width: 720px;
+  }
+}
+
+@media (min-width: 992px) {
+  .containerCol {
+    max-width: 960px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .containerCol {
+    max-width: 1140px;
+  }
+}
+
+@media (min-width: 1400px) {
+  .containerCol {
+    max-width: 1320px;
+  }
+}
+
+
+/* @media only screen and (min-width: 1400px) {
+    .containerCol {
+        background-color: red;
+        max-width: 1320px;
+        
+    }
+} */
+
+/* @media only screen and (max-width: 1024px) {
+    .containerCol {
+        padding-left: calc(var(--bs-gutter-x) * 2);
+        padding-right: calc(var(--bs-gutter-x) * 2);
+        max-width: 960px;
+    }
+    
+    .col-divider::after{
+        content: none;
+    }
+}
+
+@media only screen and (max-width: 992px) {
+    .containerCol {
+        padding-left: calc(var(--bs-gutter-x) * 1.5);
+        padding-right: calc(var(--bs-gutter-x) * 1.5);
+        max-width: 960px;
+    }
+}
+
+@media only screen and (max-width: 768px) {
+    .containerCol {
+        padding-right: calc(var(--bs-gutter-x) * .9) !important;
+        padding-left: calc(var(--bs-gutter-x) * .9) !important;
+    }
+} */
+

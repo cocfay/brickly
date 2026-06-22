@@ -1,0 +1,58 @@
+.divider-horizon {
+    position: relative;
+}
+
+.divider-horizon div:not(:first-child) {
+    position: relative;
+}
+
+.divider-horizon div:not(:first-child)::before {
+    content: "";
+    position: absolute;
+    width: 1.5px;
+    background: gray;
+    height: 100%;
+    top: 0;
+    left: calc(-1.5rem - 0.75px); /* mitad exacta del gap-5 (3rem / 2) menos la mitad del ancho del divisor */
+}
+
+
+.card-floor .label{
+    background-color: gray;
+    transition: all .3s ease-in-out;
+}
+
+.card-floor:hover .label{
+    background-color: black;
+}
+
+/* ── Scroll horizontal estilo scroll-moderno ── */
+.scroll-moderno-horizontal {
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: flex;
+  gap: 1rem;
+  padding-bottom: 8px;
+  
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #c9c9c9;
+    border-radius: 10px;
+    transition: background 0.2s;
+  }
+  
+  &:hover::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.4);
+  }
+}

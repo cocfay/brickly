@@ -1,0 +1,62 @@
+.faq-asesores .accordion-button{
+    font-size: clamp(20px, 3vw, 28px);
+}
+
+.accordion-button:not(.collapsed){
+    background-color: white;
+    color: black;
+}
+
+.accordion-button:focus{
+    box-shadow: none;
+}
+
+.scroll-moderno {
+  overflow: hidden;
+  overflow-y: auto;
+  max-height: 140px;
+  height: 100%;
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #c9c9c9; /* invisible por defecto */
+    border-radius: 10px;
+    transition: background 0.2s;
+  }
+  
+  /* Aparece al hacer hover sobre el div */
+  &:hover::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Aparece al hacer hover sobre el scroll mismo */
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.4);
+  }
+}
+
+.divider-vertical > div:nth-child(1)::before{
+    content: "";
+    position: absolute;
+    width: 1.5px;
+    background-color: #c8c8c8;
+    height: calc(100% - 3rem);
+    border-radius: 10px;
+    right: calc(100% - 58.33333333%);
+    bottom: 0;
+    display: grid;
+    place-items: center;
+}
+
+@media screen and (max-width: 768px) {
+    .divider-vertical > div:nth-child(1)::before{
+        content: none;
+    }
+}

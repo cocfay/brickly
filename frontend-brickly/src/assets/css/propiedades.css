@@ -1,0 +1,42 @@
+body{
+    font-size: clamp(16px, 3vw, 20px);
+}
+
+.filterProperties .dropdown-menu {
+    margin-top: 6px;
+}
+
+@media only screen and (max-width: 993px) {
+    .filterProperties {
+        position: relative;
+    }
+}
+
+.sticky-top-ajustado {
+    position: sticky;
+    top: clamp(68px, 5.5vw, 100px);
+    z-index: 1010; 
+    background-color: white;
+}
+
+@media only screen and (max-width: 993px) {
+    /* .filterProperties div.dropdown:nth-child(3) .dropdown-menu{
+        left: 50% !important;
+        transform: translateX(-64%) translateY(43px) !important;
+       
+    }
+    .filterProperties div.dropdown:last-child .dropdown-menu{
+        left: 50% !important;
+        transform: translateX(-70%) translateY(43px) !important;
+       
+    } */
+    .second-img-section1{
+        height: 100%;
+    }
+    .sticky-top-ajustado {
+        position: sticky;
+        top: 60px;
+        z-index: 1010; 
+        background-color: white;
+    }
+}

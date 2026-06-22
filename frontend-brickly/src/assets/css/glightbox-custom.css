@@ -1,0 +1,53 @@
+/* GLightbox: Forzar visibilidad de flechas de navegación en móviles */
+/* Por defecto GLightbox oculta las flechas prev/next en pantallas < 769px */
+/* Esto las hace visibles en todos los tamaños de pantalla */
+
+.glightbox-clean .gprev,
+.glightbox-clean .gnext {
+  position: absolute;
+  top: 45% !important;
+  background-color: rgba(0, 0, 0, 0.32) !important;
+  border-radius: 4px;
+  z-index: 99999;
+  cursor: pointer;
+  width: 40px;
+  height: 50px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.glightbox-clean .gprev {
+  left: 15px !important;
+}
+
+.glightbox-clean .gnext {
+  right: 15px !important;
+}
+
+.glightbox-clean .gprev:hover,
+.glightbox-clean .gnext:hover {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Asegurar que los SVG dentro de las flechas se muestren correctamente */
+.gprev svg,
+.gnext svg {
+  display: block !important;
+  width: 25px;
+  height: auto;
+}
+
+/* En pantallas muy pequeñas, reducir tamaño de flechas */
+@media screen and (max-width: 480px) {
+  .glightbox-clean .gprev {
+    left: 5px !important;
+    width: 35px;
+    height: 40px;
+  }
+  .glightbox-clean .gnext {
+    right: 5px !important;
+    width: 35px;
+    height: 40px;
+  }
+}
