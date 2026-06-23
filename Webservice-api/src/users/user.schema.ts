@@ -15,6 +15,9 @@ export class User {
   @Prop()
   name!: string;
 
+  @Prop({ type: String, required: false, unique: true, sparse: true })
+  profileSlug?: string;
+
   @Prop()
   phone!: string;
 

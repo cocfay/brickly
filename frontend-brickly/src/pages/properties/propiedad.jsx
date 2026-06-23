@@ -15,6 +15,7 @@ import { getCurrentUser, API_URL, isAuthenticated } from '../../services/authSer
 import { amenitiesMap } from '../../cpanel/data/amenites'
 import ContactForm from '../../components/ContactForm';
 import { registerWSClick } from '../../services/countWS';
+import { getUserProfilePath } from '../../utils/profileRoutes';
 
 import alquiler from '../../assets/images/iconos/alquiler.png';
 import venta from '../../assets/images/iconos/venta.png';
@@ -950,7 +951,7 @@ function Propiedad() {
                                             </div>
                                         ) : agentes.length === 0 ? null : agentes.map((items, index) => (
                                             <div key={index} className="d-none d-xl-flex align-items-start justify-content-between align-items-lg-center flex-column flex-md-row gap-4">
-                                                <Link to={items._isAgency ? `/agencias/perfil/${items._id}` : `/agentes/perfil/${items._id}`} className='text-body'>
+                                                <Link to={getUserProfilePath(items)} className='text-body'>
                                                     <div className="d-flex align-items-start gap-2">
                                                         <div className='rounded-circle' style={{ width: '80px', height: '80px' }}><img src={items.avatar} alt="Avatar" style={{ width: '80px', height: '80px' }} className='rounded-circle object-fit-cover' loading="lazy" /></div>
                                                         <div>
@@ -970,7 +971,7 @@ function Propiedad() {
                                         
                                         { agentes.map((items, index) => (
                                             <div key={index} className="d-flex d-xl-none align-items-start justify-content-between align-items-xl-center flex-column flex-md-row gap-4">
-                                                <Link to={items._isAgency ? `/agencias/perfil/${items._id}` : `/agentes/perfil/${items._id}`} className='text-body'>
+                                                <Link to={getUserProfilePath(items)} className='text-body'>
                                                     <div className="d-flex align-items-start gap-4">
                                                         <div className='rounded-circle' style={{ width: '100px', height: '100px' }}><img src={items.avatar} alt="Avatar" style={{ width: '100px', height: '100px' }} className='rounded-circle object-fit-cover' loading="lazy" /></div>
                                                         <div>

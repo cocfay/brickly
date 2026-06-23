@@ -1,6 +1,4 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Types } from 'mongoose';
-import mongoose from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Contactsite {
@@ -20,7 +18,7 @@ export class Contactsite {
   @Prop()
   phone!: string;
 
-  @Prop({ required: true, index: true })
+  @Prop({ required: true })
   type!: string;
 
 }

@@ -13,6 +13,7 @@ import  './../assets/css/asociados.css'
 import { FormattedMessage } from 'react-intl';
 import { useT } from '../hooks/useT';
 import { getAgenciesWithProperties } from '../services/listUsers';
+import { getAgencyProfilePath } from '../utils/profileRoutes';
 import SEO from '../components/SEO';
 
 const ITEMS_PER_PAGE = 21;
@@ -194,7 +195,7 @@ function Associates() {
           <Row className='gy-5 justify-content-start mt-2'>
             {visible.map(agency => (
               <Col xl={4} md={6} key={agency._id} className=''>
-                <Link to={`/agencias/perfil/${agency._id}`} className="text-decoration-none text-dark">
+                <Link to={getAgencyProfilePath(agency)} className="text-decoration-none text-dark">
                   <Card className='rounded-1 h-100' style={{ cursor: 'pointer' }}>
                       <div className="position-relative">
                         <Card.Img

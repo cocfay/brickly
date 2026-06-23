@@ -11,6 +11,33 @@ import { ActivityLogsService } from '../activitylogs/activitylogs.service';
 
 @Injectable()
 export class UsersService {
+  private readonly reservedProfileSlugs = new Set([
+    'add',
+    'admin',
+    'agencia',
+    'agencias',
+    'agente',
+    'agentes',
+    'api',
+    'arquitecto',
+    'arquitectos',
+    'cpanel',
+    'edit',
+    'easybroker',
+    'favorites',
+    'home',
+    'list-user',
+    'list-user-me',
+    'login',
+    'me',
+    'perfil',
+    'profile',
+    'propiedad',
+    'propiedades',
+    'registro',
+    'users',
+  ]);
+
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Review.name) private reviewModel: Model<Review>,
@@ -21,8 +48,10 @@ export class UsersService {
   
   ) {}
 
-  create(data: any) {
-    return this.userModel.create(data);
+  async create(data: any) {
+    const slugSource = data.profileSlug || this.getProfileSlugSource(data);
+    const profileSlug = await this.ensureUniqueProfileSlug(slugSource);
+    return this.userModel.create({ ...data, profileSlug });
   }
 
   findByEmail(email: string) {
@@ -200,7 +229,7 @@ export class UsersService {
       const [result] = await this.userModel.aggregate(pipeline).exec();
 
       const total =  result?.totalCount?.[0]?.count || 0;
-      const data = result?.data || [];
+      const data = await this.ensureProfileSlugsForUsers(result?.data || []);
 
       return {
         total,
@@ -214,7 +243,19 @@ export class UsersService {
   async findById(id: string) {
     const user = await this.userModel.findById(id);
     if (!user) throw new NotFoundException('Usuario no encontrado');
-    return user;
+    return this.ensureProfileSlugForUser(user);
+  }
+
+  async findByProfileSlug(slug: string) {
+    const normalizedSlug = this.normalizeProfileSlug(slug);
+    let user = await this.userModel.findOne({ profileSlug: normalizedSlug });
+
+    if (!user && this.isObjectId(slug)) {
+      user = await this.userModel.findById(slug);
+    }
+
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+    return this.ensureProfileSlugForUser(user);
   }
 
   // async updateById(id: string, data: Partial<User>) {
@@ -244,13 +285,17 @@ export class UsersService {
       data.password = await bcrypt.hash(data.password, 10);
     }
 
+    if (data.profileSlug) {
+      data.profileSlug = await this.ensureUniqueProfileSlug(data.profileSlug, id);
+    }
+
     const user = await this.userModel.findByIdAndUpdate(id, data, {
       new: true,
       runValidators: true,
     });
 
     if (!user) throw new NotFoundException('Usuario no encontrado');
-    return user;
+    return this.ensureProfileSlugForUser(user);
   }
 
   async addRole(userId: string, role: Role) {
@@ -361,6 +406,80 @@ export class UsersService {
       message:
         'API KEY de EasyBroker guardada correctamente',
     };
+  }
+
+  private getProfileSlugSource(user: any) {
+    return user?.name || user?.email?.split?.('@')?.[0] || 'usuario';
+  }
+
+  private normalizeProfileSlug(value: string) {
+    const base = String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .replace(/-{2,}/g, '-')
+      .slice(0, 80)
+      .replace(/-+$/g, '');
+
+    const slug = base || 'usuario';
+    return this.reservedProfileSlugs.has(slug) ? `${slug}-perfil` : slug;
+  }
+
+  private getUserId(user: any) {
+    return user?._id?.toString?.() || user?._id || null;
+  }
+
+  private isObjectId(value: string) {
+    return /^[a-f\d]{24}$/i.test(value);
+  }
+
+  private async ensureUniqueProfileSlug(value: string, userId?: string) {
+    const baseSlug = this.normalizeProfileSlug(value);
+    let candidate = baseSlug;
+    let suffix = 2;
+
+    while (
+      await this.userModel.exists({
+        profileSlug: candidate,
+        ...(userId ? { _id: { $ne: userId } } : {}),
+      })
+    ) {
+      candidate = `${baseSlug}-${suffix}`;
+      suffix += 1;
+    }
+
+    return candidate;
+  }
+
+  private async ensureProfileSlugForUser(user: any) {
+    if (!user) return user;
+    if (user.profileSlug) return user;
+
+    const userId = this.getUserId(user);
+    if (!userId) return user;
+
+    const profileSlug = await this.ensureUniqueProfileSlug(this.getProfileSlugSource(user), userId);
+
+    if (typeof user.set === 'function' && typeof user.save === 'function') {
+      user.set('profileSlug', profileSlug);
+      await user.save();
+      return user;
+    }
+
+    await this.userModel.updateOne({ _id: userId }, { $set: { profileSlug } });
+    return { ...user, profileSlug };
+  }
+
+  private async ensureProfileSlugsForUsers(users: any[]) {
+    const usersWithSlugs: any[] = [];
+
+    for (const user of users) {
+      usersWithSlugs.push(await this.ensureProfileSlugForUser(user));
+    }
+
+    return usersWithSlugs;
   }
 
   

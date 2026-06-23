@@ -46,6 +46,11 @@ export class UsersController {
     return this.usersService.findAll(query);
   }
 
+  @Get('profile/:slug')
+  getUserByProfileSlug(@Param('slug') slug: string) {
+    return this.usersService.findByProfileSlug(slug);
+  }
+
  
 
   @Get('me')

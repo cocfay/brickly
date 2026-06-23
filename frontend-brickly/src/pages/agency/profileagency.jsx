@@ -26,7 +26,8 @@ import { useCurrency } from '../../context/CurrencyContext';
 import { getDisplayPrice } from '../../utils/priceUtils';
 import { createReview, getReviewsByAgent, updateReview, deleteReview } from '../../services/reviewService';
 import { getContactLeads } from '../../services/contactService';
-import { registerWSClick } from '../../services/countWS';
+import { getPublicProfile } from '../../services/profileService';
+import { getAgentProfilePath } from '../../utils/profileRoutes';
 import StarRating from '../../components/StarRating';
 import ContactForm from '../../components/ContactForm';
 import { isProfileComplete } from '../../utils/profileUtils';
@@ -57,6 +58,7 @@ function profileAgency() {
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
     const [loading, setLoading] = useState(true)
     const sliderContainerRef = useRef(null)
+    const [agencyId, setAgencyId] = useState(null)
 
     const syncSliderAccessibility = () => {
         const root = sliderContainerRef.current
@@ -87,31 +89,39 @@ function profileAgency() {
         return () => clearTimeout(timer)
     }, [agentesDisponibles, isMobile])
 
-    const id = useParams()
+    const params = useParams()
+    const profileIdentifier = params.slug || params.id
     const url = API_URL
     const navigate = useNavigate()
     const { isFavorite, toggle: toggleFav, canFavorite } = useFavorites()
     const { currency: currencyMode } = useCurrency()
 
     useEffect(() => {
-        const visitKey = `visited_agency_${id.id}`
+        if (!agencyId) return
+        const visitKey = `visited_agency_${agencyId}`
         if (visitRegistered.current || localStorage.getItem(visitKey)) return
         visitRegistered.current = true
-        fetch(`${API_URL}/users/${id.id}/click`, { method: 'POST' })
+        fetch(`${API_URL}/users/${agencyId}/click`, { method: 'POST' })
             .then(() => localStorage.setItem(visitKey, '1'))
             .catch(e => console.error('Error registrando visita', e))
-    }, [id])
+    }, [agencyId])
 
     useEffect(() => {
         const loadAgencyData = async () => {
             setLoadingAgentes(true);
             try {
-                const usersArr = await fetchAllPages(`${API_URL}/users/list-user`);
-                // Buscar la agencia
-                const found = usersArr.find(u => u.isEnabled && u._id === id.id);
+                if (!profileIdentifier) return;
 
-                if (!found) { setagente(null); return; }
+                const found = await getPublicProfile(profileIdentifier);
+                const roles = Array.isArray(found?.roles) ? found.roles : [found?.roles].filter(Boolean);
 
+                if (!found?.isEnabled || !roles.includes('agencia')) {
+                    setagente(null);
+                    setLoading(false);
+                    return;
+                }
+
+                setAgencyId(found._id);
                 setagente(found);
                 setwhatsappUrl(`https://wa.me/${found.phone.replace(/\D/g, '')}?text=` + encodeURIComponent('¡Hola! Estoy interesado en una propiedad.'))
 
@@ -120,7 +130,7 @@ function profileAgency() {
 
                 // Agentes hijos activos que pertenecen a esta agencia
                 const hijos = hijosAgentes.filter(u =>
-                    u.parentId === id.id &&
+                    String(u.parentId?._id || u.parentId || '') === String(found._id) &&
                     u.isEnabled
                 ).map(a => ({
                     ...a,
@@ -131,31 +141,33 @@ function profileAgency() {
                 setAgentesDisponibles(hijos);
             } catch (error) {
                 console.error('Error cargando datos de la agencia:', error);
+                setagente(null);
+                setLoading(false);
             } finally {
                 setLoadingAgentes(false);
             }
         };
         loadAgencyData();
-    }, [id.id])
+    }, [profileIdentifier])
 
     // Cargar leads de la agencia
     useEffect(() => {
-        if (!id.id) return;
+        if (!agencyId) return;
         const loadLeads = async () => {
-            const result = await getContactLeads({ agentId: id.id });
+            const result = await getContactLeads({ agentId: agencyId });
             if (result.success) {
                 setLeadsCount(Array.isArray(result.data) ? result.data.length : 0);
             }
         };
         loadLeads();
-    }, [id.id]);
+    }, [agencyId]);
 
     // Cargar propiedades de la agencia (3 más recientes + totales por modo + tipos)
     useEffect(() => {
-        if (!id.id) return;
+        if (!agencyId) return;
         const loadProps = async () => {
             try {
-                const baseUrl = `${API_URL}/properties?userId=${id.id}&status=published`;
+                const baseUrl = `${API_URL}/properties?userId=${agencyId}&status=published`;
                 const tipos = ['Casa', 'Apartamento', 'Terreno', 'Oficina', 'Bodega', 'Local comercial', 'Edificio', 'Finca'];
                 const [recentRes, ventaRes, alquilerRes, ...tipoRes] = await Promise.all([
                     fetch(`${baseUrl}&limit=3`).then(r => r.json()).catch(() => ({ data: [], total: 0 })),
@@ -182,7 +194,7 @@ function profileAgency() {
             }
         };
         loadProps();
-    }, [id.id]);
+    }, [agencyId]);
 
     const aplicarFiltro = (modo) => {
         setFiltroActivo(modo);
@@ -191,7 +203,7 @@ function profileAgency() {
         } else {
             setPropFiltradas(propiedades.filter(p => p.market?.mode === modo));
         }
-        navigate('/propiedades', { state: { userId: id.id, agentName: agente?.name, mode: modo } });
+        navigate('/propiedades', { state: { userId: agencyId, agentName: agente?.name, mode: modo } });
     };
 
     const ultimas3 = propFiltradas.slice(-3).reverse();
@@ -233,7 +245,7 @@ function profileAgency() {
                 setReviewLoading(true);
                 setReviewMsg(null);
 
-                const result = await deleteReview(id.id);
+                const result = await deleteReview(agencyId);
 
                 setReviewLoading(false);
                 if (result.success) {
@@ -268,9 +280,9 @@ function profileAgency() {
 
         let result
         if (myReview && isEditingReview) {
-            result = await updateReview({ agentId: id.id, comment: reviewComment.trim(), rating: starSelected })
+            result = await updateReview({ agentId: agencyId, comment: reviewComment.trim(), rating: starSelected })
         } else {
-            result = await createReview({ agentId: id.id, comment: reviewComment.trim(), rating: starSelected })
+            result = await createReview({ agentId: agencyId, comment: reviewComment.trim(), rating: starSelected })
         }
 
         setReviewLoading(false)
@@ -323,10 +335,10 @@ function profileAgency() {
         : 0
 
     useEffect(() => {
-        if (!id.id) return
+        if (!agencyId) return
         const loadReviews = async () => {
             try {
-                const result = await getReviewsByAgent(id.id)
+                const result = await getReviewsByAgent(agencyId)
                 if (result.success) {
                     setReviews(result.data)
                     const mine = result.data.find(r => r.reviewerId?._id === currentUser?._id)
@@ -339,7 +351,7 @@ function profileAgency() {
             }
         }
         loadReviews()
-    }, [id.id])
+    }, [agencyId])
 
     return (
         <Container style={{ marginTop: 'clamp(2rem, 3vw, 4rem)', marginBottom: 'clamp(2rem, 5vw, 5rem)' }}>
@@ -456,7 +468,7 @@ function profileAgency() {
                                                 <div style={{ maxWidth: isMobile ? '50%' : '20%', minWidth: '200px' }}>
                                                     {agentesDisponibles.map((agnt, i) => (
                                                         <div key={i} className="px-2">
-                                                            <Link to={`/agentes/perfil/${agnt._id}`} className="text-body text-decoration-none d-block">
+                                                            <Link to={getAgentProfilePath(agnt)} className="text-body text-decoration-none d-block">
                                                                 <div className="position-relative mx-auto" style={{ borderRadius: '14px', width: '100%' }}>
                                                                     <img
                                                                         src={agnt.avatarUrl || ''}
@@ -554,7 +566,7 @@ function profileAgency() {
                                                     {agentesDisponibles.map((agnt, i) => (
                                                         <div key={i}>
 
-                                                            <Link to={`/agentes/perfil/${agnt._id}`} className="text-body text-decoration-none d-block">
+                                                            <Link to={getAgentProfilePath(agnt)} className="text-body text-decoration-none d-block">
                                                                 {/* Imagen cuadrada con border-radius y estrella */}
                                                                 <div className="position-relative mx-auto" style={{ borderRadius: '14px', width: '100%', maxWidth: '200px', height: '200px' }}>
                                                                     <img
@@ -625,34 +637,34 @@ function profileAgency() {
                     <div className="d-flex flex-column flex-md-row gap-5 gap-md-0 justify-content-between align-items-center mt-5">
                         <div className='d-flex align-items-center gap-3 flex-wrap'>
                             {tiposDisponibles['Casa'] && (
-                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Casa', userId: id.id, agentName: agente.name } })}><FormattedMessage id='profileAgent.text6' /></Button>
+                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Casa', userId: agencyId, agentName: agente.name } })}><FormattedMessage id='profileAgent.text6' /></Button>
                             )}
                             {tiposDisponibles['Apartamento'] && (
-                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Apartamento', userId: id.id, agentName: agente.name } })}><FormattedMessage id='profileAgent.text7' /></Button>
+                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Apartamento', userId: agencyId, agentName: agente.name } })}><FormattedMessage id='profileAgent.text7' /></Button>
                             )}
                             {tiposDisponibles['Terreno'] && (
-                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Terreno', userId: id.id, agentName: agente.name } })}><FormattedMessage id='profileAgent.text9' /></Button>
+                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Terreno', userId: agencyId, agentName: agente.name } })}><FormattedMessage id='profileAgent.text9' /></Button>
                             )}
                             {tiposDisponibles['Oficina'] && (
-                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Oficina', userId: id.id, agentName: agente.name } })}><FormattedMessage id='profileAgent.text10' /></Button>
+                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Oficina', userId: agencyId, agentName: agente.name } })}><FormattedMessage id='profileAgent.text10' /></Button>
                             )}
                             {tiposDisponibles['Bodega'] && (
-                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Bodega', userId: id.id, agentName: agente.name } })}><FormattedMessage id='profileAgent.text8' /></Button>
+                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Bodega', userId: agencyId, agentName: agente.name } })}><FormattedMessage id='profileAgent.text8' /></Button>
                             )}
                             {tiposDisponibles['Local comercial'] && (
-                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Local comercial', userId: id.id, agentName: agente.name } })}>Local comercial</Button>
+                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Local comercial', userId: agencyId, agentName: agente.name } })}>Local comercial</Button>
                             )}
                             {tiposDisponibles['Edificio'] && (
-                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Edificio', userId: id.id, agentName: agente.name } })}>Edificio</Button>
+                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Edificio', userId: agencyId, agentName: agente.name } })}>Edificio</Button>
                             )}
                             {tiposDisponibles['Finca'] && (
-                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Finca', userId: id.id, agentName: agente.name } })}>Finca</Button>
+                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Finca', userId: agencyId, agentName: agente.name } })}>Finca</Button>
                             )}
                         </div>
 
                         <Link
                             to="/propiedades"
-                            state={{ userId: id.id, agentName: agente.name, mode: filtroActivo }}
+                            state={{ userId: agencyId, agentName: agente.name, mode: filtroActivo }}
                             className='text-body text-decoration-none d-flex align-items-center gap-2'
                             style={{fontSize: 'clamp(16px, 3vw, 18px)'}}
                         >
@@ -682,7 +694,7 @@ function profileAgency() {
                                 const imgSrc = mainPhoto ? `${url}/${mainPhoto.path}` : null;
                                 return (
                                     <div key={item._id || index} className="col-md-6 col-xl-4">
-                                        <Link to={`/propiedad/${item._id}`} className="position-relative d-block propiedades-zoom" onClick={() => sessionStorage.setItem('fromAgentId', id.id)}>
+                                        <Link to={`/propiedad/${item._id}`} className="position-relative d-block propiedades-zoom" onClick={() => sessionStorage.setItem('fromAgentId', agencyId)}>
                                             {imgSrc
                                                 ? <img src={imgSrc} className="object-fit-cover w-100 border-radius-1" style={{ aspectRatio: '4 / 4' }} alt="" loading="lazy" />
                                                 : <div className="w-100 bg-secondary border-radius-1" style={{ aspectRatio: '4 / 4' }}></div>
@@ -824,7 +836,7 @@ function profileAgency() {
                             </Col>
                             <Col md={5} className='ps-lg-5 d-none d-lg-block'>
                                 <ContactForm
-                                    agentId={id.id}
+                                    agentId={agencyId}
                                     type="Formulario Agente"
                                 />
                             </Col>
@@ -961,7 +973,7 @@ function profileAgency() {
 
                             <div className='d-block d-lg-none mt-5'>
                                 <ContactForm
-                                    agentId={id.id}
+                                    agentId={agencyId}
                                     type="Formulario Agente"
                                 />
                             </div>

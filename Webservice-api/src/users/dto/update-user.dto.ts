@@ -13,6 +13,10 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsString()
+  profileSlug?: string;
+
+  @IsOptional()
+  @IsString()
   phone?: string;
 
   @IsOptional()

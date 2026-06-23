@@ -13,7 +13,7 @@ import { FormattedMessage } from 'react-intl';
 import { API_URL } from '../../services/authService';
 import { getLogoUrl } from '../../services/logoService';
 import { getProyectosByUser } from '../../cpanel/services/proyectos';
-import { fetchAllPages } from '../../utils/fetchAll';
+import { getPublicProfile } from '../../services/profileService';
 import { useT } from '../../hooks/useT';
 
 function Profilearchitect() {
@@ -22,26 +22,27 @@ function Profilearchitect() {
 
     const pluralize = (count, singular, plural) => count === 1 ? singular : plural
 
-    const { id } = useParams();
+    const { slug, id } = useParams();
+    const profileIdentifier = slug || id;
     const [architect, setArchitect] = useState(null);
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!id) return;
+        if (!profileIdentifier) return;
         const load = async () => {
             try {
-                // Cargar arquitecto desde listado público (mismo patrón que profileagent)
-                const usersArr = await fetchAllPages(`${API_URL}/users/list-user`);
-                const found = usersArr.find(u => u.isEnabled && u._id === id) || null;
-                if (!found) {
+                const found = await getPublicProfile(profileIdentifier);
+                const roles = Array.isArray(found?.roles) ? found.roles : [found?.roles].filter(Boolean);
+
+                if (!found?.isEnabled || !roles.includes('arquitecto')) {
                     setLoading(false);
                     return;
                 }
                 setArchitect(found);
 
                 // Cargar sus proyectos usando el servicio de proyectos del cpanel
-                const projResult = await getProyectosByUser(id);
+                const projResult = await getProyectosByUser(found._id);
                 if (projResult.success) {
                     const list = Array.isArray(projResult.data) ? projResult.data : (projResult.data?.data || []);
                     // Solo mostrar proyectos publicados
@@ -53,7 +54,7 @@ function Profilearchitect() {
             setLoading(false);
         };
         load();
-    }, [id]);
+    }, [profileIdentifier]);
 
     // Obtener URL del logo de la firma
     const getLogo = () => {

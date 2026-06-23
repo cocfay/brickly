@@ -8,6 +8,7 @@ import house_aval from './../../assets/images/iconos/house_aval.png'
 import lan from './../../assets/images/iconos/lang.png'
 import leads from './../../assets/images/iconos/leads.png'
 import gpi from './../../assets/images/iconos/gpi.png';
+import nPhoto from '../../assets/images/logos/notPhoto.png';
 
 import diamond from '../../assets/images/iconos/diamond.png';
 import space from '../../assets/images/iconos/spaces.png';
@@ -26,7 +27,8 @@ import { getLogoUrl } from '../../services/logoService';
 import { createReview, getReviewsByAgent, updateReview, deleteReview } from '../../services/reviewService';
 import { getContactLeads } from '../../services/contactService';
 import { registerWSClick } from '../../services/countWS';
-import { fetchAllPages } from '../../utils/fetchAll';
+import { getPublicProfile } from '../../services/profileService';
+import { getAgencyProfilePath } from '../../utils/profileRoutes';
 import StarRating from '../../components/StarRating';
 import ContactForm from '../../components/ContactForm';
 import SEO from '../../components/SEO';
@@ -54,74 +56,87 @@ function profileAgent() {
     const [totalAlquiler, setTotalAlquiler] = useState(0)
     const [tiposMap, setTiposMap] = useState({})
     const [loading, setLoading] = useState(true)
+    const [agentId, setAgentId] = useState(null)
 
-    const id = useParams()
+    const params = useParams()
+    const profileIdentifier = params.slug || params.id
     const url = API_URL
     const navigate = useNavigate()
     const { isFavorite, toggle: toggleFav, canFavorite } = useFavorites()
     const { currency: currencyMode } = useCurrency()
 
     useEffect(() => {
-        const visitKey = `visited_agent_${id.id}`
+        if (!agentId) return
+        const visitKey = `visited_agent_${agentId}`
         if (visitRegistered.current || localStorage.getItem(visitKey)) return
         visitRegistered.current = true
-        fetch(`${API_URL}/users/${id.id}/click`, { method: 'POST' })
+        fetch(`${API_URL}/users/${agentId}/click`, { method: 'POST' })
             .then(() => localStorage.setItem(visitKey, '1'))
             .catch(e => console.error('Error registrando visita', e))
-    }, [id])
+    }, [agentId])
 
     useEffect(() => {
         const loadAgentData = async () => {
             try {
-                // Cargar el agente específico y agencias en paralelo
-                const [usersArr, agenciasArr] = await Promise.all([
-                    fetchAllPages(`${API_URL}/users/list-user?hasProperty=published&roles=agente`),
-                    fetchAllPages(`${API_URL}/users/list-user?hasProperty=published&roles=agencia`)
-                ]);
-                const agenciesMap = {};
-                agenciasArr.forEach(u => { agenciesMap[u._id] = u; });
+                if (!profileIdentifier) return;
 
-                const found = usersArr.find(u => u.isEnabled && u._id === id.id);
+                const found = await getPublicProfile(profileIdentifier);
+                const roles = Array.isArray(found?.roles) ? found.roles : [found?.roles].filter(Boolean);
 
-                if (!found) { setagente(null); return; }
+                if (!found?.isEnabled || !roles.includes('agente')) {
+                    setagente(null);
+                    setLoading(false);
+                    return;
+                }
 
-                const agencia = found.parentId ? agenciesMap[found.parentId] : null;
+                const parentId = found.parentId?._id || found.parentId;
+                let agencia = null;
+
+                if (parentId) {
+                    try {
+                        agencia = await getPublicProfile(parentId);
+                    } catch {}
+                }
                 const agent = {
                     ...found,
                     agencia: agencia && agencia.agentInfo ? {
                         _id: agencia._id,
+                        profileSlug: agencia.profileSlug,
                         name: agencia.name || 'Sin nombre',
                         avatar: getLogoUrl(agencia.agentInfo.logo)
                     } : null
                 };
 
+                setAgentId(agent._id);
                 setagente(agent);
                 setwhatsappUrl(`https://wa.me/${agent.phone.replace(/\D/g, '')}?text=` + encodeURIComponent('¡Hola! Me comunico desde la plataforma Brickly Homes. Estoy interesado en una propiedad.'))
             } catch (error) {
                 console.error('Error cargando datos del agente:', error);
+                setagente(null);
+                setLoading(false);
             }
         };
         loadAgentData();
-    }, [id.id])
+    }, [profileIdentifier])
 
     // Cargar leads del agente
     useEffect(() => {
-        if (!id.id) return;
+        if (!agentId) return;
         const loadLeads = async () => {
-            const result = await getContactLeads({ agentId: id.id });
+            const result = await getContactLeads({ agentId });
             if (result.success) {
                 setLeadsCount(Array.isArray(result.data) ? result.data.length : 0);
             }
         };
         loadLeads();
-    }, [id.id]);
+    }, [agentId]);
 
     // Cargar propiedades del agente (3 más recientes + totales por modo + tipos)
     useEffect(() => {
-        if (!id.id) return;
+        if (!agentId) return;
         const loadProps = async () => {
             try {
-                const baseUrl = `${API_URL}/properties?agents=${id.id}&status=published`;
+                const baseUrl = `${API_URL}/properties?agents=${agentId}&status=published`;
                 const tipos = ['Casa', 'Apartamento', 'Terreno', 'Oficina', 'Bodega', 'Local comercial', 'Edificio', 'Finca'];
                 const [recentRes, ventaRes, alquilerRes, ...tipoRes] = await Promise.all([
                     fetch(`${baseUrl}&limit=3&orderby=updatedAt:asc`).then(r => r.json()).catch(() => ({ data: [], total: 0 })),
@@ -148,7 +163,7 @@ function profileAgent() {
             }
         };
         loadProps();
-    }, [id.id]);
+    }, [agentId]);
 
     const aplicarFiltro = (modo) => {
         setFiltroActivo(modo);
@@ -157,7 +172,7 @@ function profileAgent() {
         } else {
             setPropFiltradas(propiedades.filter(p => p.market?.mode === modo));
         }
-        navigate('/propiedades', { state: { agentId: id.id, agentName: agente?.name, mode: modo } });
+        navigate('/propiedades', { state: { agentId, agentName: agente?.name, mode: modo } });
     };
 
     const ultimas3 = propFiltradas.slice(-3).reverse();
@@ -199,7 +214,7 @@ function profileAgent() {
                 setReviewLoading(true);
                 setReviewMsg(null);
 
-                const result = await deleteReview(id.id);
+                const result = await deleteReview(agentId);
 
                 setReviewLoading(false);
                 if (result.success) {
@@ -234,9 +249,9 @@ function profileAgent() {
 
         let result
         if (myReview && isEditingReview) {
-            result = await updateReview({ agentId: id.id, comment: reviewComment.trim(), rating: starSelected })
+            result = await updateReview({ agentId, comment: reviewComment.trim(), rating: starSelected })
         } else {
-            result = await createReview({ agentId: id.id, comment: reviewComment.trim(), rating: starSelected })
+            result = await createReview({ agentId, comment: reviewComment.trim(), rating: starSelected })
         }
 
         setReviewLoading(false)
@@ -287,10 +302,10 @@ function profileAgent() {
         : 0
 
     useEffect(() => {
-        if (!id.id) return
+        if (!agentId) return
         const loadReviews = async () => {
             try {
-                const result = await getReviewsByAgent(id.id)
+                const result = await getReviewsByAgent(agentId)
                 if (result.success) {
                     setReviews(result.data)
                     const mine = result.data.find(r => r.reviewerId?._id === currentUser?._id)
@@ -301,10 +316,13 @@ function profileAgent() {
             }
         }
         loadReviews()
-    }, [id.id])
+    }, [agentId])
 
     const [extraWSClicks, setExtraWSClicks] = useState(0);
     const totalProspectos = leadsCount + (agente?.clickCounterWs || 0) + extraWSClicks;
+    const agentAvatarUrl = agente?.avatar
+        ? API_URL + agente.avatar.replace('/uploads', '')
+        : nPhoto;
 
     return (
         <Container style={{ marginTop: 'clamp(2rem, 3vw, 4rem)', marginBottom: 'clamp(2rem, 5vw, 5rem)' }}>
@@ -317,7 +335,7 @@ function profileAgent() {
                     <Col lg={5}>
                         <div style={{ backgroundColor: '#f9f9f9' }}>
                             <div className="position-relative d-none d-lg-block">
-                                <img src={url+agente.avatar.replace('/uploads', '')} alt="Agent" className='ratio ratio-1x1 w-100 object-fit-cover border' style={{ height: '460px', objectPosition: 'top' }} loading="lazy" />
+                                <img src={agentAvatarUrl} alt="Agent" className='ratio ratio-1x1 w-100 object-fit-cover border' style={{ height: '460px', objectPosition: 'top' }} loading="lazy" />
                                 <div className="position-absolute top-0 start-0 w-100 h-100" style={{ pointerEvents: 'none', padding: '5%' }}>
                                     <div className="d-flex align-items-baseline gap-2">
                                         {agente.featured_user ? (
@@ -363,14 +381,14 @@ function profileAgent() {
                     <Col lg={7}>
                         <div>
                             { agente.agencia && (
-                                <Link to={`/agencias/perfil/${agente.agencia._id}`} className="d-flex align-items-center gap-2 gap-md-4 text-body text-decoration-none" style={{ fontSize: 'clamp(20px, 3vw, 32px)' }}>
+                                <Link to={getAgencyProfilePath(agente.agencia)} className="d-flex align-items-center gap-2 gap-md-4 text-body text-decoration-none" style={{ fontSize: 'clamp(20px, 3vw, 32px)' }}>
                                     <img src={agente.agencia.avatar} alt="company" className='ratio ratio-1x1 text-uppercase rounded-circle border' style={{ width: 'clamp(60px, 5vw, 70px)', height: 'clamp(60px, 5vw, 70px)'}} loading="lazy" />
                                     {agente.agencia.name}
                                 </Link>
                             ) }
                             <div className="lh-1 my-4"  style={{ fontSize: 'clamp(46px, 4.5vw, 142px)', fontFamily: 'AppleGaramond'  }}>{agente.name}</div>
                             <div className="position-relative d-block d-lg-none mb-4">
-                                <img src={url+agente.avatar.replace('/uploads', '')} alt="Agent" className='ratio ratio-1x1 w-100 object-fit-cover border' style={{ height: '460px', objectPosition: 'top' }} loading="lazy" />
+                                <img src={agentAvatarUrl} alt="Agent" className='ratio ratio-1x1 w-100 object-fit-cover border' style={{ height: '460px', objectPosition: 'top' }} loading="lazy" />
                                 <div className="position-absolute top-0 start-0 w-100 h-100" style={{ pointerEvents: 'none', padding: '5%' }}>
                                     <div className="d-flex align-items-baseline gap-2">
                                         {agente.featured_user ? (
@@ -406,7 +424,7 @@ function profileAgent() {
                                 </div>
                             </div>
                             <div className='mt-5 d-flex justify-content-center justify-content-lg-start'>
-                                <Link to={whatsappUrl} target='_blank' className="rounded-1 text-center border-0 fs-6 px-3 py-2" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box' }} onClick={async (e) => { e.preventDefault(); const success = await registerWSClick(id.id); if (success) setExtraWSClicks(prev => prev + 1); window.open(whatsappUrl, '_blank'); }}><i className="fa-brands fa-whatsapp me-1"></i> <FormattedMessage id="profileAgent.text5" /> </Link>
+                                <Link to={whatsappUrl} target='_blank' className="rounded-1 text-center border-0 fs-6 px-3 py-2" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box' }} onClick={async (e) => { e.preventDefault(); const success = await registerWSClick(agentId); if (success) setExtraWSClicks(prev => prev + 1); window.open(whatsappUrl, '_blank'); }}><i className="fa-brands fa-whatsapp me-1"></i> <FormattedMessage id="profileAgent.text5" /> </Link>
                             </div>
                         </div>
                     </Col>
@@ -439,34 +457,34 @@ function profileAgent() {
                 <div className="d-flex flex-column flex-md-row gap-5 gap-md-0 justify-content-between align-items-center mt-5">
                     <div className='d-flex align-items-center gap-3 flex-wrap'>
                         {tiposDisponibles['Casa'] && (
-                            <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Casa', agentId: id.id, agentName: agente.name } })}><FormattedMessage id='profileAgent.text6' /></Button>
+                            <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Casa', agentId, agentName: agente.name } })}><FormattedMessage id='profileAgent.text6' /></Button>
                         )}
                         {tiposDisponibles['Apartamento'] && (
-                            <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Apartamento', agentId: id.id, agentName: agente.name } })}><FormattedMessage id='profileAgent.text7' /></Button>
+                            <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Apartamento', agentId, agentName: agente.name } })}><FormattedMessage id='profileAgent.text7' /></Button>
                         )}
                         {tiposDisponibles['Terreno'] && (
-                            <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Terreno', agentId: id.id, agentName: agente.name } })}><FormattedMessage id='profileAgent.text9' /></Button>
+                            <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Terreno', agentId, agentName: agente.name } })}><FormattedMessage id='profileAgent.text9' /></Button>
                         )}
                         {tiposDisponibles['Oficina'] && (
-                            <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Oficina', agentId: id.id, agentName: agente.name } })}><FormattedMessage id='profileAgent.text10' /></Button>
+                            <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Oficina', agentId, agentName: agente.name } })}><FormattedMessage id='profileAgent.text10' /></Button>
                         )}
                             {tiposDisponibles['Bodega'] && (
-                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Bodega', agentId: id.id, agentName: agente.name } })}><FormattedMessage id='profileAgent.text8' /></Button>
+                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Bodega', agentId, agentName: agente.name } })}><FormattedMessage id='profileAgent.text8' /></Button>
                             )}
                             {tiposDisponibles['Local comercial'] && (
-                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Local comercial', agentId: id.id, agentName: agente.name } })}>Local comercial</Button>
+                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Local comercial', agentId, agentName: agente.name } })}>Local comercial</Button>
                             )}
                             {tiposDisponibles['Edificio'] && (
-                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Edificio', agentId: id.id, agentName: agente.name } })}>Edificio</Button>
+                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Edificio', agentId, agentName: agente.name } })}>Edificio</Button>
                             )}
                             {tiposDisponibles['Finca'] && (
-                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Finca', agentId: id.id, agentName: agente.name } })}>Finca</Button>
+                                <Button variant='light' style={{ borderColor: '#cbcbcb' }} onClick={() => navigate('/propiedades', { state: { type: 'Finca', agentId, agentName: agente.name } })}>Finca</Button>
                             )}
                         </div>
 
                     <Link
                         to="/propiedades"
-                        state={{ agentId: id.id, agentName: agente.name, mode: filtroActivo }}
+                        state={{ agentId, agentName: agente.name, mode: filtroActivo }}
                         className='text-body d-flex align-items-center gap-2 text-decoration-none'
                         style={{fontSize: 'clamp(16px, 3vw, 18px)'}}
                     >
@@ -496,7 +514,7 @@ function profileAgent() {
                             const imgSrc = mainPhoto ? `${url}/${mainPhoto.path}` : null;
                             return (
                                 <div key={item._id || index} className="col-md-6 col-xl-4">
-                                    <Link to={`/propiedad/${item._id}`} className="position-relative d-block propiedades-zoom" onClick={() => sessionStorage.setItem('fromAgentId', id.id)}>
+                                    <Link to={`/propiedad/${item._id}`} className="position-relative d-block propiedades-zoom" onClick={() => sessionStorage.setItem('fromAgentId', agentId)}>
                                         {imgSrc
                                             ? <img src={imgSrc} className="object-fit-cover w-100 border-radius-1" style={{ aspectRatio: '4 / 4' }} alt="" loading="lazy" />
                                             : <div className="w-100 bg-secondary border-radius-1" style={{ aspectRatio: '4 / 4' }}></div>
@@ -638,7 +656,7 @@ function profileAgent() {
                         </Col>
                         <Col md={5} className='ps-lg-5 d-none d-lg-block'>
                             <ContactForm
-                                agentId={id.id}
+                                agentId={agentId}
                                 type="Formulario Agente"
                             />
                         </Col>
@@ -775,7 +793,7 @@ function profileAgent() {
                         }
                         <div className='d-block d-lg-none mt-5'>
                             <ContactForm
-                                agentId={id.id}
+                                agentId={agentId}
                                 type="Formulario Agente"
                             />
                         </div>

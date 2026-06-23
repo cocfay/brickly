@@ -120,6 +120,7 @@ const App = () => {
               <Route path="arquitectos" element={<Arquitectos />} />
               <Route path="arquitectos/perfil/:id" element={<Profilearchitect />} />
               <Route path="arquitectos/proyecto/:id" element={<Projectarchitect />} />
+              <Route path="arquitectos/:slug" element={<Profilearchitect />} />
               <Route path="proyectos" element={<Project />} />
               <Route path="proyectos/apartamento/:id" element={<Apartament />} />
               <Route path="proyectos/apartamento/piso" element={<Floor />} />
@@ -128,6 +129,8 @@ const App = () => {
               <Route path="agentes" element={<SearchAgent />} />
               <Route path="agentes/perfil/:id" element={<ProfileAgent />} />
               <Route path="agencias/perfil/:id" element={<ProfileAgency />} />
+              <Route path="agentes/:slug" element={<ProfileAgent />} />
+              <Route path="agencias/:slug" element={<ProfileAgency />} />
               <Route path="asociados" element={<Associates />} />
               <Route path="terms" element={<Term />} />
               <Route path="terms/details" element={<Document />} />

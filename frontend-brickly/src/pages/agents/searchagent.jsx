@@ -7,6 +7,7 @@ import banner from './../../assets/images/imagenes_de_fondo/banner_agentes.webp'
 import banner_movil from './../../assets/images/imagenes_de_fondo/banner_agentes_movil.webp'
 import gpi from './../../assets/images/iconos/gpi.png';
 import diamond from '../../assets/images/iconos/diamond.png';
+import nPhoto from '../../assets/images/logos/notPhoto.png';
 import './../../assets/css/asesores.css'
 
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -16,6 +17,7 @@ import StarRating from '../../components/StarRating';
 import SEO from '../../components/SEO';
 import { fetchAllPages } from '../../utils/fetchAll';
 import { useT } from '../../hooks/useT';
+import { getAgentProfilePath } from '../../utils/profileRoutes';
 
 function About() {
   const intl = useIntl();
@@ -382,12 +384,12 @@ function About() {
                     {visibleAgents.map((items, index) => (
 
                         <Col xl={4} md={6} key={items._id || index}>
-                            <Link to={`/agentes/perfil/${items._id}`}>
+                            <Link to={getAgentProfilePath(items)}>
                                 <Card className='rounded-1'>
                                     <div className="position-relative">
                                         <Card.Img
                                             variant="top"
-                                            src={url+items.avatar.replace('/uploads', '')}
+                                            src={items.avatar ? url + items.avatar.replace('/uploads', '') : nPhoto}
                                             className='object-fit-cover border'
                                             style={{ height: '380px' }}
                                         />

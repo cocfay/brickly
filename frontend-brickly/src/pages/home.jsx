@@ -62,6 +62,7 @@ import StarRating from '../components/StarRating';
 import { cleanExpiredFeatured } from '../services/cleanExpiredFeatured';
 import { fetchAllPages, fetchPropertiesByPriceRange, fetchPropertiesByLocation } from '../utils/fetchAll';
 import { registerWSClick } from '../services/countWS';
+import { getAgencyProfilePath, getUserProfilePath } from '../utils/profileRoutes';
 
 const formatPrice = (value, currency) => {
   const num = parseFloat(value) || 0;
@@ -164,12 +165,15 @@ function Home() {
             const agencia = agent.parentId ? usersMap[agent.parentId] : null;
             return {
               _id: agent._id,
+              profileSlug: agent.profileSlug,
               name: agent.name || '',
               phone: agent.phone || '',
               avatar: agent.avatar ? API_URL + agent.avatar.replace('/uploads', '') : null,
               ratingAverage: agent.ratingAverage ?? 0,
               _isAgency: agentRoles.includes('agencia'),
               agencia: agencia ? {
+                _id: agencia._id,
+                profileSlug: agencia.profileSlug,
                 name: agencia.name || '',
                 avatar: agencia.avatar ? API_URL + agencia.avatar.replace('/uploads', '') : null
               } : null
@@ -712,7 +716,7 @@ function Home() {
                           return (
                           <div key={agent._id}>
                             <div className="d-none d-md-flex align-items-start justify-content-between align-items-lg-center flex-column flex-md-row gap-4">
-                              <Link to={agent._isAgency ? `/agencias/perfil/${agent._id}` : `/agentes/perfil/${agent._id}`} className='text-body' onClick={(e) => e.stopPropagation()}>
+                              <Link to={getUserProfilePath(agent)} className='text-body' onClick={(e) => e.stopPropagation()}>
                                 <div className="d-flex align-items-center gap-2">
                                   <div className='rounded-circle' style={{ width: '60px', height: '60px' }}>
                                     <img src={agent.avatar || avatar} alt="Avatar" width="60" height="60" className='rounded-circle object-fit-cover' />
@@ -732,7 +736,7 @@ function Home() {
                             </div>
                             {/* Versión móvil del agente - mismo diseño que en propiedad.jsx */}
                             <div key={agent._id + '-mobile'} className="d-flex d-md-none align-items-start justify-content-between align-items-lg-center flex-column flex-md-row gap-4">
-                              <Link to={agent._isAgency ? `/agencias/perfil/${agent._id}` : `/agentes/perfil/${agent._id}`} className='text-body' onClick={(e) => e.stopPropagation()}>
+                              <Link to={getUserProfilePath(agent)} className='text-body' onClick={(e) => e.stopPropagation()}>
                                 <div className="d-flex align-items-start gap-4">
                                   <div className='rounded-circle' style={{ width: '100px', height: '100px' }}>
                                     <img src={agent.avatar || avatar} alt="Avatar" width="100" height="100" className='rounded-circle object-fit-cover' />
@@ -1140,7 +1144,7 @@ function Home() {
                                   return (
                                 <div className='d-flex flex-column gap-4'>
                                     <div key={agent._id} className="d-none d-md-flex align-items-start justify-content-between align-items-lg-center flex-column flex-md-row gap-4">
-                                        <Link to={agent._isAgency ? `/agencias/perfil/${agent._id}` : `/agentes/perfil/${agent._id}`} className='text-body'>
+                                        <Link to={getUserProfilePath(agent)} className='text-body'>
                                             <div className="d-flex align-items-start gap-2">
                                                 <div className='rounded-circle' style={{ width: '60px', height: '60px' }}><img src={agent.avatar} alt="Avatar" width="60" height="60" className='rounded-circle object-fit-cover' /></div>
                                                 <div>
@@ -1158,7 +1162,7 @@ function Home() {
                                     </div>
                                 
                                     <div key={agent._id + '-mobile'} className="d-flex d-md-none align-items-start justify-content-between align-items-lg-center flex-column flex-md-row gap-4">
-                                        <Link to={agent._isAgency ? `/agencias/perfil/${agent._id}` : `/agentes/perfil/${agent._id}`} className='text-body'>
+                                        <Link to={getUserProfilePath(agent)} className='text-body'>
                                             <div className="d-flex align-items-start gap-4">
                                                 <div className='rounded-circle' style={{ width: '100px', height: '100px' }}><img src={agent.avatar} alt="Avatar" width="100" height="100" className='rounded-circle object-fit-cover' /></div>
                                                 <div>
@@ -1386,14 +1390,15 @@ function Home() {
               <Slider {...settings} className="carrusel" slidesToShow={getSlides(5, 3, 2)} afterChange={() => syncAssociatesSliderAccessibility()}>
                 {asociados.map((item, idx) => {
                   const imgUrl = item.logo_url ? getLogoUrl(item.logo_url) : null;
+                  const agencyProfile = usersMap[item.type] || item.type;
                   return (
                     <div key={item._id || idx} className="items logos d-flex justify-content-center">
                       {imgUrl ? (
-                        <Link to={`/agencias/perfil/${item.type}`}>
+                        <Link to={getAgencyProfilePath(agencyProfile)}>
                           <img src={imgUrl} alt={item.name || 'Asociado'} className="rounded-circle border" style={{ width: "clamp(120px, 20vw, 150px)", height: 'clamp(120px, 20vw, 150px)', objectFit: 'cover' }} />
                         </Link>
                       ) : (
-                        <Link to={`/agencias/perfil/${item.type}`}>
+                        <Link to={getAgencyProfilePath(agencyProfile)}>
                           <div className="d-flex align-items-center justify-content-center bg-light" style={{ width: "clamp(120px, 20vw, 150px)", height: 'clamp(120px, 20vw, 150px)', borderRadius: '8px' }}>
                             <i className="fa-solid fa-image fs-1 text-muted"></i>
                           </div>

@@ -27,6 +27,7 @@ import arrow from '../../../assets/images/iconos/arrow.png'
 import { useEffect, useState } from 'react';
 import { useT } from '../../../hooks/useT';
 import { validateRequiredFields } from '../../services/validacionPropiedades';
+import { getUserProfilePath } from '../../../utils/profileRoutes';
 import './../../../assets/css/asesores.css';
 
 function View() {
@@ -1126,7 +1127,7 @@ function View() {
                                             </div>
                                         ) : agentes.length === 0 ? null : agentes.map((items, index) => (
                                             <div key={index} className="d-none d-xl-flex align-items-start justify-content-between align-items-lg-center flex-column flex-md-row gap-4">
-                                                <Link to={items._isAgency ? `/agencias/perfil/${items._id}` : `/agentes/perfil/${items._id}`} className='text-body'>
+                                                <Link to={getUserProfilePath(items)} className='text-body'>
                                                     <div className="d-flex align-items-start gap-2">
                                                         <div className='rounded-circle' style={{ width: '80px', height: '80px' }}><img src={items.avatar} alt="Avatar" style={{ width: '80px', height: '80px' }} className='rounded-circle object-fit-cover' /></div>
                                                         <div>
@@ -1146,7 +1147,7 @@ function View() {
                                         
                                         { agentes.map((items, index) => (
                                             <div key={index} className="d-flex d-xl-none align-items-start justify-content-between align-items-xl-center flex-column flex-md-row gap-4">
-                                                <Link to={items._isAgency ? `/agencias/perfil/${items._id}` : `/agentes/perfil/${items._id}`} className='text-body'>
+                                                <Link to={getUserProfilePath(items)} className='text-body'>
                                                     <div className="d-flex align-items-start gap-4">
                                                         <div className='rounded-circle' style={{ width: '100px', height: '100px' }}><img src={items.avatar} alt="Avatar" style={{ width: '100px', height: '100px' }} className='rounded-circle object-fit-cover' /></div>
                                                         <div>

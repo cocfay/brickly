@@ -3,6 +3,7 @@ import { Container, Row, Col } from 'react-bootstrap';
 import { Link, useParams } from 'react-router-dom';
 import { getProyectoById } from '../../cpanel/services/proyectos';
 import { getLogoUrl } from '../../services/logoService';
+import { getArchitectProfilePath } from '../../utils/profileRoutes';
 import '../../assets/css/arquitectos.css';
 
 import arrow from '../../assets/images/iconos/arrow.png';
@@ -52,7 +53,7 @@ function Projectarchitect() {
     const mainImage = getImageSrc(proyecto.mainImage);
     const mobileImage = getImageSrc(proyecto.mainImageAlter);
     const galleryImages = proyecto.images || [];
-    const architectId = proyecto.userId || proyecto.user?._id || proyecto.user;
+    const architectProfile = proyecto.user || proyecto.userId;
 
     return (
         <div style={{ marginBottom: 'clamp(2rem, 5vw, 5rem)' }} className='position-relative'>
@@ -90,7 +91,7 @@ function Projectarchitect() {
                     <Row className='g-0 align-items-stretch'>
                         <Col md={8} className='bleed-left-content pe-lg-4'>
                             <Link
-                                to={architectId ? `/arquitectos/perfil/${architectId}` : '/arquitectos'}
+                                to={architectProfile ? getArchitectProfilePath(architectProfile) : '/arquitectos'}
                                 className='d-block my-4 text-end'
                                 title='Atrás'
                             >
@@ -144,7 +145,7 @@ function Projectarchitect() {
                 {/* 2. Título y contenido */}
                 <Container>
                     <Link
-                        to={architectId ? `/arquitectos/perfil/${architectId}` : '/arquitectos'}
+                        to={architectProfile ? getArchitectProfilePath(architectProfile) : '/arquitectos'}
                         className='d-block my-4 text-end'
                         title='Atrás'
                     >

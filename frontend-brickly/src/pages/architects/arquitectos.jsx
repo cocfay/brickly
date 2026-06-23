@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { getArchitectsWithProjects } from '../../services/listUsers';
 import { getLogoUrl } from '../../services/logoService';
+import { getArchitectProfilePath } from '../../utils/profileRoutes';
 
 import '../../assets/css/arquitectos.css'
 import bannerPrimary from '../../assets/images/imagenes_de_fondo/banner_home_arq.webp'
@@ -307,7 +308,7 @@ function Arquitectos() {
                             {arquitectosFiltrados.length > 0 ? (
                                 arquitectosFiltrados.slice(0, 6).map((arq, idx) => (
                                     <Col key={arq._id || idx} xl={4} md={6}>
-                                        <Link to={`/arquitectos/perfil/${arq._id}`}>
+                                        <Link to={getArchitectProfilePath(arq)}>
                                             <Card className='rounded-1'>
                                                 <Card.Img 
                                                     variant="top" 
