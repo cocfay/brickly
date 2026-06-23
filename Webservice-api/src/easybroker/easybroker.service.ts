@@ -178,10 +178,23 @@ export class EasybrokerService {
 
     const market = this.buildMarket(item);
     const amenities = this.buildAmenities(item.features);
+    const shouldUpdateSlug =
+      !existingProperty?.propertySlug ||
+      existingProperty?.market?.title !== market.title;
+    const propertySlug = shouldUpdateSlug
+      ? await this.ensureUniquePropertySlug(
+          market.title || item.public_id || folderId,
+          existingProperty?._id?.toString(),
+        )
+      : existingProperty.propertySlug;
+    const address = item.location?.name || '';
+
     const propertyData = {
       userId: new Types.ObjectId(userId),
 
       ...(existingProperty? {}:{folderId} ),
+
+      propertySlug,
 
       easyBrokerId: item.public_id,
 
@@ -198,12 +211,11 @@ export class EasybrokerService {
       market,
 
       location: {
-        department: this.detectarDepartamento(item.location?.name || 'ninguno'),
+        department: this.detectarDepartamento(address || 'ninguno'),
         municipality: 'ninguno',
-        zone:'',
+        zone: this.detectarZona(address),
         gatedCommunity: 'ninguno',
-        address:
-          item.location?.name || '',
+        address,
 
         coordinates: {
           type: 'Point',
@@ -485,6 +497,68 @@ export class EasybrokerService {
     }
 
     return 'ninguno';
+  }
+  private detectarZona(direccion: string): string {
+    const texto = String(direccion || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+    const match = texto.match(/\b(?:zona|zone|z\.?)\s*#?\s*(\d{1,2})\b/);
+    if (!match) return 'ninguno';
+
+    const zoneNumber = Number(match[1]);
+    if (!Number.isInteger(zoneNumber) || zoneNumber < 1 || zoneNumber > 25) {
+      return 'ninguno';
+    }
+
+    return `Zona ${zoneNumber}`;
+  }
+  private normalizePropertySlug(value: string) {
+    const base = String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .replace(/-{2,}/g, '-')
+      .slice(0, 100)
+      .replace(/-+$/g, '');
+
+    const slug = base || 'propiedad';
+    return this.reservedPropertySlugs.has(slug) ? `${slug}-propiedad` : slug;
+  }
+
+  private reservedPropertySlugs = new Set([
+    'metricas',
+    'metricas-adm',
+    'var-ranges',
+    'count',
+    'add',
+    'edit',
+    'view',
+    'planes',
+    'propiedad',
+    'propiedades',
+    'api',
+  ]);
+
+  private async ensureUniquePropertySlug(value: string, propertyId?: string) {
+    const baseSlug = this.normalizePropertySlug(value);
+    let candidate = baseSlug;
+    let suffix = 2;
+
+    while (
+      await this.propertyModel.exists({
+        propertySlug: candidate,
+        ...(propertyId ? { _id: { $ne: propertyId } } : {}),
+      })
+    ) {
+      candidate = `${baseSlug}-${suffix}`;
+      suffix += 1;
+    }
+
+    return candidate;
   }
   async restorePropertyImages(userId: string) {
       const user = await this.userModel.findById(userId);
