@@ -15,6 +15,7 @@ import { API_URL } from '../services/authService';
 import { toggleFavorite, getFavorites } from '../services/favoritesService';
 import { useCurrency } from '../context/CurrencyContext';
 import { getDisplayPrice } from '../utils/priceUtils';
+import { getPropertyPath } from '../utils/propertyRoutes';
 
 import '../assets/css/favoritos.css';
 
@@ -124,7 +125,7 @@ function Favoritos() {
                                 {filtrados.map(item => (
                                     <div key={item._id} className="col-md-3">
                                         <div className="position-relative d-block">
-                                            <Link to={`/propiedad/${item._id}`} className="d-block propiedades-zoom">
+                                            <Link to={getPropertyPath(item)} className="d-block propiedades-zoom">
                                                 <img
                                                     src={URL + '/' + item.media?.photos?.[0]?.path}
                                                     className="object-fit-cover w-100 border-radius-1"
@@ -148,7 +149,7 @@ function Favoritos() {
                                                 </div>
                                             </Link>
                                         </div>
-                                        <Link className="text-body flex-grow-1 d-flex flex-column" to={`/propiedad/${item._id}`}>
+                                        <Link className="text-body flex-grow-1 d-flex flex-column" to={getPropertyPath(item)}>
                                             <div className='mt-3 d-flex flex-column flex-grow-1'>
                                                 <div className="text-truncate" style={{ fontSize: 'clamp(34px, 6vw, 46px)', fontFamily: 'AppleGaramond' }}>{ item.market.title }</div>
                                                 <div>

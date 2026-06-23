@@ -80,8 +80,11 @@ Notas de `profileSlug`:
 
 - Se normaliza desde `name`, o desde el prefijo del `email` si no hay nombre.
 - Se guarda unico por usuario y agrega sufijos (`-2`, `-3`, etc.) cuando hay colisiones.
-- Reserva slugs sensibles como `perfil`, `profile`, `me`, `list-user`, `favorites`, `easybroker`, `easybroker-adm`, `login`, `register`, `admin`, `api`, `users`; en esos casos agrega `-perfil`.
-- `GET /users/profile/:slug`, `GET /users/:id` y los listados aseguran que el usuario devuelto tenga `profileSlug`.
+- Reserva slugs sensibles como `perfil`, `profile`, `me`, `list-user`, `favorites`, `easybroker`, `login`, `registro`, `admin`, `api`, `users`; en esos casos agrega `-perfil`.
+- `POST /auth/register`, `POST /auth/create-user` y creaciones internas guardan `profileSlug` desde el inicio.
+- `GET /users/profile/:slug` y `GET /users/:id` mantienen autorreparacion puntual si el usuario no tiene `profileSlug`.
+- Los listados no generan ni guardan slugs; son solo lectura.
+- El script `npm run backfill:profile-slugs` genera slugs para usuarios existentes que aun no tengan `profileSlug`.
 
 Filtros utiles de `/users/list-user`:
 
@@ -104,11 +107,11 @@ Controlador: `src/properties/properties.controller.ts`
 | GET | `/properties/metricas` | JWT | Sin entrada | Metricas del usuario logueado y sus subusuarios. |
 | GET | `/properties/metricas-adm` | JWT + rol `admin` | Sin entrada | Metricas administrativas globales. |
 | GET | `/properties/var-ranges` | Publica | Sin entrada | Rangos min/max de precio y tamanos para propiedades publicadas. |
-| GET | `/properties/:id` | Publica | Param: `id` | Obtiene propiedad por id. |
+| GET | `/properties/:id` | Publica | Param: `id` ObjectId o `propertySlug` | Obtiene propiedad por id o slug amigable. Si la propiedad no tiene `propertySlug`, lo genera y guarda automaticamente. |
 | PUT | `/properties/:id` | JWT + roles `admin`, `desarrolladora`, `agencia`, `agente` | Param: `id`; Body `UpdatePropertyDto` | Actualiza propiedad. Si viene `media`, mueve/optimiza archivos temporales. |
 | DELETE | `/properties/:id` | JWT + roles `admin`, `desarrolladora`, `agencia`, `agente` | Param: `id` | Elimina propiedad. |
-| POST | `/properties/:id/visit` | Publica | Param: `id` | Incrementa visitas y crea activity log. |
-| POST | `/properties/:id/click` | Publica | Param: `id` | Incrementa clicks y crea activity log. |
+| POST | `/properties/:id/visit` | Publica | Param: `id` ObjectId o `propertySlug` | Incrementa visitas y crea activity log. |
+| POST | `/properties/:id/click` | Publica | Param: `id` ObjectId o `propertySlug` | Incrementa clicks y crea activity log. |
 | GET | `/properties/metricas/:id` | JWT | Param: `id` usuario/agencia | Metricas de un usuario/agencia especifica. |
 | GET | `/properties/metricas-agente/:id` | JWT | Param: `id` agente | Metricas de agente. |
 | GET | `/properties/count/status-agents/:id` | Publica | Param: `id` agencia/usuario | Reporte de propiedades por agente y status. |
@@ -116,13 +119,21 @@ Controlador: `src/properties/properties.controller.ts`
 
 Campos principales de `CreatePropertyDto` / `UpdatePropertyDto`:
 
-- `userId`, `featured`, `exclusive`, `status`, `agents`.
+- `userId`, `featured`, `exclusive`, `status`, `propertySlug`, `agents`.
 - `market`: `title`, `description`, `price`, `priceUSD`, `exchangeRate`, `operationType`, `propertyType`, `pricePerM2`, `priceM2USD`, `type`, `mode`, `showprice`.
 - `dimensions`: `landM2`, `landV2`, `constructionM2`, `storageM2`.
 - `expenses`: `stoveType`, `municipality`, `waterService`, `includes`, `iusi`, `maintenanceCost`.
 - `structure`: `constructionYear`, `remodelYear`, `levels`, `ceilingHeight`, `perimeterWall`.
 - `layout`: `totalRooms`, `bedrooms`, `bathrooms`, `halfBathrooms`, `serviceRoom`, `deck`, `parkingSpots`, `furnished`, `floors`, `driveaway`, `laundry`, `study`, `familyroom`.
 - `location`, `amenities`, `media`, `extraFeatures`, `folderId`, `reasonRejected`.
+
+Notas de `propertySlug`:
+
+- Se genera desde `market.title` al crear una propiedad.
+- Si `market.title` cambia al editar, se genera un nuevo slug desde el nuevo titulo.
+- Se guarda unico por propiedad y agrega sufijos (`-2`, `-3`, etc.) cuando hay colisiones.
+- Reserva slugs sensibles como `metricas`, `metricas-adm`, `var-ranges`, `count`, `add`, `edit`, `view`, `planes`, `propiedad`, `propiedades`, `api`; en esos casos agrega `-propiedad`.
+- El script `npm run backfill:property-slugs` genera slugs para propiedades existentes que aun no tengan `propertySlug`.
 
 Filtros utiles de `GET /properties`:
 

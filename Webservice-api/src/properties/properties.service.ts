@@ -21,11 +21,14 @@ export class PropertiesService {
     private readonly activityLogsService: ActivityLogsService,
   ) {}
 
-  create(dto: CreatePropertyDto) {
+  async create(dto: CreatePropertyDto) {
     const createData:any = {...dto};
     if(dto.userId){
       createData.userId = new Types.ObjectId(dto.userId);
     }
+    createData.propertySlug = await this.ensureUniquePropertySlug(
+      createData.propertySlug || this.getPropertySlugSource(createData),
+    );
 
     return this.propertyModel.create(createData);
   }
@@ -162,6 +165,8 @@ export class PropertiesService {
                 .lean()
             ]);
 
+        const properties = await this.ensurePropertySlugsForProperties(data);
+
         return {
           total,
           page,
@@ -169,21 +174,51 @@ export class PropertiesService {
           totalPages: Math.ceil(
             total / limit,
           ),
-          data,
+          data: properties,
         };
       }
 
   async findById(id: string) {
-    const property = await this.propertyModel.findById(id);
+    let property = await this.propertyModel.findOne({
+      propertySlug: this.normalizePropertySlug(id),
+    });
+
+    if (!property && this.isObjectId(id)) {
+      property = await this.propertyModel.findById(id);
+    }
+
     if (!property) throw new NotFoundException('Property not found');
-    return property;
+    return this.ensurePropertySlugForProperty(property);
   }
 
   async update(id: string, dto: UpdatePropertyDto) {
+    const currentProperty = await this.propertyModel.findById(id);
+    if (!currentProperty) throw new NotFoundException('Property not found');
+
     const updateData:any = {...dto};
     if(dto.userId){
       updateData.userId = new Types.ObjectId(dto.userId);
     }
+
+    const incomingTitle = dto.market?.title;
+    const currentTitle = currentProperty.market?.title;
+    if (dto.propertySlug) {
+      updateData.propertySlug = await this.ensureUniquePropertySlug(
+        dto.propertySlug,
+        id,
+      );
+    } else if (incomingTitle && incomingTitle !== currentTitle) {
+      updateData.propertySlug = await this.ensureUniquePropertySlug(
+        incomingTitle,
+        id,
+      );
+    } else if (!currentProperty.propertySlug) {
+      updateData.propertySlug = await this.ensureUniquePropertySlug(
+        this.getPropertySlugSource(currentProperty),
+        id,
+      );
+    }
+
     const property = await this.propertyModel.findByIdAndUpdate(id,{ $set: updateData }, {
       new: true,
     });
@@ -204,26 +239,30 @@ export class PropertiesService {
   }
 
   async incrementVisits(propertyId: string) {
+    const property = await this.findById(propertyId);
+
     await this.activityLogsService.create({
       type: 'property',
-      userId: propertyId.toString(),
+      userId: property._id.toString(),
       action: 'visit',
     });
     
     return this.propertyModel.findByIdAndUpdate(
-      propertyId,
+      property._id,
       { $inc: { visitCounter: 1 } },
       { new: true }
     );
   }
   async incrementClicks(propertyId: string) {
+    const property = await this.findById(propertyId);
+
     await this.activityLogsService.create({
       type: 'property',
-      userId: propertyId.toString(),
+      userId: property._id.toString(),
       action: 'click',
     });
     return this.propertyModel.findByIdAndUpdate(
-      propertyId,
+      property._id,
       { $inc: { clickCounter: 1 } },
       { new: true }
     );
@@ -1379,4 +1418,91 @@ export class PropertiesService {
           }
         };
       }
+
+  private getPropertySlugSource(property: any) {
+    return property?.market?.title || property?.folderId || 'propiedad';
+  }
+
+  private normalizePropertySlug(value: string) {
+    const base = String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .replace(/-{2,}/g, '-')
+      .slice(0, 100)
+      .replace(/-+$/g, '');
+
+    const slug = base || 'propiedad';
+    return this.reservedPropertySlugs.has(slug) ? `${slug}-propiedad` : slug;
+  }
+
+  private reservedPropertySlugs = new Set([
+    'metricas',
+    'metricas-adm',
+    'var-ranges',
+    'count',
+    'add',
+    'edit',
+    'view',
+    'planes',
+    'propiedad',
+    'propiedades',
+    'api',
+  ]);
+
+  private isObjectId(value: string) {
+    return /^[a-f\d]{24}$/i.test(value);
+  }
+
+  private getPropertyId(property: any) {
+    return property?._id?.toString?.() || property?._id || null;
+  }
+
+  private async ensureUniquePropertySlug(value: string, propertyId?: string) {
+    const baseSlug = this.normalizePropertySlug(value);
+    let candidate = baseSlug;
+    let suffix = 2;
+
+    while (
+      await this.propertyModel.exists({
+        propertySlug: candidate,
+        ...(propertyId ? { _id: { $ne: propertyId } } : {}),
+      })
+    ) {
+      candidate = `${baseSlug}-${suffix}`;
+      suffix += 1;
+    }
+
+    return candidate;
+  }
+
+  private async ensurePropertySlugForProperty(property: any) {
+    if (!property) return property;
+    if (property.propertySlug) return property;
+
+    const propertyId = this.getPropertyId(property);
+    if (!propertyId) return property;
+
+    const propertySlug = await this.ensureUniquePropertySlug(
+      this.getPropertySlugSource(property),
+      propertyId,
+    );
+
+    if (typeof property.set === 'function' && typeof property.save === 'function') {
+      property.set('propertySlug', propertySlug);
+      await property.save();
+      return property;
+    }
+
+    await this.propertyModel.updateOne({ _id: propertyId }, { $set: { propertySlug } });
+    return { ...property, propertySlug };
+  }
+
+  private async ensurePropertySlugsForProperties(properties: any[]) {
+    return Promise.all(
+      properties.map((property) => this.ensurePropertySlugForProperty(property)),
+    );
+  }
 }

@@ -5,6 +5,7 @@ import { FormattedMessage } from 'react-intl';
 import { useCurrency } from '../../context/CurrencyContext';
 import { getDisplayPrice } from '../../utils/priceUtils';
 import { useFavorites } from '../../hooks/useFavorites';
+import { getPropertyPath } from '../../utils/propertyRoutes';
 
 import diamond from '../../assets/images/iconos/diamond.png';
 
@@ -100,7 +101,7 @@ function UltimasPropiedades() {
           <div className="row gy-5" style={{ marginBottom: 'clamp(5rem, 8vw, 7rem)' }}>
             {visiblePropiedades.map((item, index) => (
               <div className="col-md-6 col-xl-4 d-flex flex-column" key={item._id || index}>
-                <Link to={`/propiedad/${item._id}`} className="position-relative d-block propiedades-zoom">
+                <Link to={getPropertyPath(item)} className="position-relative d-block propiedades-zoom">
                   <img
                     src={URL + '/' + item.media?.photos[0]?.path}
                     className="object-fit-cover w-100 border-radius-1"
@@ -129,7 +130,7 @@ function UltimasPropiedades() {
                       </div>
                   </div>
                 </Link>
-                <Link to={`/propiedad/${item._id}`} className="text-body">
+                <Link to={getPropertyPath(item)} className="text-body">
                   <div className='mt-3 d-flex flex-column flex-grow-1'>
                     <div className='text-truncate' style={{ fontSize: 'clamp(34px, 6vw, 44px)', fontFamily: 'AppleGaramond' }}>{ item.market?.title }</div>
                     <div>

@@ -95,18 +95,12 @@ function About() {
           u.isEnabled
         ).map(agent => {
           const agencia = agent.parentId ? usersMap[agent.parentId] : null;
-          const clicks = parseInt(agent.clickCounter) || 0;
-          const formattedClicks = clicks >= 1000000
-            ? (clicks / 1000000).toFixed(1).replace(/\.0$/, '') + 'M'
-            : clicks >= 1000
-              ? (clicks / 1000).toFixed(1).replace(/\.0$/, '') + 'K'
-              : String(clicks);
 
           return {
             ...agent,
-            clickCounter: formattedClicks,
             agencia: agencia && agencia.agentInfo ? {
               _id: agencia._id,
+              profileSlug: agencia.profileSlug,
               name: agencia.name || 'Sin nombre',
               avatar: getLogoUrl(agencia.agentInfo.logo)
             } : null
@@ -422,7 +416,6 @@ function About() {
                                             <div className="my-1" style={{ fontSize: '16px' }}>
                                                 <StarRating rating={items.ratingAverage} size='13px' />
                                             </div>
-                                            <div className='text-muted mb-1'>{items.clickCounter} Visualizaciones</div>
                                             <div className='text-muted mb-1'>{propCounts[items._id] || 0} Propiedades</div>
                                         </Card.Title>
                                         <div className="d-flex justify-content-center mt-auto pt-4">

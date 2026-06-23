@@ -229,7 +229,7 @@ export class UsersService {
       const [result] = await this.userModel.aggregate(pipeline).exec();
 
       const total =  result?.totalCount?.[0]?.count || 0;
-      const data = await this.ensureProfileSlugsForUsers(result?.data || []);
+      const data = result?.data || [];
 
       return {
         total,
@@ -472,15 +472,4 @@ export class UsersService {
     return { ...user, profileSlug };
   }
 
-  private async ensureProfileSlugsForUsers(users: any[]) {
-    const usersWithSlugs: any[] = [];
-
-    for (const user of users) {
-      usersWithSlugs.push(await this.ensureProfileSlugForUser(user));
-    }
-
-    return usersWithSlugs;
-  }
-
-  
 }

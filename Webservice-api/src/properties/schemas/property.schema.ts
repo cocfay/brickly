@@ -29,6 +29,9 @@ export class Property {
   @Prop({ default: 'draft' })
   status!: string;
 
+  @Prop({ type: String, required: false, unique: true, sparse: true })
+  propertySlug?: string;
+
   @Prop({ type: [Types.ObjectId], ref: 'User' })
   agents!: Types.ObjectId[];
 

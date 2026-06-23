@@ -23,6 +23,10 @@ export class CreatePropertyDto {
   status?: string;
 
   @IsOptional()
+  @IsString()
+  propertySlug?: string;
+
+  @IsOptional()
   @IsArray()
   agents?: string[];
 

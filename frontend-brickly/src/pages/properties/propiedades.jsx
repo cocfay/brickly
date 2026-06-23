@@ -22,6 +22,7 @@ import { API_URL, isAuthenticated } from '../../services/authService';
 import { useT } from '../../hooks/useT';
 import { fetchPropertiesPage, fetchAllPages } from '../../utils/fetchAll';
 import { getPropertyRanges } from '../../services/propertyRanges';
+import { getPropertyPath } from '../../utils/propertyRoutes';
 
 import '../../assets/css/propiedades.css';
 
@@ -1327,7 +1328,7 @@ function Propiedades() {
           <div className="row gy-5" style={{ marginBottom: 'clamp(5rem, 8vw, 7rem)' }}>
             {filteredSorted.map((item, index) => (
               <div className="col-md-6 col-xl-4 d-flex flex-column" key={item._id || index} id={`prop-${item._id}`}>
-                <Link to={`/propiedad/${item._id}`} className="position-relative d-block propiedades-zoom" onClick={() => saveStateBeforeNavigate(item._id)}>
+                <Link to={getPropertyPath(item)} className="position-relative d-block propiedades-zoom" onClick={() => saveStateBeforeNavigate(item._id)}>
                   <img
                     src={URL + '/' + item.media?.photos[0]?.path}
                     className="object-fit-cover w-100 border-radius-1"
@@ -1356,7 +1357,7 @@ function Propiedades() {
                       </div>
                   </div>
                 </Link>
-                <Link to={`/propiedad/${item._id}`} className="mt-3 text-body d-flex flex-column flex-grow-1" onClick={() => saveStateBeforeNavigate(item._id)}>
+                <Link to={getPropertyPath(item)} className="mt-3 text-body d-flex flex-column flex-grow-1" onClick={() => saveStateBeforeNavigate(item._id)}>
                   <div className='text-truncate' style={{ fontSize: 'clamp(34px, 6vw, 44px)', fontFamily: 'AppleGaramond' }}>{ item.market?.title }</div>
                   <div>
                     <i className='fa-solid fa-location-dot me-2' style={{ width: 'fit-content' }}></i>

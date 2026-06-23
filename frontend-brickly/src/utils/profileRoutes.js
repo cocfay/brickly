@@ -4,7 +4,23 @@ export const getProfileSlug = (userOrId) => {
   return userOrId.profileSlug || userOrId.slug || userOrId._id || userOrId.id || '';
 };
 
-export const getAgentProfilePath = (userOrId) => `/agentes/${getProfileSlug(userOrId)}`;
+const normalizePathSlug = (value) => String(value || '')
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, '-')
+  .replace(/^-+|-+$/g, '')
+  .replace(/-{2,}/g, '-');
+
+export const getAgentProfilePath = (userOrId) => {
+  const agentSlug = getProfileSlug(userOrId);
+  const agency = userOrId?.agencia || userOrId?.agency;
+  const agencySlug = typeof agency === 'string'
+    ? normalizePathSlug(agency)
+    : getProfileSlug(agency) || normalizePathSlug(agency?.name);
+
+  return agencySlug ? `/agentes/${agencySlug}/${agentSlug}` : `/agentes/${agentSlug}`;
+};
 
 export const getAgencyProfilePath = (userOrId) => `/agencias/${getProfileSlug(userOrId)}`;
 

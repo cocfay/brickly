@@ -16,6 +16,7 @@ import { amenitiesMap } from '../../cpanel/data/amenites'
 import ContactForm from '../../components/ContactForm';
 import { registerWSClick } from '../../services/countWS';
 import { getUserProfilePath } from '../../utils/profileRoutes';
+import { getPropertyPath } from '../../utils/propertyRoutes';
 
 import alquiler from '../../assets/images/iconos/alquiler.png';
 import venta from '../../assets/images/iconos/venta.png';
@@ -39,7 +40,8 @@ function Propiedad() {
         message: 'property-request-message',
     }
     const lang = localStorage.getItem('selectedLang')
-    const { id } = useParams()
+    const { id, slug } = useParams()
+    const propertyIdentifier = slug || id
     const URL = API_URL
     const ame = amenitiesMap
     ////console.log(ame);
@@ -71,18 +73,20 @@ function Propiedad() {
     // };
 
     useEffect(() => {
-        const visitKey = `visited_property_${id}`
+        if (!data?._id) return
+        const visitKey = `visited_property_${data._id}`
         if (visitRegistered.current || localStorage.getItem(visitKey)) return
         visitRegistered.current = true
-        fetch(`${API_URL}/properties/${id}/visit`, { method: 'POST' })
+        fetch(`${API_URL}/properties/${data._id}/visit`, { method: 'POST' })
             .then(() => localStorage.setItem(visitKey, '1'))
             .catch(e => console.error('Error registrando visita', e))
-    }, [id])
+    }, [data?._id])
 
     useEffect(()  => {
         const loadData = async () =>{
             try{
-                const getData = await getPropiedadById(id)
+                if (!propertyIdentifier) return
+                const getData = await getPropiedadById(propertyIdentifier)
 
                 const dataa = {
                     ...getData.data,
@@ -94,6 +98,9 @@ function Propiedad() {
                 }
                 
                 setdata(dataa)
+                if (dataa.propertySlug && slug !== dataa.propertySlug) {
+                    navigate(getPropertyPath(dataa), { replace: true })
+                }
                 ////console.log(getData.data);
 
                 const amenitiesData = getData?.data?.amenities
@@ -163,10 +170,15 @@ function Propiedad() {
                             return !exclude
                         })
                         .map(agent => {
+                            const agency = agent.parentId ? usersMap[agent.parentId] : null
                             const mapped = {
                                 ...agent,
                                 avatar: URL + agent.avatar.replace('/uploads', ''),
-                                agencia: agent.parentId ? usersMap[agent.parentId]?.name || null : null
+                                agencia: agency ? {
+                                    _id: agency._id,
+                                    profileSlug: agency.profileSlug,
+                                    name: agency.name || ''
+                                } : null
                             };
                             //console.log(`✅ [Filtro] ${agent._id} (${agent.name}) → INCLUIDO como agente individual, agencia: ${mapped.agencia || 'ninguna'}`);
                             return mapped;
@@ -219,14 +231,14 @@ function Propiedad() {
             }
         }
         loadData()
-    },[id])
+    },[propertyIdentifier, slug, navigate])
 
     const propiedadesSecundarias = useMemo(() => {
         if (!todasPropiedades.length) return [];
         return todasPropiedades
-            .filter(p => p._id !== id && p.status === "published")
+            .filter(p => p._id !== data?._id && p.status === "published")
             .slice(0, 3);
-    }, [todasPropiedades, id]);
+    }, [todasPropiedades, data?._id]);
 
     const { isFavorite, toggle: toggleFav, canFavorite } = useFavorites();
     const { currency: currencyMode } = useCurrency();
@@ -1067,7 +1079,7 @@ function Propiedad() {
                             return (
                             <div key={item._id} className={`col-md-6 col-xl-4 ${index == 0 ? 'mt-2 mt-lg-0' : '' }`}>
                                 <div className="position-relative d-block">
-                                    <Link to={`/propiedad/${item._id}`} className="d-block propiedades-zoom">
+                                    <Link to={getPropertyPath(item)} className="d-block propiedades-zoom">
                                         <img src={item.media?.photos?.[0]?.path ? URL + '/' + item.media.photos[0].path : sinPropiedad} className="object-fit-cover w-100 border-radius-1" alt="Imagen principal" style={{ aspectRatio: '4 / 4' }} loading="lazy" />
                                         <div style={{ padding: '5%' }} className='position-absolute top-0 w-100 h-100 d-flex flex-column justify-content-between'>
                                             {/* <div className='d-flex gap-2 align-items-center' style={{ backgroundColor: '#000000c7', color: 'white', width: 'fit-content', boxSizing: 'border-box', padding: '1px 24px', fontSize: '14px' }}>
@@ -1088,7 +1100,7 @@ function Propiedad() {
                                         </div>
                                     </Link>
                                 </div>
-                                <Link className="text-body flex-grow-1 d-flex flex-column" to={`/propiedad/${item._id}`}>
+                                <Link className="text-body flex-grow-1 d-flex flex-column" to={getPropertyPath(item)}>
                                     <div className='mt-3 d-flex flex-column flex-grow-1'>
                                         <div className="text-truncate" style={{ fontSize: 'clamp(34px, 6vw, 46px)', fontFamily: 'AppleGaramond' }}>{ item.market.title }</div>
                                         <div>

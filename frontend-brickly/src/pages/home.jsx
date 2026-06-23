@@ -63,6 +63,7 @@ import { cleanExpiredFeatured } from '../services/cleanExpiredFeatured';
 import { fetchAllPages, fetchPropertiesByPriceRange, fetchPropertiesByLocation } from '../utils/fetchAll';
 import { registerWSClick } from '../services/countWS';
 import { getAgencyProfilePath, getUserProfilePath } from '../utils/profileRoutes';
+import { getPropertyPath } from '../utils/propertyRoutes';
 
 const formatPrice = (value, currency) => {
   const num = parseFloat(value) || 0;
@@ -568,7 +569,7 @@ function Home() {
                                 <img src={mainPhoto} className="object-fit-cover border-radius-1 w-100 h-100" alt="Imagen principal" width="800" height="450" fetchPriority="high" />
                               </a>
                             ) : (
-                              <Link to={`/propiedad/${item._id}`} className="d-block w-100 h-100" onClick={(e) => e.stopPropagation()}>
+                              <Link to={getPropertyPath(item)} className="d-block w-100 h-100" onClick={(e) => e.stopPropagation()}>
                                 <img src={mainPhoto} className="object-fit-cover border-radius-1 w-100 h-100" alt="Imagen principal" width="800" height="450" fetchPriority="high" />
                               </Link>
                             )}
@@ -600,7 +601,7 @@ function Home() {
                                       <img src={photoUrl} className="object-fit-cover border-radius-2" alt="Imagen secundaria 1" width="400" height="300" loading="lazy" />
                                     </a>
                                   ) : (
-                                    <Link key={index} to={`/propiedad/${item._id}`} className="ratio ratio-4x3 second-img-section1 d-block mb-2">
+                                    <Link key={index} to={getPropertyPath(item)} className="ratio ratio-4x3 second-img-section1 d-block mb-2">
                                       <img src={photoUrl} className="object-fit-cover border-radius-2" alt="Imagen secundaria 1" width="400" height="300" loading="lazy" />
                                     </Link>
                                   );
@@ -617,7 +618,7 @@ function Home() {
                                       )}
                                     </a>
                                   ) : (
-                                    <Link key={index} to={`/propiedad/${item._id}`} className="ratio ratio-4x3 second-img-section1 d-block mt-xl-2 position-relative">
+                                    <Link key={index} to={getPropertyPath(item)} className="ratio ratio-4x3 second-img-section1 d-block mt-xl-2 position-relative">
                                       <img src={photoUrl} className="object-fit-cover border-radius-2" alt="Imagen secundaria 2" width="400" height="300" loading="lazy" />
                                       {totalSecondary > 2 && (
                                         <div className="position-absolute w-100 h-100 d-flex justify-content-end align-items-end p-3">
@@ -634,7 +635,7 @@ function Home() {
                                     <img src={photoUrl} className="object-fit-cover border-radius-2" alt="Imagen secundaria" />
                                   </a>
                                 ) : (
-                                  <Link key={index} to={`/propiedad/${item._id}`} className="ratio ratio-4x3 second-img-section1 mb-2 d-none">
+                                  <Link key={index} to={getPropertyPath(item)} className="ratio ratio-4x3 second-img-section1 mb-2 d-none">
                                     <img src={photoUrl} className="object-fit-cover border-radius-2" alt="Imagen secundaria" />
                                   </Link>
                                 );
@@ -645,7 +646,7 @@ function Home() {
                       </div>
                     </div>
                     <div className='col-xl-5'>
-                      <Link to={`/propiedad/${item._id}`} className='text-body' onClick={(e) => e.stopPropagation()}>
+                      <Link to={getPropertyPath(item)} className='text-body' onClick={(e) => e.stopPropagation()}>
                             <div className='mt-xl-3' style={{ fontSize: 'clamp(16px, 3vw, 20px)' }}>
                               <div className="mt-3 mt-xl-0 lh-sm text-truncate" style={{ fontSize: 'clamp(30px, 6vw, 50px)', fontFamily: 'AppleGaramond' }}>{item.market?.title || 'Sin título'}</div>
                               <div>
@@ -772,7 +773,7 @@ function Home() {
                     const imgSrc = item.media?.photos?.length > 0 ? URL + '/' + item.media.photos[0].path : casa2;
                     return (
                       <div key={item._id} className="col-md-6 col-xl-4">
-                        <Link to={`/propiedad/${item._id}`} className="position-relative d-flex flex-column text-body h-100">
+                        <Link to={getPropertyPath(item)} className="position-relative d-flex flex-column text-body h-100">
                           <div className="position-relative">
                             <img src={imgSrc} className="object-fit-cover w-100 border-radius-1" style={{ aspectRatio: '4 / 4' }} alt="Imagen principal" width="400" height="400" loading="lazy" />
                             <div style={{ padding: '5%' }} className='position-absolute top-0 w-100 h-100 d-flex flex-column justify-content-between'>
@@ -881,7 +882,7 @@ function Home() {
                     const imgSrc = item.media?.photos?.length > 0 ? URL + '/' + item.media.photos[0].path : casa2;
                     return (
                       <div key={item._id} className="col-md-6 col-xl-4">
-                        <Link to={`/propiedad/${item._id}`} className="position-relative d-flex flex-column text-body h-100">
+                        <Link to={getPropertyPath(item)} className="position-relative d-flex flex-column text-body h-100">
                           <div className="position-relative">
                             <img src={imgSrc} className="object-fit-cover w-100 border-radius-1" style={{ aspectRatio: '4 / 4' }} alt="Imagen principal" width="400" height="400" loading="lazy" />
                             <div style={{ padding: '5%' }} className='position-absolute top-0 w-100 h-100 d-flex flex-column justify-content-between'>
@@ -1035,7 +1036,7 @@ function Home() {
                               style={{ cursor: width >= 768 ? 'zoom-in' : 'pointer' }}
                               onClick={() => {
                                 if (width < 768) {
-                                  navigate(`/propiedad/${item._id}`);
+                                  navigate(getPropertyPath(item));
                                   return;
                                 }
                                 const photos = item.media.photos.map(p => ({
@@ -1072,7 +1073,7 @@ function Home() {
                           <div className='col-lg-5 order-3 order-lg-2'>
                             <div className="text-body">
                               <div className='mt-lg-3' style={{ fontSize: 'clamp(16px, 3vw, 20px)' }}>
-                                <Link className="text-body text-decoration-none" to={`/propiedad/${item._id}`}>
+                                <Link className="text-body text-decoration-none" to={getPropertyPath(item)}>
                                 <div className="lh-sm text-truncate" style={{ fontSize: 'clamp(34px, 3.5vw, 46px)', fontFamily: 'AppleGaramond' }}>{ item.market.title }</div>
                                 <div>
                                   <i className='fa-solid fa-location-dot me-2' style={{ width: 'fit-content' }}></i>
@@ -1218,7 +1219,7 @@ function Home() {
                       return (
                         <div key={item._id} className="col-md-6 col-xl-4 d-flex flex-column">
                           <div className="position-relative d-block">
-                            <Link to={`/propiedad/${item._id}`} className="d-block propiedades-zoom">
+                            <Link to={getPropertyPath(item)} className="d-block propiedades-zoom">
                               <img src={URL + '/' + item.media.photos[0].path} className="object-fit-cover w-100 border-radius-1" alt="Imagen principal" width="400" height="400" loading="lazy" style={{ aspectRatio: '4 / 4' }} />
                               <div style={{ padding: '5%' }} className='position-absolute top-0 w-100 h-100 d-flex flex-column justify-content-between'>
                                   {/* <div className='d-flex gap-2 align-items-center' style={{ backgroundColor: '#000000c7', color: 'white', width: 'fit-content', boxSizing: 'border-box', padding: '1px 24px', fontSize: '14px' }}>
@@ -1233,7 +1234,7 @@ function Home() {
                               </div>
                             </Link>
                           </div>
-                          <Link className="text-body flex-grow-1 d-flex flex-column" to={`/propiedad/${item._id}`}>
+                          <Link className="text-body flex-grow-1 d-flex flex-column" to={getPropertyPath(item)}>
                             <div className='mt-3 d-flex flex-column flex-grow-1'>
                               <div className="text-truncate" style={{ fontSize: 'clamp(34px, 6vw, 46px)', fontFamily: 'AppleGaramond' }}>{ item.market.title }</div>
                               <div>

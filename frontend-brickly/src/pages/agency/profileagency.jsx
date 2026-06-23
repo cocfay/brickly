@@ -28,6 +28,7 @@ import { createReview, getReviewsByAgent, updateReview, deleteReview } from '../
 import { getContactLeads } from '../../services/contactService';
 import { getPublicProfile } from '../../services/profileService';
 import { getAgentProfilePath } from '../../utils/profileRoutes';
+import { getPropertyPath } from '../../utils/propertyRoutes';
 import StarRating from '../../components/StarRating';
 import ContactForm from '../../components/ContactForm';
 import { isProfileComplete } from '../../utils/profileUtils';
@@ -134,6 +135,11 @@ function profileAgency() {
                     u.isEnabled
                 ).map(a => ({
                     ...a,
+                    agencia: {
+                        _id: found._id,
+                        profileSlug: found.profileSlug,
+                        name: found.name || ''
+                    },
                     avatarUrl: a.avatar ? API_URL + a.avatar.replace('/uploads', '') : null,
                     propCount: Array.isArray(a.propertiesPublished) ? a.propertiesPublished.length : (a.propCount || 0)
                 }));
@@ -694,7 +700,7 @@ function profileAgency() {
                                 const imgSrc = mainPhoto ? `${url}/${mainPhoto.path}` : null;
                                 return (
                                     <div key={item._id || index} className="col-md-6 col-xl-4">
-                                        <Link to={`/propiedad/${item._id}`} className="position-relative d-block propiedades-zoom" onClick={() => sessionStorage.setItem('fromAgentId', agencyId)}>
+                                        <Link to={getPropertyPath(item)} className="position-relative d-block propiedades-zoom" onClick={() => sessionStorage.setItem('fromAgentId', agencyId)}>
                                             {imgSrc
                                                 ? <img src={imgSrc} className="object-fit-cover w-100 border-radius-1" style={{ aspectRatio: '4 / 4' }} alt="" loading="lazy" />
                                                 : <div className="w-100 bg-secondary border-radius-1" style={{ aspectRatio: '4 / 4' }}></div>
@@ -714,7 +720,7 @@ function profileAgency() {
                                                 </div>
                                             </div>
                                         </Link>
-                                        <Link className="text-body flex-grow-1 d-flex flex-column" to={`/propiedad/${item._id}`}>
+                                        <Link className="text-body flex-grow-1 d-flex flex-column" to={getPropertyPath(item)}>
                                             <div className='mt-3 d-flex flex-column flex-grow-1'>
                                             <div className="text-truncate" style={{ fontSize: 'clamp(34px, 6vw, 46px)', fontFamily: 'AppleGaramond' }}>{ item.market.title }</div>
                                             <div>

@@ -115,6 +115,7 @@ const App = () => {
               <Route index element={<Home />} />
               <Route path="home" element={<Home />} />
               <Route path="propiedades" element={<Propiedades />} />
+              <Route path="propiedades/:slug" element={<Propiedad />} />
               <Route path="ultimas-propiedades" element={<UltimasPropiedades />} />
               <Route path="propiedad/:id" element={<Propiedad />} />
               <Route path="arquitectos" element={<Arquitectos />} />
@@ -129,6 +130,7 @@ const App = () => {
               <Route path="agentes" element={<SearchAgent />} />
               <Route path="agentes/perfil/:id" element={<ProfileAgent />} />
               <Route path="agencias/perfil/:id" element={<ProfileAgency />} />
+              <Route path="agentes/:agencySlug/:slug" element={<ProfileAgent />} />
               <Route path="agentes/:slug" element={<ProfileAgent />} />
               <Route path="agencias/:slug" element={<ProfileAgency />} />
               <Route path="asociados" element={<Associates />} />

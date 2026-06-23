@@ -253,7 +253,7 @@ export const getPropiedades = async (params = {}) => {
   }
 };
 
-// Obtener una propiedad por ID
+// Obtener una propiedad por ID o slug
 export const getPropiedadById = async (id) => {
   try {
     const response = await fetch(`${API_URL}/properties/${id}`);
