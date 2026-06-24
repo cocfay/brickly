@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Container, Alert, Modal, Button } from 'react-bootstrap';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { getUsersPaginados } from '../../../services/listUsers';
+import { getUsers, getUsersPaginados } from '../../../services/listUsers';
 import { updateAgente } from '../../services/agentes';
 import confirm from '../../components/confirmUp';
 import { API_URL, getToken } from '../../../services/authService';
@@ -39,6 +39,7 @@ function Index() {
   const [alertVariant, setAlertVariant] = useState('success');
   const tableRef = useRef(null);
   const dataTableRef = useRef(null);
+  const highlightEligibleUserIdsRef = useRef(new Set());
   const navigate = useNavigate();
 
   const [showAgentsModal, setShowAgentsModal] = useState(false);
@@ -71,9 +72,60 @@ function Index() {
     return Number(user?.propCount || user?.propertiesCount || user?.publishedPropertiesCount || 0);
   }, []);
 
+  const getUserId = useCallback((user) => {
+    if (!user?._id) return '';
+    return typeof user._id === 'string' ? user._id : user._id.toString();
+  }, []);
+
+  const isHighlightEligible = useCallback((user) => {
+    const userId = getUserId(user);
+    return Boolean(userId && highlightEligibleUserIdsRef.current.has(userId)) || getUserPublishedCount(user) > 0;
+  }, [getUserId, getUserPublishedCount]);
+
   const reloadUsersTable = useCallback((resetPaging = false) => {
     if (dataTableRef.current) dataTableRef.current.ajax.reload(null, resetPaging);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadHighlightEligibleUsers = async () => {
+      const [agentsResult, agenciesResult] = await Promise.all([
+        getUsers({ roles: 'agente', hasProperty: 'published' }),
+        getUsers({ roles: 'agencia', hasProperty: 'published' })
+      ]);
+
+      if (cancelled) return;
+
+      const eligibleIds = new Set();
+      [agentsResult, agenciesResult].forEach((result) => {
+        if (!result.success) {
+          console.error('Error al cargar usuarios elegibles para destacar:', result.error);
+          return;
+        }
+
+        result.data.forEach((user) => {
+          const userId = getUserId(user);
+          if (userId) eligibleIds.add(userId);
+        });
+      });
+
+      highlightEligibleUserIdsRef.current = eligibleIds;
+
+      if (dataTableRef.current) {
+        dataTableRef.current.rows().invalidate('data').draw(false);
+      }
+      if (agentsDataTableRef.current) {
+        agentsDataTableRef.current.rows().invalidate('data').draw(false);
+      }
+    };
+
+    loadHighlightEligibleUsers();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [getUserId]);
 
   useEffect(() => {
     if (!tableRef.current || dataTableRef.current) return;
@@ -132,11 +184,10 @@ function Index() {
             const roles = getRoles(row);
             const isAgente = roles.includes('agente');
             const isAgencia = roles.includes('agencia');
-            const activeRole = filterRoleRef.current;
             const hasProfile = isProfileComplete(row);
-            const hasProps = getUserPublishedCount(row) > 0;
+            const hasProps = isHighlightEligible(row);
             const isFeatured = !!row.featured_user;
-            const showDestacar = (isAgente || isAgencia) && (activeRole === 'agente' || activeRole === 'agencia') && !isFeatured && hasProfile && hasProps;
+            const showDestacar = (isAgente || isAgencia) && !isFeatured && hasProfile && hasProps;
             const destacarBtn = showDestacar
               ? `<a href="#" class="planes-agente d-inline-flex align-items-center gap-1 text-decoration-none destacar-btn" data-id="${row._id}" style="font-size: 12px;"><i class="fa-solid fa-diamond text-warning" style="width: 14px; flex-shrink: 0;"></i><span class="destacar-label">Destacar</span></a>`
               : '';
@@ -180,7 +231,7 @@ function Index() {
         dataTableRef.current = null;
       }
     };
-  }, [firstMay, getRoles, getUserPublishedCount]);
+  }, [firstMay, getRoles, isHighlightEligible]);
 
   useEffect(() => {
     filterRoleRef.current = filterRole;
@@ -336,7 +387,7 @@ function Index() {
         data: agencyAgents,
         columns: [
           { title: 'Foto', data: null, render: (row) => row.avatar ? `<img src="${API_URL + row.avatar.replace('/uploads', '')}" alt="avatar" class="rounded-circle object-fit-cover" style="width:35px;height:35px;" />` : '<i class="fa-solid fa-circle-user fs-4"></i>', orderable: false, searchable: false },
-          { title: 'Nombre', data: null, render: (row) => `${row.name || row.username || 'N/A'}${!row.featured_user && isProfileComplete(row) && getUserPublishedCount(row) > 0 ? ` <a href="#" class="planes-agente d-inline-flex align-items-center gap-1 text-decoration-none destacar-btn" data-id="${row._id}" style="font-size: 12px;"><i class="fa-solid fa-diamond text-warning"></i><span>Destacar</span></a>` : ''}` },
+          { title: 'Nombre', data: null, render: (row) => `${row.name || row.username || 'N/A'}${!row.featured_user && isProfileComplete(row) && isHighlightEligible(row) ? ` <a href="#" class="planes-agente d-inline-flex align-items-center gap-1 text-decoration-none destacar-btn" data-id="${row._id}" style="font-size: 12px;"><i class="fa-solid fa-diamond text-warning"></i><span>Destacar</span></a>` : ''}` },
           { title: 'Correo', data: null, render: (row) => row.email || 'N/A' },
           { title: 'Teléfono', data: null, render: (row) => row.phone || 'N/A' },
           { title: 'Estado', data: null, render: (row) => row.isEnabled !== false ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-secondary">Inactivo</span>' },
@@ -352,7 +403,7 @@ function Index() {
         agentsDataTableRef.current = null;
       }
     };
-  }, [showAgentsModal, agencyAgents, getUserPublishedCount]);
+  }, [showAgentsModal, agencyAgents, isHighlightEligible]);
 
   const handleSaveHighlight = async () => {
     if (highlightIds.length === 0 || !highlightDate) return;
