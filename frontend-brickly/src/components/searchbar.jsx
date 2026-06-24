@@ -204,19 +204,19 @@ const SearchBar = () => {
     <>
       <div className="mb-3">
         <label style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px', marginBottom: '6px', display: 'block' }}>Departamento</label>
-        <Select options={departamentosDisponibles} value={departamento}
+        <Select inputId="search-departamento" aria-label="Departamento" options={departamentosDisponibles} value={departamento}
           onChange={(v) => { setDepartamento(v); setMunicipio(null); setZona(null); }}
           placeholder="Seleccione..." isClearable styles={innerStyles} />
       </div>
       <div className="mb-3">
         <label style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px', marginBottom: '6px', display: 'block' }}>Municipio</label>
-        <Select options={municipiosDisponibles} value={municipio}
+        <Select inputId="search-municipio" aria-label="Municipio" options={municipiosDisponibles} value={municipio}
           onChange={(v) => { setMunicipio(v); setZona(null); }}
           placeholder="Seleccione..." isClearable isDisabled={!departamento} styles={innerStyles} />
       </div>
       <div>
         <label style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px', marginBottom: '6px', display: 'block' }}>Zona</label>
-        <Select options={zonasDisponibles} value={zona} onChange={setZona}
+        <Select inputId="search-zona" aria-label="Zona" options={zonasDisponibles} value={zona} onChange={setZona}
           placeholder="Seleccione..." isClearable isDisabled={!municipio} styles={innerStyles} />
       </div>
     </>
@@ -229,9 +229,11 @@ const SearchBar = () => {
       </div>
       <label style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px' }}>Mínimo</label>
       <input type="range" className="form-range mb-3" min={0} max={maxPriceLimit} step={step}
+        aria-label="Precio minimo"
         value={minPrice} onChange={e => setMinPrice(Number(e.target.value))} />
       <label style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px' }}>Máximo</label>
       <input type="range" className="form-range" min={0} max={maxPriceLimit} step={step}
+        aria-label="Precio maximo"
         value={curMax} onChange={e => setMaxPrice(Number(e.target.value))} />
     </>
   );
@@ -251,7 +253,7 @@ const SearchBar = () => {
       style={{ border: '1px solid rgba(255,255,255,0.35)', backgroundColor: 'rgba(0,0,0,0.3)', width: 'fit-content' }}>
 
       <div style={{ display: 'flex', alignItems: 'center', minWidth: '180px' }}>
-        <Select className='w-100' options={tiposDisponibles} value={tipo} onChange={setTipo}
+        <Select className='w-100' inputId="search-tipo" aria-label="Tipo de propiedad" options={tiposDisponibles} value={tipo} onChange={setTipo}
           placeholder={<FormattedMessage id='select.text1' />} isClearable styles={darkStyles} />
 
       </div>

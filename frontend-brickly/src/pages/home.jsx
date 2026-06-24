@@ -1388,7 +1388,14 @@ function Home() {
           <Container>
             <div className="mt-5">
               <div ref={associatesSliderRef}>
-              <Slider {...settings} className="carrusel" slidesToShow={getSlides(5, 3, 2)} afterChange={() => syncAssociatesSliderAccessibility()}>
+              <Slider
+                {...settings}
+                className="carrusel"
+                slidesToShow={getSlides(5, 3, 2)}
+                onInit={() => setTimeout(syncAssociatesSliderAccessibility, 0)}
+                onReInit={() => setTimeout(syncAssociatesSliderAccessibility, 0)}
+                afterChange={() => syncAssociatesSliderAccessibility()}
+              >
                 {asociados.map((item, idx) => {
                   const imgUrl = item.logo_url ? getLogoUrl(item.logo_url) : null;
                   const agencyProfile = usersMap[item.type] || item.type;

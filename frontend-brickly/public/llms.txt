@@ -1,0 +1,25 @@
+# Brickly Homes
+
+> Brickly Homes es una plataforma inmobiliaria de Guatemala para descubrir propiedades en venta y alquiler, agencias, agentes y desarrollos destacados.
+
+Brickly Homes ayuda a usuarios a explorar propiedades residenciales y comerciales, contactar asesores inmobiliarios y revisar perfiles publicos de agentes y agencias. El sitio esta orientado al mercado inmobiliario guatemalteco.
+
+## Sitio
+
+- [Inicio](https://www.bricklyhomes.com/)
+- [Propiedades](https://www.bricklyhomes.com/propiedades)
+- [Agentes](https://www.bricklyhomes.com/agentes)
+- [Agencias asociadas](https://www.bricklyhomes.com/asociados)
+- [Planes y precios](https://www.bricklyhomes.com/precios)
+
+## Contenido Principal
+
+- Propiedades publicadas con informacion de ubicacion, precio, tipo, modalidad, fotografias y contacto.
+- Perfiles publicos de agentes inmobiliarios.
+- Perfiles publicos de agencias inmobiliarias.
+- Secciones destacadas por propiedades exclusivas, recientes, zonas y rangos de precio.
+
+## Contacto
+
+- [Correo](mailto:info@bricklyhomes.com)
+- [WhatsApp](https://wa.me/50237649719)

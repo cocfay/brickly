@@ -62,7 +62,13 @@ function boxLogin() {
 
   return (
     <>
-    <NavDropdown id="nav-dropdown-dark-example" className='fs-4 no-arrow' title={<i className="fa-solid fa-bars"></i>} menuVariant="light" drop="down-centered">
+    <NavDropdown
+        id="nav-dropdown-dark-example"
+        className='fs-4 no-arrow'
+        title={<><span className="visually-hidden">Menu de usuario</span><i className="fa-solid fa-bars" aria-hidden="true"></i></>}
+        menuVariant="light"
+        drop="down-centered"
+    >
         <div className='d-flex justify-content-between align-items-center'>
             {/* <FormattedMessage id='boxUp.text1' /> */}
             <div className='d-flex align-items-center gap-2'>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FormattedMessage } from 'react-intl';
 import AOS from 'aos';
+import 'aos/dist/aos.css';
 
 import { Container, Nav, Row, Col } from 'react-bootstrap';
 import '../assets/css/precios.css';

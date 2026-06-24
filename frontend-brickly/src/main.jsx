@@ -3,7 +3,6 @@ import 'alertifyjs/build/css/alertify.css';
 import 'alertifyjs/build/css/themes/default.css';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import 'aos/dist/aos.css';
 // FontAwesome: importar base (font-face) + solo los estilos que se usan
 import './assets/fontawesome/css/fontawesome.min.css';
 import './assets/fontawesome/css/solid.min.css';

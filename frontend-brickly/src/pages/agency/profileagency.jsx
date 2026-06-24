@@ -175,7 +175,8 @@ function profileAgency() {
             try {
                 const baseUrl = `${API_URL}/properties?userId=${agencyId}&status=published`;
                 const tipos = ['Casa', 'Apartamento', 'Terreno', 'Oficina', 'Bodega', 'Local comercial', 'Edificio', 'Finca'];
-                const [recentRes, ventaRes, alquilerRes, ...tipoRes] = await Promise.all([
+                const [countRes, recentRes, ventaRes, alquilerRes, ...tipoRes] = await Promise.all([
+                    fetch(`${API_URL}/properties/count/total/${agencyId}`).then(r => r.json()).catch(() => ({ totalPublished: 0 })),
                     fetch(`${baseUrl}&limit=3`).then(r => r.json()).catch(() => ({ data: [], total: 0 })),
                     fetch(`${baseUrl}&market.mode=Venta&limit=1`).then(r => r.json()).catch(() => ({ total: 0 })),
                     fetch(`${baseUrl}&market.mode=Alquiler&limit=1`).then(r => r.json()).catch(() => ({ total: 0 })),
@@ -184,7 +185,7 @@ function profileAgency() {
                 const props = recentRes.data || [];
                 setPropiedades(props);
                 setPropFiltradas(props);
-                setTotal(recentRes.total || 0);
+                setTotal(Number(countRes?.totalPublished ?? recentRes.total ?? 0));
                 setTotalVenta(ventaRes.total || 0);
                 setTotalAlquiler(alquilerRes.total || 0);
                 // Mapa de tipos con al menos 1 propiedad
@@ -445,7 +446,7 @@ function profileAgency() {
                                 <div style={{ fontSize: 'clamp(16px, 3vw, 18px)' }}>{agente.agentInfo?.description}</div>
                                 <div className="d-flex gap-5 mt-3 flex-column" style={{ fontSize: '16px' }}>
                                     <div className='mt-4 mt-lg-0 gap-2 gap-lg-3' style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
-                                        <div className='d-flex align-items-center gap-3'><img src={house_aval} style={{ width: '30px' }} alt="icons" />{propiedades.length} {t(pluralize(propiedades.length, 'Propiedad disponible', 'Propiedades disponibles'), pluralize(propiedades.length, 'Available property', 'Available properties'))}</div>
+                                        <div className='d-flex align-items-center gap-3'><img src={house_aval} style={{ width: '30px' }} alt="icons" />{total} {t(pluralize(total, 'Propiedad disponible', 'Propiedades disponibles'), pluralize(total, 'Available property', 'Available properties'))}</div>
                                         <div className='d-flex align-items-center gap-3'><img src={expe} style={{ width: '30px' }} alt="icons" />{agente.agentInfo.expe} {t(pluralize(agente.agentInfo.expe, 'Año de experiencia', 'Años de experiencia'), pluralize(agente.agentInfo.expe, 'Year of experience', 'Years of experience'))}</div>
                                     <div className='d-flex align-items-center gap-3'><img src={leads} style={{ width: '30px' }} alt="icons" />{new Intl.NumberFormat().format(leadsCount + (agente?.clickCounterWs || 0) + extraWSClicks)} {t(pluralize(leadsCount + (agente?.clickCounterWs || 0) + extraWSClicks, 'Prospecto', 'Prospectos'), pluralize(leadsCount + (agente?.clickCounterWs || 0) + extraWSClicks, 'Prospect', 'Prospects'))}</div>
                                         <div className='d-flex align-items-center gap-3'><i className="fa-sharp fa-regular fa-people-group" style={{ width: '30px', height: '25px', fontSize: '24px' }}></i>{agentesDisponibles.length} {t(pluralize(agentesDisponibles.length, 'Agente disponible', 'Agentes disponibles'), pluralize(agentesDisponibles.length, 'Available agent', 'Available agents'))}</div>
