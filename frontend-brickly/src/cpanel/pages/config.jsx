@@ -8,8 +8,9 @@ import arrow from '../../assets/images/iconos/arrow.png'
 import { uploadAgencyLogo, getLogoUrl } from '../../services/logoService';
 import Cookies from 'js-cookie';
 import { useT } from '../../hooks/useT';
+import { getTurnstileSiteKey, resetTurnstileWidget } from '../../utils/turnstile';
 
-const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+const TURNSTILE_SITE_KEY = getTurnstileSiteKey();
 
 function Confi() {
     const t = useT();
@@ -56,6 +57,7 @@ function Confi() {
             
             // Crear widget invisible
             if (turnstileContainerRef.current && !turnstileWidgetId.current) {
+                if (!TURNSTILE_SITE_KEY) return;
                 turnstileWidgetId.current = window.turnstile.render(turnstileContainerRef.current, {
                     sitekey: TURNSTILE_SITE_KEY,
                     callback: (token) => {
@@ -277,7 +279,7 @@ function Confi() {
             // Si no hay token, resetear y ejecutar el challenge
             try {
                 // Resetear el widget primero para evitar el warning
-                window.turnstile.reset(turnstileWidgetId.current);
+                resetTurnstileWidget(turnstileWidgetId.current);
                 
                 // Configurar callback para cuando se obtenga el token
                 window.turnstile.render(turnstileContainerRef.current, {
@@ -292,7 +294,7 @@ function Confi() {
                 
                 // Timeout de seguridad después de 8 segundos
                 setTimeout(() => {
-                    const token = window.turnstile.getResponse(turnstileContainerRef.current);
+                    const token = window.turnstile.getResponse(turnstileWidgetId.current);
                     resolve(token || null);
                 }, 8000);
             } catch (e) {
@@ -303,9 +305,7 @@ function Confi() {
     };
 
     const resetTurnstile = () => {
-        if (turnstileWidgetId.current && window.turnstile) {
-            window.turnstile.reset(turnstileWidgetId.current);
-        }
+        resetTurnstileWidget(turnstileWidgetId.current);
     };
 
     const handleSubmit = async (e) => {

@@ -71,6 +71,20 @@ export class UsersService {
         }
 
       Object.keys(filters).forEach((key) => {
+        if (key === 'featured_user') {
+          if (filters[key] === 'true' || filters[key] === true) {
+            filters[key] = { $gt: 0 };
+          } else if (filters[key] === 'false' || filters[key] === false) {
+            filters[key] = { $in: [0, null] };
+          } else {
+            const numericValue = Number(filters[key]);
+            if (!Number.isNaN(numericValue)) {
+              filters[key] = numericValue;
+            }
+          }
+          return;
+        }
+
         if (filters[key] === 'true') {
           filters[key] = true;
         } else if (filters[key] === 'false') {
@@ -258,6 +272,216 @@ export class UsersService {
     return this.ensureProfileSlugForUser(user);
   }
 
+  async findAgenciesForVerification() {
+    const agencies = await this.userModel
+      .find(
+        {
+          roles: Role.AGENCIA,
+          isEnabled: true,
+        },
+        {
+          name: 1,
+          username: 1,
+          phone: 1,
+          avatar: 1,
+          roles: 1,
+          isEnabled: 1,
+          agentInfo: 1,
+          parentId: 1,
+        },
+      )
+      .lean();
+
+    const completeAgencies = agencies.filter((agency: any) =>
+      this.isVerificationProfileComplete(agency),
+    );
+
+    if (completeAgencies.length === 0) {
+      return {
+        total: 0,
+        data: [],
+      };
+    }
+
+    const agencyIds = completeAgencies.map((agency: any) => agency._id);
+    const agencyIdSet = new Set(agencyIds.map((id: any) => id.toString()));
+
+    const children = await this.userModel
+      .find(
+        {
+          parentId: { $in: agencyIds },
+          isEnabled: true,
+        },
+        {
+          name: 1,
+          username: 1,
+          phone: 1,
+          avatar: 1,
+          roles: 1,
+          isEnabled: 1,
+          agentInfo: 1,
+          parentId: 1,
+        },
+      )
+      .lean();
+
+    const childrenByAgency = new Map<string, any[]>();
+    const verifiableChildrenByAgency = new Map<string, any[]>();
+    const candidateUserIds = new Map<string, any>();
+
+    completeAgencies.forEach((agency: any) => {
+      candidateUserIds.set(agency._id.toString(), agency._id);
+      childrenByAgency.set(agency._id.toString(), []);
+      verifiableChildrenByAgency.set(agency._id.toString(), []);
+    });
+
+    children.forEach((child: any) => {
+      const parentId = child.parentId?.toString();
+      if (!parentId || !agencyIdSet.has(parentId)) return;
+
+      candidateUserIds.set(child._id.toString(), child._id);
+      childrenByAgency.get(parentId)?.push(child);
+
+      const roles = this.getRolesArray(child);
+      if (
+        roles.includes(Role.AGENTE) &&
+        this.isVerificationProfileComplete(child)
+      ) {
+        verifiableChildrenByAgency.get(parentId)?.push(child);
+      }
+    });
+
+    const candidateIds = Array.from(candidateUserIds.values());
+    const candidateIdStrings = Array.from(candidateUserIds.keys());
+    const propertyOwners = new Set<string>();
+
+    const publishedProperties = await this.propertyModel
+      .aggregate([
+        {
+          $match: {
+            status: 'published',
+            $or: [
+              { userId: { $in: candidateIds } },
+              { userId: { $in: candidateIdStrings } },
+              { agents: { $in: candidateIds } },
+              { agents: { $in: candidateIdStrings } },
+            ],
+          },
+        },
+        {
+          $project: {
+            userId: 1,
+            agents: 1,
+          },
+        },
+      ])
+      .exec();
+
+    publishedProperties.forEach((property: any) => {
+      const userId = property.userId?.toString();
+      if (userId && candidateUserIds.has(userId)) {
+        propertyOwners.add(userId);
+      }
+
+      if (Array.isArray(property.agents)) {
+        property.agents.forEach((agentId: any) => {
+          const agentIdString = agentId?.toString();
+          if (agentIdString && candidateUserIds.has(agentIdString)) {
+            propertyOwners.add(agentIdString);
+          }
+        });
+      }
+    });
+
+    const data = completeAgencies
+      .map((agency: any) => {
+        const agencyId = agency._id.toString();
+        const enabledChildren = childrenByAgency.get(agencyId) || [];
+        const verifiableChildren =
+          verifiableChildrenByAgency.get(agencyId) || [];
+
+        const hasPublishedProperty =
+          propertyOwners.has(agencyId) ||
+          enabledChildren.some((child: any) =>
+            propertyOwners.has(child._id.toString()),
+          );
+
+        if (!hasPublishedProperty) return null;
+
+        const verifiableChildIds = verifiableChildren
+          .filter((child: any) => propertyOwners.has(child._id.toString()))
+          .map((child: any) => child._id.toString());
+
+        return {
+          _id: agencyId,
+          name: agency.name,
+          username: agency.username,
+          avatar: agency.avatar,
+          roles: agency.roles || [],
+          agentInfo: this.getAgentInfo(agency),
+          agentCount: verifiableChildIds.length,
+          _verifiableChildIds: verifiableChildIds,
+        };
+      })
+      .filter(Boolean)
+      .sort((a: any, b: any) => {
+        const aVerified = a.agentInfo?.verified === true ? 1 : 0;
+        const bVerified = b.agentInfo?.verified === true ? 1 : 0;
+        return bVerified - aVerified;
+      });
+
+    return {
+      total: data.length,
+      data,
+    };
+  }
+
+  async updateAgencyVerification(id: string, verified: boolean) {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('ID de agencia invalido');
+    }
+
+    const agency = await this.userModel
+      .findOne(
+        {
+          _id: new Types.ObjectId(id),
+          roles: Role.AGENCIA,
+        },
+        {
+          _id: 1,
+          roles: 1,
+        },
+      )
+      .lean();
+
+    if (!agency) {
+      throw new NotFoundException('Agencia no encontrada');
+    }
+
+    const idsToUpdate = await this.getAgencyVerificationTargetIds(
+      id,
+      verified,
+    );
+
+    const objectIds = idsToUpdate.map((userId) => new Types.ObjectId(userId));
+    const updateResult = await this.userModel.updateMany(
+      { _id: { $in: objectIds } },
+      {
+        $set: {
+          'agentInfo.verified': verified,
+        },
+      },
+    );
+
+    return {
+      success: true,
+      verified,
+      affectedUserIds: idsToUpdate,
+      matchedCount: updateResult.matchedCount,
+      modifiedCount: updateResult.modifiedCount,
+    };
+  }
+
   // async updateById(id: string, data: Partial<User>) {
   //   const user = await this.userModel.findByIdAndUpdate(id, data, {
   //     new: true,
@@ -406,6 +630,153 @@ export class UsersService {
       message:
         'API KEY de EasyBroker guardada correctamente',
     };
+  }
+
+  private async getAgencyVerificationTargetIds(
+    agencyId: string,
+    verified: boolean,
+  ): Promise<string[]> {
+    const agencyObjectId = new Types.ObjectId(agencyId);
+    const children = await this.userModel
+      .find(
+        {
+          parentId: agencyObjectId,
+        },
+        {
+          name: 1,
+          phone: 1,
+          avatar: 1,
+          roles: 1,
+          isEnabled: 1,
+          agentInfo: 1,
+          parentId: 1,
+        },
+      )
+      .lean();
+
+    if (!verified) {
+      return [
+        agencyId,
+        ...children.map((child: any) => child._id.toString()),
+      ];
+    }
+
+    const verifiableChildren = children.filter((child: any) => {
+      const roles = this.getRolesArray(child);
+      return (
+        child.isEnabled &&
+        roles.includes(Role.AGENTE) &&
+        this.isVerificationProfileComplete(child)
+      );
+    });
+
+    if (verifiableChildren.length === 0) {
+      return [agencyId];
+    }
+
+    const childIds = verifiableChildren.map((child: any) => child._id);
+    const childIdStrings = verifiableChildren.map((child: any) =>
+      child._id.toString(),
+    );
+    const childIdSet = new Set(childIdStrings);
+    const propertyOwners = new Set<string>();
+
+    const publishedProperties = await this.propertyModel
+      .aggregate([
+        {
+          $match: {
+            status: 'published',
+            $or: [
+              { userId: { $in: childIds } },
+              { userId: { $in: childIdStrings } },
+              { agents: { $in: childIds } },
+              { agents: { $in: childIdStrings } },
+            ],
+          },
+        },
+        {
+          $project: {
+            userId: 1,
+            agents: 1,
+          },
+        },
+      ])
+      .exec();
+
+    publishedProperties.forEach((property: any) => {
+      const userId = property.userId?.toString();
+      if (userId && childIdSet.has(userId)) {
+        propertyOwners.add(userId);
+      }
+
+      if (Array.isArray(property.agents)) {
+        property.agents.forEach((agentId: any) => {
+          const agentIdString = agentId?.toString();
+          if (agentIdString && childIdSet.has(agentIdString)) {
+            propertyOwners.add(agentIdString);
+          }
+        });
+      }
+    });
+
+    return [
+      agencyId,
+      ...verifiableChildren
+        .filter((child: any) => propertyOwners.has(child._id.toString()))
+        .map((child: any) => child._id.toString()),
+    ];
+  }
+
+  private getRolesArray(user: any): string[] {
+    if (Array.isArray(user?.roles)) return user.roles;
+    if (user?.roles) return [user.roles];
+    return [];
+  }
+
+  private getAgentInfo(user: any) {
+    const agentInfo = user?.agentInfo;
+    if (!agentInfo) return {};
+    if (agentInfo instanceof Map) {
+      return Object.fromEntries(agentInfo.entries());
+    }
+    return agentInfo;
+  }
+
+  private hasProfileValue(value: any) {
+    return value !== undefined && value !== null && value !== '';
+  }
+
+  private isVerificationProfileComplete(user: any) {
+    if (!user) return false;
+
+    const roles = this.getRolesArray(user);
+    const agentInfo = this.getAgentInfo(user);
+    const baseOk =
+      this.hasProfileValue(user.name) &&
+      this.hasProfileValue(user.phone) &&
+      this.hasProfileValue(user.avatar) &&
+      this.hasProfileValue(agentInfo.description) &&
+      this.hasProfileValue(agentInfo.address);
+
+    if (!baseOk) return false;
+
+    if (roles.includes(Role.AGENTE)) {
+      return (
+        this.hasProfileValue(agentInfo.specialization) &&
+        this.hasProfileValue(agentInfo.expe) &&
+        Array.isArray(agentInfo.languages) &&
+        agentInfo.languages.length > 0
+      );
+    }
+
+    if (roles.includes(Role.AGENCIA)) {
+      return (
+        this.hasProfileValue(agentInfo.expe) &&
+        this.hasProfileValue(agentInfo.logo)
+      );
+    }
+
+    return false;
   }
 
   private getProfileSlugSource(user: any) {

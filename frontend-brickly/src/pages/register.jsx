@@ -7,8 +7,9 @@ import login from '../assets/images/imagenes_de_fondo/loginImg.webp';
 import logoB from '../assets/images/logos/logo_negro.png';
 import { registerWithEmail, isAuthenticated  } from '../services/authService';
 import { Link, useNavigate } from 'react-router-dom';
+import { getTurnstileSiteKey, getTurnstileToken, resetTurnstileWidget, shouldRequireTurnstileToken } from '../utils/turnstile';
 
-const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+const TURNSTILE_SITE_KEY = getTurnstileSiteKey();
 
 function Register() {
 
@@ -58,6 +59,7 @@ function Register() {
     // Renderizar widget Turnstile
     useEffect(() => {
         if (turnstileReady && turnstileRef.current && !turnstileWidgetId.current) {
+            if (!TURNSTILE_SITE_KEY) return;
             turnstileWidgetId.current = window.turnstile.render(turnstileRef.current, {
                 sitekey: TURNSTILE_SITE_KEY,
                 theme: 'light'
@@ -172,11 +174,9 @@ function Register() {
         }
 
         // Validar Turnstile
-        const turnstileToken = turnstileWidgetId.current
-            ? window.turnstile.getResponse(turnstileWidgetId.current)
-            : null;
+        const turnstileToken = getTurnstileToken(turnstileWidgetId.current);
         
-        if (!turnstileToken) {
+        if (!turnstileToken && shouldRequireTurnstileToken()) {
             setAlert({
             show: true,
             variant: 'warning',
@@ -197,9 +197,7 @@ function Register() {
         
         if (result.success) {
             // Resetear Turnstile
-            if (turnstileWidgetId.current) {
-                window.turnstile.reset(turnstileWidgetId.current);
-            }
+            resetTurnstileWidget(turnstileWidgetId.current);
 
             setAlert({
             show: true,
@@ -219,9 +217,7 @@ function Register() {
             }, 2000);
         } else {
             // Resetear Turnstile en caso de error también
-            if (turnstileWidgetId.current) {
-                window.turnstile.reset(turnstileWidgetId.current);
-            }
+            resetTurnstileWidget(turnstileWidgetId.current);
 
             // Si el error es específicamente por email duplicado
             if (result.emailExists) {

@@ -3,8 +3,9 @@ import { FormattedMessage } from 'react-intl';
 import { sendContactAgente } from '../services/contactService';
 import { getCurrentUser, isAuthenticated } from '../services/authService';
 import { useT } from '../hooks/useT';
+import { getTurnstileSiteKey, getTurnstileToken, resetTurnstileWidget, shouldRequireTurnstileToken } from '../utils/turnstile';
 
-const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+const TURNSTILE_SITE_KEY = getTurnstileSiteKey();
 
 /**
  * Componente reutilizable de formulario de contacto para agentes
@@ -87,6 +88,7 @@ function ContactForm({ agentId, type = 'HomeForm', info = '', messagePlaceholder
   // Renderizar widget Turnstile
   useEffect(() => {
     if (turnstileReady && turnstileRef.current && !turnstileWidgetId.current) {
+      if (!TURNSTILE_SITE_KEY) return;
       turnstileWidgetId.current = window.turnstile.render(turnstileRef.current, {
         sitekey: TURNSTILE_SITE_KEY,
         theme: 'light'
@@ -140,11 +142,9 @@ function ContactForm({ agentId, type = 'HomeForm', info = '', messagePlaceholder
     e.preventDefault();
 
     // Validar Turnstile
-    const turnstileToken = turnstileWidgetId.current
-      ? window.turnstile.getResponse(turnstileWidgetId.current)
-      : null;
+    const turnstileToken = getTurnstileToken(turnstileWidgetId.current);
     
-    if (!turnstileToken) {
+    if (!turnstileToken && shouldRequireTurnstileToken()) {
       setError(t('Por favor, completa la verificación de seguridad', 'Please complete the security verification'));
       return;
     }
@@ -175,17 +175,13 @@ function ContactForm({ agentId, type = 'HomeForm', info = '', messagePlaceholder
 
     if (!hasError) {
       // Resetear Turnstile
-      if (turnstileWidgetId.current) {
-        window.turnstile.reset(turnstileWidgetId.current);
-      }
+      resetTurnstileWidget(turnstileWidgetId.current);
       setSuccess(true);
       setFormData({ name: '', lastname: '', phone: '', email: '', message: '' });
       setTimeout(() => setSuccess(false), 5000);
     } else {
       // Resetear Turnstile en caso de error
-      if (turnstileWidgetId.current) {
-        window.turnstile.reset(turnstileWidgetId.current);
-      }
+      resetTurnstileWidget(turnstileWidgetId.current);
       setError(lastError);
     }
   };

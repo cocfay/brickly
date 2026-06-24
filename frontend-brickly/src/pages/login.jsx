@@ -9,8 +9,9 @@ import logoB from '../assets/images/logos/logo_negro.png';
 import google from '../assets/images/logos/google.png';
 import { loginWithEmail, isAuthenticated, getCurrentUser, fetchUserProfile, getFullUser } from '../services/authService';
 import { isProfileComplete, requiresExtendedProfile } from '../utils/profileUtils';
+import { getTurnstileSiteKey, getTurnstileToken, resetTurnstileWidget, shouldRequireTurnstileToken } from '../utils/turnstile';
 
-const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+const TURNSTILE_SITE_KEY = getTurnstileSiteKey();
 
 function Login() {
 
@@ -44,6 +45,7 @@ function Login() {
     // Renderizar widget Turnstile
     useEffect(() => {
         if (turnstileReady && turnstileRef.current && !turnstileWidgetId.current) {
+            if (!TURNSTILE_SITE_KEY) return;
             turnstileWidgetId.current = window.turnstile.render(turnstileRef.current, {
                 sitekey: TURNSTILE_SITE_KEY,
                 theme: 'light'
@@ -64,11 +66,9 @@ function Login() {
         }
 
         // Validar Turnstile
-        const turnstileToken = turnstileWidgetId.current
-            ? window.turnstile.getResponse(turnstileWidgetId.current)
-            : null;
+        const turnstileToken = getTurnstileToken(turnstileWidgetId.current);
         
-        if (!turnstileToken) {
+        if (!turnstileToken && shouldRequireTurnstileToken()) {
             setAlert({ show: true, variant: 'warning', message: t('Por favor, completa la verificación de seguridad', 'Please complete the security verification') });
             return;
         }
@@ -79,9 +79,7 @@ function Login() {
 
         if (result.success) {
             // Resetear Turnstile
-            if (turnstileWidgetId.current) {
-                window.turnstile.reset(turnstileWidgetId.current);
-            }
+            resetTurnstileWidget(turnstileWidgetId.current);
 
             setAlert({ show: true, variant: 'success', message: t('¡Login exitoso! Redirigiendo...', 'Login successful! Redirecting...') });
             // Notificar a boxLogin y otros componentes que el usuario cambió
@@ -104,9 +102,7 @@ function Login() {
             }, 1500);
         } else {
             // Resetear Turnstile en caso de error
-            if (turnstileWidgetId.current) {
-                window.turnstile.reset(turnstileWidgetId.current);
-            }
+            resetTurnstileWidget(turnstileWidgetId.current);
             setAlert({ show: true, variant: 'danger', message: result.error || t('Error al iniciar sesión', 'Error logging in') });
         }
         setLoading(false);

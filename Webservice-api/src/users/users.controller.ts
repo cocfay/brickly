@@ -51,6 +51,27 @@ export class UsersController {
     return this.usersService.findByProfileSlug(slug);
   }
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN)
+  @Get('verification/agencies')
+  getAgenciesForVerification() {
+    return this.usersService.findAgenciesForVerification();
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN)
+  @Put('verification/agencies/:id')
+  updateAgencyVerification(
+    @Param('id') id: string,
+    @Body() body: { verified: boolean },
+  ) {
+    if (typeof body?.verified !== 'boolean') {
+      throw new BadRequestException('El estado de verificacion es requerido');
+    }
+
+    return this.usersService.updateAgencyVerification(id, body.verified);
+  }
+
  
 
   @Get('me')

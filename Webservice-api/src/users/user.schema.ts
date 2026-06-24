@@ -101,3 +101,6 @@ export class User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+UserSchema.index({ roles: 1, isEnabled: 1 });
+UserSchema.index({ parentId: 1, isEnabled: 1, roles: 1 });

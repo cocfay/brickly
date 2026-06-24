@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import Container from 'react-bootstrap/Container';
 import { FormattedMessage } from 'react-intl';
 import { API_URL } from '../services/authService';
+import { getTurnstileSiteKey, getTurnstileToken, resetTurnstileWidget, shouldRequireTurnstileToken } from '../utils/turnstile';
 
-const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+const TURNSTILE_SITE_KEY = getTurnstileSiteKey();
 
 function Contactanos() {
     const [form, setForm] = useState({
@@ -40,6 +41,7 @@ function Contactanos() {
     // Renderizar widget Turnstile
     useEffect(() => {
         if (turnstileReady && turnstileRef.current && !turnstileWidgetId.current) {
+            if (!TURNSTILE_SITE_KEY) return;
             turnstileWidgetId.current = window.turnstile.render(turnstileRef.current, {
                 sitekey: TURNSTILE_SITE_KEY,
                 theme: 'light'
@@ -88,11 +90,9 @@ function Contactanos() {
         setError('');
 
         // Validar Turnstile
-        const turnstileToken = turnstileWidgetId.current
-            ? window.turnstile.getResponse(turnstileWidgetId.current)
-            : null;
+        const turnstileToken = getTurnstileToken(turnstileWidgetId.current);
         
-        if (!turnstileToken) {
+        if (!turnstileToken && shouldRequireTurnstileToken()) {
             setError('Por favor, completa la verificación de seguridad.');
             return;
         }
@@ -123,17 +123,13 @@ function Contactanos() {
             if (!res.ok) throw new Error('Error al enviar');
 
             // Resetear Turnstile
-            if (turnstileWidgetId.current) {
-                window.turnstile.reset(turnstileWidgetId.current);
-            }
+            resetTurnstileWidget(turnstileWidgetId.current);
 
             setSuccess(true);
             setForm({ fullName: '', phone: '', email: '', message: '' });
         } catch {
             // Resetear Turnstile en caso de error
-            if (turnstileWidgetId.current) {
-                window.turnstile.reset(turnstileWidgetId.current);
-            }
+            resetTurnstileWidget(turnstileWidgetId.current);
             setError('Ocurrió un error al enviar. Por favor intenta de nuevo.');
         } finally {
             setLoading(false);

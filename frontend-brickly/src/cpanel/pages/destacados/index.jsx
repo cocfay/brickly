@@ -15,6 +15,8 @@ import 'datatables.net-responsive-dt';
 import 'datatables.net-responsive-dt/css/responsive.dataTables.css';
 import espanol from 'datatables.net-plugins/i18n/es-ES.mjs';
 
+const isFeaturedUser = (user) => Number(user?.featured_user || 0) > 0;
+
 function Destacados() {
   const [listDestacadas, setListDestacadas] = useState([]);
   const [users, setUsers] = useState([]);
@@ -67,7 +69,7 @@ function Destacados() {
 
         let params = {};
         if (filterType === 'agencia') {
-          params = { roles: 'agencia', isEnabled: true, featured_user: 1 };
+          params = { roles: 'agencia', isEnabled: true };
         } else if (filterType === 'agente') {
           params = { roles: 'agente', isEnabled: true };
         }
@@ -102,12 +104,12 @@ function Destacados() {
     } else if (filterType === 'agencia') {
       return users.filter(u => {
         const roles = Array.isArray(u.roles) ? u.roles : [u.roles];
-        return roles.includes('agencia') && u.featured_user;
+        return roles.includes('agencia') && isFeaturedUser(u);
       });
     } else if (filterType === 'agente') {
       return users.filter(u => {
         const roles = Array.isArray(u.roles) ? u.roles : [u.roles];
-        return roles.includes('agente') && u.featured_user;
+        return roles.includes('agente') && isFeaturedUser(u);
       });
     }
     return [];
@@ -247,7 +249,7 @@ function Destacados() {
           title: 'Tipo destacado',
           data: null,
           render: (row) => {
-            if (row.featured_user === 2) {
+            if (Number(row.featured_user) === 2) {
               return '<span class="badge" style="background-color:#6f42c1;">Destacado</span>';
             }
             return '<span class="badge bg-warning text-dark">Destacado</span>';
