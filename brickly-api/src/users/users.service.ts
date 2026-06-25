@@ -92,8 +92,28 @@ export class UsersService {
         }
       });
 
-      if (filters.parentId) {
-        filters.parentId = new Types.ObjectId(filters.parentId);
+      if (filters.parentId !== undefined) {
+        const parentIdValue = Array.isArray(filters.parentId)
+          ? filters.parentId[0]
+          : filters.parentId;
+        const normalizedParentId = parentIdValue?.toString().trim().toLowerCase();
+
+        if (
+          !normalizedParentId ||
+          ['none', 'null', 'empty', 'unassigned'].includes(normalizedParentId)
+        ) {
+          filters.$or = [
+            { parentId: { $exists: false } },
+            { parentId: null },
+            { parentId: '' },
+          ];
+          delete filters.parentId;
+        } else {
+          if (!Types.ObjectId.isValid(parentIdValue)) {
+            throw new BadRequestException('parentId invalido');
+          }
+          filters.parentId = new Types.ObjectId(parentIdValue);
+        }
       }
 
       

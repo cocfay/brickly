@@ -143,6 +143,7 @@ function Index() {
         const search = data.search?.value || '';
         const params = { page, limit };
         if (filterRoleRef.current) params.roles = filterRoleRef.current;
+        if (filterRoleRef.current === 'agente') params.parentId = 'none';
         if (search) params.search = search;
 
         const result = await getUsersPaginados(params);
@@ -213,10 +214,8 @@ function Index() {
           searchable: false,
           render: (row) => {
             const roles = getRoles(row);
-            const isAgente = roles.includes('agente');
             const isAgencia = roles.includes('agencia');
-            const activeRole = filterRoleRef.current;
-            const showEye = (isAgente || isAgencia) && (activeRole === 'agente' || activeRole === 'agencia');
+            const showEye = isAgencia;
             const eyeBtn = showEye ? `<a href="#" class="text-body view-agents" data-id="${row._id}" title="Ver agentes"><i class="fa-solid fa-eye"></i></a>` : '';
             return `<div class="d-flex gap-3 justify-content-center"><a href="#" class="text-body edit-user" data-id="${row._id}"><i class="fa-solid fa-pen-to-square"></i></a>${eyeBtn}<a href="#" class="text-body delete-user" data-id="${row._id}"><i class="fa-solid fa-trash"></i></a></div>`;
           }
