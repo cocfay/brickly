@@ -57,6 +57,58 @@ export const getContactSiteForms = async () => {
 };
 
 /**
+ * Actualizar status de leads de agentes
+ * PUT /contact/leads/status
+ * @param {string[]} ids
+ * @param {'pendiente'|'revisado'} status
+ */
+export const updateContactLeadStatus = async (ids = [], status = 'revisado') => {
+  try {
+    const response = await fetch(`${API_URL}/contact/leads/status`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ ids, status })
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.message || `Error ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Actualizar status de leads del sitio
+ * PUT /contact/site/forms/status
+ * @param {string[]} ids
+ * @param {'pendiente'|'revisado'} status
+ */
+export const updateContactSiteFormStatus = async (ids = [], status = 'revisado') => {
+  try {
+    const response = await fetch(`${API_URL}/contact/site/forms/status`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ ids, status })
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.message || `Error ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
+/**
  * Enviar formulario de contacto de un agente
  * POST /contact/agente
  * @param {Object} contactData

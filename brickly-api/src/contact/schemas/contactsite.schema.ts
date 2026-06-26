@@ -21,6 +21,9 @@ export class Contactsite {
   @Prop({ required: true })
   type!: string;
 
+  @Prop({ enum: ['pendiente', 'revisado'], default: 'pendiente', index: true })
+  status!: string;
+
 }
 
 export const ContactsiteSchema = SchemaFactory.createForClass(Contactsite);

@@ -1,7 +1,12 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Container, Alert, Modal } from 'react-bootstrap';
-import { getContactLeads, getContactSiteForms } from '../../../services/contactService';
-import { getCurrentUser, API_URL } from '../../../services/authService';
+import {
+    getContactLeads,
+    getContactSiteForms,
+    updateContactLeadStatus,
+    updateContactSiteFormStatus
+} from '../../../services/contactService';
+import { getCurrentUser } from '../../../services/authService';
 import { getUsers } from '../../../services/listUsers';
 import { getAgentes } from '../../services/agentes';
 import $ from 'jquery';
@@ -10,6 +15,32 @@ import 'datatables.net-dt/css/dataTables.dataTables.css';
 import 'datatables.net-responsive-dt';
 import 'datatables.net-responsive-dt/css/responsive.dataTables.css';
 import espanol from 'datatables.net-plugins/i18n/es-ES.mjs';
+
+const normalizeLeadStatus = (status) => {
+    return status === 'revisado' ? 'revisado' : 'pendiente';
+};
+
+const getLeadStatusLabel = (status) => {
+    return normalizeLeadStatus(status) === 'revisado' ? 'Revisado' : 'Pendiente';
+};
+
+const getLeadStatusBadgeClass = (status) => {
+    return normalizeLeadStatus(status) === 'revisado'
+        ? 'bg-success-subtle text-success border border-success-subtle'
+        : 'bg-warning-subtle text-warning-emphasis border border-warning-subtle';
+};
+
+const renderLeadStatusBadge = (status) => {
+    return `<span class="badge rounded-pill ${getLeadStatusBadgeClass(status)}">${getLeadStatusLabel(status)}</span>`;
+};
+
+const getLeadIds = (lead) => {
+    if (!lead) return [];
+    if (Array.isArray(lead.leadIds) && lead.leadIds.length > 0) {
+        return lead.leadIds;
+    }
+    return lead._id ? [lead._id] : [];
+};
 
 function Leads() {
     const [leads, setLeads] = useState([]);
@@ -23,6 +54,7 @@ function Leads() {
     // Modal state
     const [showModal, setShowModal] = useState(false);
     const [selectedLead, setSelectedLead] = useState(null);
+    const [reviewLoading, setReviewLoading] = useState(false);
 
     const currentUser = getCurrentUser();
     const isAdmin = currentUser?.roles?.includes('admin');
@@ -43,6 +75,7 @@ function Leads() {
     const handleCloseModal = () => {
         setShowModal(false);
         setSelectedLead(null);
+        setReviewLoading(false);
     };
 
     const formatDate = (dateStr) => {
@@ -57,29 +90,48 @@ function Leads() {
         });
     };
 
+    const handleMarkAsReviewed = async () => {
+        const leadIds = getLeadIds(selectedLead);
+
+        if (leadIds.length === 0) {
+            setAlertVariant('danger');
+            setAlertMessage('No se pudo identificar el lead seleccionado.');
+            setShowAlert(true);
+            return;
+        }
+
+        setReviewLoading(true);
+        const result = filterType === 'brickly'
+            ? await updateContactSiteFormStatus(leadIds, 'revisado')
+            : await updateContactLeadStatus(leadIds, 'revisado');
+
+        if (result.success) {
+            const leadIdSet = new Set(leadIds);
+
+            setLeads(prevLeads => prevLeads.map(lead => {
+                const currentLeadIds = getLeadIds(lead);
+                const shouldUpdate = currentLeadIds.some(id => leadIdSet.has(id));
+
+                return shouldUpdate ? { ...lead, status: 'revisado' } : lead;
+            }));
+            setSelectedLead(prevLead => prevLead ? { ...prevLead, status: 'revisado' } : prevLead);
+            setAlertVariant('success');
+            setAlertMessage('Lead marcado como revisado.');
+            setShowAlert(true);
+        } else {
+            setAlertVariant('danger');
+            setAlertMessage(result.error || 'Error al marcar el lead como revisado.');
+            setShowAlert(true);
+        }
+
+        setReviewLoading(false);
+    };
+
     useEffect(() => {
         filterTypeRef.current = filterType;
     }, [filterType]);
 
-    useEffect(() => {
-        const load = async () => {
-            setLoadingShow(true);
-            setDataReady(false);
-
-            const isBrickly = filterTypeRef.current === 'brickly';
-
-            if (isBrickly) {
-                await loadSiteForms();
-            } else {
-                await loadAgentLeads();
-            }
-
-            setLoadingShow(false);
-        };
-        load();
-    }, [filterType]);
-
-    const loadAgentLeads = async () => {
+    const loadAgentLeads = useCallback(async () => {
         // Cargar TODOS los usuarios para tener mapa completo de agentes y agencias
         const usersResult = await getUsers();
         const usersMap = {};       // _id -> user object
@@ -126,9 +178,14 @@ function Leads() {
                 if (groupedMap.has(key)) {
                     const existing = groupedMap.get(key);
                     const agentId = item.agentId?._id || item.agentId;
+                    const leadId = item._id;
                     if (agentId && !existing.agentIds.includes(agentId)) {
                         existing.agentIds.push(agentId);
                     }
+                    if (leadId && !existing.leadIds.includes(leadId)) {
+                        existing.leadIds.push(leadId);
+                    }
+                    existing.statusValues.push(normalizeLeadStatus(item.status));
                     if (item.createdAt && new Date(item.createdAt) > new Date(existing.createdAt)) {
                         existing.createdAt = item.createdAt;
                     }
@@ -136,12 +193,17 @@ function Leads() {
                     const agentId = item.agentId?._id || item.agentId;
                     groupedMap.set(key, {
                         ...item,
-                        agentIds: agentId ? [agentId] : []
+                        status: normalizeLeadStatus(item.status),
+                        statusValues: [normalizeLeadStatus(item.status)],
+                        agentIds: agentId ? [agentId] : [],
+                        leadIds: item._id ? [item._id] : []
                     });
                 }
             });
 
             const groupedData = Array.from(groupedMap.values()).map(item => {
+                const statusValues = Array.isArray(item.statusValues) ? item.statusValues : [item.status];
+                const status = statusValues.every(value => normalizeLeadStatus(value) === 'revisado') ? 'revisado' : 'pendiente';
                 const agentNames = item.agentIds
                     .map(id => {
                         const user = usersMap[id];
@@ -163,6 +225,7 @@ function Leads() {
 
                 return {
                     ...item,
+                    status,
                     agentNames: agentNames || 'N/A',
                     agencyNames: agencyNames || ''
                 };
@@ -190,9 +253,9 @@ function Leads() {
 
         setLeads(processedLeads);
         setDataReady(true);
-    };
+    }, [currentUser?._id, isAgencia, isAgente]);
 
-    const loadSiteForms = async () => {
+    const loadSiteForms = useCallback(async () => {
         const result = await getContactSiteForms();
         let processedLeads = [];
         if (result.success) {
@@ -204,7 +267,11 @@ function Leads() {
                 return db - da;
             });
 
-            processedLeads = rawData;
+            processedLeads = rawData.map(item => ({
+                ...item,
+                status: normalizeLeadStatus(item.status),
+                leadIds: item._id ? [item._id] : []
+            }));
         } else {
             setAlertVariant('danger');
             setAlertMessage(result.error || 'Error al cargar leads del sitio.');
@@ -213,7 +280,25 @@ function Leads() {
 
         setLeads(processedLeads);
         setDataReady(true);
-    };
+    }, []);
+
+    useEffect(() => {
+        const load = async () => {
+            setLoadingShow(true);
+            setDataReady(false);
+
+            const isBrickly = filterTypeRef.current === 'brickly';
+
+            if (isBrickly) {
+                await loadSiteForms();
+            } else {
+                await loadAgentLeads();
+            }
+
+            setLoadingShow(false);
+        };
+        load();
+    }, [filterType, loadAgentLeads, loadSiteForms]);
 
     // DataTable initialization (only when leads or filterType changes and dataReady is true)
     useEffect(() => {
@@ -268,6 +353,11 @@ function Leads() {
                         title: 'Teléfono',
                         data: null,
                         render: (row) => row.phone || 'N/A'
+                    },
+                    {
+                        title: 'Status',
+                        data: null,
+                        render: (row) => renderLeadStatusBadge(row.status)
                     },
                     {
                         title: 'Acciones',
@@ -439,6 +529,14 @@ function Leads() {
                                     <p className="mb-0 text-muted">{selectedLead.type || 'N/A'}</p>
                                 </div>
                                 <div className="col-lg-4 col-md-6">
+                                    <strong>Status:</strong>
+                                    <div className="mt-1">
+                                        <span className={`badge rounded-pill ${getLeadStatusBadgeClass(selectedLead.status)}`}>
+                                            {getLeadStatusLabel(selectedLead.status)}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="col-lg-4 col-md-6">
                                     <strong>Info adicional:</strong>
                                     <p className="mb-0 text-muted">{selectedLead.info || '-'}</p>
                                 </div>
@@ -463,6 +561,11 @@ function Leads() {
                 </Modal.Body>
 
                 <Modal.Footer>
+                    {selectedLead && normalizeLeadStatus(selectedLead.status) !== 'revisado' && (
+                        <button className="btn btn-dark" onClick={handleMarkAsReviewed} disabled={reviewLoading}>
+                            {reviewLoading ? 'Marcando...' : 'Marcar como revisado'}
+                        </button>
+                    )}
                     <button className="btn btn-secondary" onClick={handleCloseModal}>Cerrar</button>
                 </Modal.Footer>
             </Modal>

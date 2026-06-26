@@ -578,7 +578,9 @@ function Home() {
                                 <img src={diamond} className="object-fit-cover" style={{ width: '14px' }} alt="Diamond" /><FormattedMessage id="home.text31" />
                               </div>
                               <div className='d-flex justify-content-end align-items-center gap-2' style={{ pointerEvents: 'auto' }}>
+                                {/* Visualizaciones ocultas temporalmente
                                 <div className='d-flex gap-2 align-items-center rounded-4' style={{ backgroundColor: '#000000c7', color: 'white', width: 'fit-content', height: 'fit-content', boxSizing: 'border-box', padding: '3px 10px', fontSize: '12px' }}><FormattedMessage id="home.text8" />: {item.visitCounter || 0} </div>
+                                */}
                                 <div className={`favorite-icon ${isFavorite(item._id) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (isAuthenticated() && !canFavorite) return; const iconElement = e.currentTarget.querySelector('i'); iconElement.style.transform = 'scale(1.3)'; setTimeout(() => { iconElement.style.transform = 'scale(1)'; toggleFav(item._id); }, 200); }}>
                                   <i className="fa-solid fa-heart"></i>
                                 </div>
@@ -781,7 +783,9 @@ function Home() {
                                 <img src={diamond} className="object-fit-cover" style={{ width: '14px' }} alt="Diamond" /><FormattedMessage id="home.text31" />
                               </div>
                               <div className='d-flex justify-content-end align-items-center gap-2'>
+                                {/* Visualizaciones ocultas temporalmente
                                 <div className='d-flex gap-2 align-items-center rounded-4' style={{ backgroundColor: '#000000c7', color: 'white', width: 'fit-content', height: 'fit-content', boxSizing: 'border-box', padding: '3px 10px', fontSize: '12px' }}><FormattedMessage id="home.text8" />: {item.visitCounter || 0} </div>
+                                */}
                                 <div className={`favorite-icon ${isFavorite(item._id) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (isAuthenticated() && !canFavorite) return; const iconElement = e.currentTarget.querySelector('i'); iconElement.style.transform = 'scale(1.3)'; setTimeout(() => { iconElement.style.transform = 'scale(1)'; toggleFav(item._id); }, 200); }}>
                                   <i className="fa-solid fa-heart"></i>
                                 </div>
@@ -890,7 +894,9 @@ function Home() {
                                 <FormattedMessage id="home.text7" />
                               </div>
                               <div className='d-flex justify-content-end align-items-center gap-2'>
+                                {/* Visualizaciones ocultas temporalmente
                                 <div className='d-flex gap-2 align-items-center rounded-4' style={{ backgroundColor: '#000000c7', color: 'white', width: 'fit-content', height: 'fit-content', boxSizing: 'border-box', padding: '3px 10px', fontSize: '12px' }}><FormattedMessage id="home.text8" />: {item.visitCounter || 0} </div>
+                                */}
                                 <div className={`favorite-icon ${isFavorite(item._id) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (isAuthenticated() && !canFavorite) return; const iconElement = e.currentTarget.querySelector('i'); iconElement.style.transform = 'scale(1.3)'; setTimeout(() => { iconElement.style.transform = 'scale(1)'; toggleFav(item._id); }, 200); }}>
                                   <i className="fa-solid fa-heart"></i>
                                 </div>
@@ -1062,7 +1068,9 @@ function Home() {
                                   <FormattedMessage id="home.text7" />
                                 </div> */}
                                 <div className='d-flex mt-auto justify-content-end align-items-center gap-2'>
+                                  {/* Visualizaciones ocultas temporalmente
                                   <div className='d-flex gap-2 align-items-center rounded-4' style={{ backgroundColor: '#000000c7', color: 'white', width: 'fit-content', height: 'fit-content', boxSizing: 'border-box', padding: '3px 10px', fontSize: '12px' }}><FormattedMessage id="home.text8" />: { item.visitCounter } </div>
+                                  */}
                                   <div className={`favorite-icon ${isFavorite(item._id) ? 'like' : 'unlike'}` } style={{ cursor: 'pointer' }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (isAuthenticated() && !canFavorite) return; const iconElement = e.currentTarget.querySelector('i'); iconElement.style.transform = 'scale(1.3)'; setTimeout(() => { iconElement.style.transform = 'scale(1)'; toggleFav(item._id); }, 200); }}>
                                     <i className="fa-solid fa-heart"></i>
                                   </div>
@@ -1226,7 +1234,9 @@ function Home() {
                                     <FormattedMessage id="home.text7" />
                                   </div> */}
                                   <div className='d-flex mt-auto justify-content-end align-items-center gap-2'>
+                                    {/* Visualizaciones ocultas temporalmente
                                     <div className='d-flex gap-2 align-items-center rounded-4' style={{ backgroundColor: '#000000c7', color: 'white', width: 'fit-content', height: 'fit-content', boxSizing: 'border-box', padding: '3px 10px', fontSize: '12px' }}><FormattedMessage id="home.text8" />: { item.visitCounter } </div>
+                                    */}
                                     <div className={`favorite-icon ${isFavorite(item._id) ? 'like' : 'unlike'}` } style={{ cursor: 'pointer' }} onClick={(e) => { e.preventDefault(); if (isAuthenticated() && !canFavorite) return; const iconElement = e.currentTarget.querySelector('i'); iconElement.style.transform = 'scale(1.3)'; setTimeout(() => { iconElement.style.transform = 'scale(1)'; toggleFav(item._id); }, 200); }}>
                                       <i className="fa-solid fa-heart"></i>
                                     </div>

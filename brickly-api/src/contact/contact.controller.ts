@@ -1,4 +1,7 @@
-import { Controller, Post, Get, Body, Query, Param } from '@nestjs/common';
+import { Controller, Post, Get, Body, Query, Param, Put, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
 import { ContactService } from './contact.service';
 
 @Controller('contact')
@@ -59,9 +62,23 @@ export class ContactController {
     return this.contactService.findLead(query);
   }
 
+  @Put('leads/status')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin', 'agencia', 'agente')
+  updateLeadStatus(@Body() body: { ids: string[]; status: string }) {
+    return this.contactService.updateLeadStatus(body.ids, body.status);
+  }
+
   @Get('site/forms')
   getContactsSite(@Query() query: any) {
     return this.contactService.findContactsite(query);
+  }
+
+  @Put('site/forms/status')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
+  updateContactsiteStatus(@Body() body: { ids: string[]; status: string }) {
+    return this.contactService.updateContactsiteStatus(body.ids, body.status);
   }
 
   @Get('total-contact-site')

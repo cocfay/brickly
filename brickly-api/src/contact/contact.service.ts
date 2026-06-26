@@ -20,7 +20,7 @@ export class ContactService {
     @InjectModel(Leadform.name)
     private leadformModel: Model<Leadform>,
     @InjectModel(Contactsite.name)
-    private ContactsiteModel: Model<Leadform>,
+    private ContactsiteModel: Model<Contactsite>,
     @InjectModel(User.name)
     private userModel: Model<User>,
     private usersService: UsersService,
@@ -58,6 +58,61 @@ export class ContactService {
         }
         delete filters.orderby;
     return this.ContactsiteModel.find(filters).sort(orderByReg);
+  }
+
+  async updateLeadStatus(ids: string[], status: string) {
+    const normalizedIds = this.normalizeLeadIds(ids);
+    this.validateLeadStatus(status);
+
+    const result = await this.leadformModel.updateMany(
+      { _id: { $in: normalizedIds } },
+      { $set: { status } },
+    );
+
+    return {
+      success: true,
+      matched: result.matchedCount,
+      modified: result.modifiedCount,
+      status,
+    };
+  }
+
+  async updateContactsiteStatus(ids: string[], status: string) {
+    const normalizedIds = this.normalizeLeadIds(ids);
+    this.validateLeadStatus(status);
+
+    const result = await this.ContactsiteModel.updateMany(
+      { _id: { $in: normalizedIds } },
+      { $set: { status } },
+    );
+
+    return {
+      success: true,
+      matched: result.matchedCount,
+      modified: result.modifiedCount,
+      status,
+    };
+  }
+
+  private normalizeLeadIds(ids: string[]) {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new BadRequestException('Debe enviar al menos un lead');
+    }
+
+    const normalizedIds = [...new Set(ids)].filter(Boolean);
+    const hasInvalidId = normalizedIds.some(id => !Types.ObjectId.isValid(id));
+
+    if (hasInvalidId) {
+      throw new BadRequestException('ID de lead invalido');
+    }
+
+    return normalizedIds;
+  }
+
+  private validateLeadStatus(status: string) {
+    if (!['pendiente', 'revisado'].includes(status)) {
+      throw new BadRequestException('Status de lead invalido');
+    }
   }
 
   async subscribe(email: string) {

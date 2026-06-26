@@ -1,5 +1,4 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Types } from 'mongoose';
 import mongoose from 'mongoose';
 
 @Schema({ timestamps: true })
@@ -31,6 +30,9 @@ export class Leadform {
 
   @Prop({ required: true, index: true })
   type!: string;
+
+  @Prop({ enum: ['pendiente', 'revisado'], default: 'pendiente', index: true })
+  status!: string;
 
 }
 
