@@ -251,6 +251,12 @@ function Propiedad() {
       }
       return '$ ' + new Intl.NumberFormat('en-US', { minimumFractionDigits: 0 }).format(num);
     };
+
+    const getAgencyName = (agency) => {
+      if (!agency) return '';
+      if (typeof agency === 'string') return agency;
+      return agency.name || '';
+    };
     
     const [showTourModal, setShowTourModal] = useState(false);
 
@@ -967,7 +973,7 @@ function Propiedad() {
                                                     <div className="d-flex align-items-start gap-2">
                                                         <div className='rounded-circle' style={{ width: '80px', height: '80px' }}><img src={items.avatar} alt="Avatar" style={{ width: '80px', height: '80px' }} className='rounded-circle object-fit-cover' loading="lazy" /></div>
                                                         <div>
-                                                            <div className='lh-sm' style={{fontSize: '18px'}}>{items.name}  { items?.agencia && <> <br /> <span style={{fontSize: '16px'}}>{items.agencia}</span> </>}</div>
+                                                            <div className='lh-sm' style={{fontSize: '18px'}}>{items.name}  { getAgencyName(items?.agencia) && <> <br /> <span style={{fontSize: '16px'}}>{getAgencyName(items.agencia)}</span> </>}</div>
                                                             <div className='mt-2' style={{ fontSize: '12px' }}>
                                                                 <StarRating rating={items.ratingAverage} size='11px' />
                                                             </div>
@@ -987,7 +993,7 @@ function Propiedad() {
                                                     <div className="d-flex align-items-start gap-4">
                                                         <div className='rounded-circle' style={{ width: '100px', height: '100px' }}><img src={items.avatar} alt="Avatar" style={{ width: '100px', height: '100px' }} className='rounded-circle object-fit-cover' loading="lazy" /></div>
                                                         <div>
-                                                            <div className='lh-sm' style={{fontSize: '18px'}}>{items.name}  { items?.agencia && <> <br /> <span style={{fontSize: '16px'}}>{items.agencia}</span> </>}</div>
+                                                            <div className='lh-sm' style={{fontSize: '18px'}}>{items.name}  { getAgencyName(items?.agencia) && <> <br /> <span style={{fontSize: '16px'}}>{getAgencyName(items.agencia)}</span> </>}</div>
                                                             <div style={{ fontSize: '12px' }}>
                                                                 <StarRating rating={items.ratingAverage} size='11px' />
                                                             </div>
