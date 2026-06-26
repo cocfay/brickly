@@ -623,7 +623,7 @@ export default function MetricasAdmin() {
           {/* Tarjeta Contenedora Principal */}
           <div className="bg-white border border-light-subtle p-4 shadow-sm h-100 d-flex flex-column" style={{ borderRadius: '24px' }}>
             <h6 className="m-0 fw-bold mb-4" style={{ color: '#1e293b', fontSize: '15px' }}>
-              Agencias destacadas prontas a vencer
+              Agencias destacadas en el home prontas a vencer
             </h6>
             
             {/* Contenedor de la fila: mantiene el orden horizontal idéntico al diseño */}

@@ -16,7 +16,7 @@ function Layout() {
   // Rutas que usan MainMenu (con banner)
   const showMainMenu = ['/', '/home'].includes(location.pathname);
 
-  const whatsappUrl = `https://wa.me/50237649719?text=` + encodeURIComponent('¡Hola! Deseo contactar a un asesor.')
+  const whatsappUrl = `https://wa.me/50237649719?text=` + encodeURIComponent('¡Hola! Estoy interesado en los paquetes de Brickly Homes. Quiero conocer opciones y contratar el ideal.')
 
   const [subEmail, setSubEmail]     = useState('');
   const [subLoading, setSubLoading] = useState(false);
