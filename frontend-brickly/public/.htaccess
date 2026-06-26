@@ -1,6 +1,6 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /
+  RewriteBase /brickly/
   
   # Si la ruta comienza con api/, redirigir al archivo PHP correspondiente
   RewriteRule ^api/upload-logo$ api/upload-logo.php [L,QSA]
