@@ -261,6 +261,25 @@ function Propiedades() {
     loadRanges();
   }, [currencyMode]);
 
+  // Mapa de opciones de ordenamiento a parámetros del backend
+  const sortOptionToOrderby = (option) => {
+    if (!option) return null;
+    switch (option.value) {
+      case 0:  return 'featured.isActive:desc';
+      case 1:  return 'createdAt:desc';
+      case 2:  return 'createdAt:asc';
+      case 3:  return 'market.price:asc';
+      case 4:  return 'market.price:desc';
+      case 5:  return 'market.price:asc';
+      case 6:  return 'market.price:desc';
+      case 7:  return 'visitCounter:desc';
+      case 8:  return 'dimensions.landM2:desc';
+      case 9:  return 'dimensions.landM2:asc';
+      case 10: return 'exclusive:desc';
+      default: return null;
+    }
+  };
+
   // Construir URL base con filtros activos para enviar al backend
   const buildApiUrl = useCallback(() => {
     let url = `${API_URL}/properties?status=published`;
@@ -279,22 +298,15 @@ function Propiedades() {
     // Filtro de tipo
     if (filters.type && filters.type !== 'Todos') url += `&market.type=${encodeURIComponent(filters.type)}`;
 
-
     // Filtro featured / exclusive
     if (filters.featured) url += `&featured.isActive=true`;
     if (filters.exclusive) url += `&exclusive=true`;
 
     // Filtro por agencia propietaria o agente asignado
-    if (userId) {
-      url += `&userId=${userId}`;
-    }
-
-    if (agentId) {
-      url += `&agents=${agentId}`;
-    }
+    if (userId) url += `&userId=${userId}`;
+    if (agentId) url += `&agents=${agentId}`;
 
     // Filtro de precio: se envía a la API para filtrar del lado del servidor
-    // Solo se envía min si es > 0; max solo si es < PRICE_VISUAL_MAX (igual que en cpanel)
     if (filters.minPrice > 0) {
       const param = currencyMode === 'GTQ' ? 'priceMin' : 'priceUSDMin';
       url += `&${param}=${filters.minPrice}`;
@@ -304,8 +316,24 @@ function Propiedades() {
       url += `&${param}=${filters.maxPrice}`;
     }
 
+    // Filtro de habitaciones al backend
+    if (filters.beds && filters.beds !== 'Cualquiera') {
+      const bedsNum = parseFloat(filters.beds);
+      if (!isNaN(bedsNum)) url += `&bedsMin=${bedsNum}`;
+    }
+
+    // Filtro de baños al backend
+    if (filters.baths && filters.baths !== 'Cualquiera') {
+      const bathsNum = parseFloat(filters.baths);
+      if (!isNaN(bathsNum)) url += `&bathsMin=${bathsNum}`;
+    }
+
+    // Ordenamiento al backend
+    const orderby = sortOptionToOrderby(sortOption);
+    if (orderby) url += `&orderby=${encodeURIComponent(orderby)}`;
+
     return url;
-  }, [filters, currencyMode, agentId, userId]);
+  }, [filters, currencyMode, agentId, userId, sortOption]);
 
   // Cargar propiedades con paginación (solo la página indicada)
   const loadPropertiesPage = useCallback(async (page, append = false) => {
@@ -696,7 +724,7 @@ function Propiedades() {
     setCurrentPage(1);
     setTotalPages(1);
     loadPropertiesPage(1, false);
-  }, [filters.search, filters.mode, filters.type, filters.department, filters.municipality, filters.zone, filters.featured, filters.exclusive, filters.minPrice, filters.maxPrice, currencyMode, agentId, userId, loadPropertiesPage]);
+  }, [filters.search, filters.mode, filters.type, filters.department, filters.municipality, filters.zone, filters.featured, filters.exclusive, filters.minPrice, filters.maxPrice, filters.beds, filters.baths, sortOption, currencyMode, agentId, userId, loadPropertiesPage]);
 
   // Limpiar sessionStorage al salir de la página de propiedades (navegar a otra ruta)
   // pero NO si el usuario navegó a una propiedad (para poder restaurar al volver)
@@ -1022,6 +1050,9 @@ function Propiedades() {
             aria-label={t('Ordenar propiedades', 'Sort properties')}
             onChange={(v) => {
               setSortOption(v);
+              setpropiedades([]);
+              setCurrentPage(1);
+              setTotalPages(1);
             }}
             styles={{
               control: (base) => ({

@@ -110,6 +110,16 @@ export class PropertiesService {
         delete filters.orderby;
         delete filters.search;
         
+        if (query.bedsMin !== undefined) {
+          filters['layout.bedrooms'] = { $gte: Number(query.bedsMin) };
+          delete filters.bedsMin;
+        }
+
+        if (query.bathsMin !== undefined) {
+          filters['layout.bathrooms'] = { $gte: Number(query.bathsMin) };
+          delete filters.bathsMin;
+        }
+
         if (query.priceMin !== undefined || query.priceMax !== undefined) {
           filters['market.price'] = {};
           if (query.priceMin !== undefined) filters['market.price'].$gte = Number(query.priceMin);

@@ -204,6 +204,7 @@ function Index() {
   // Modal asignar agentes
   const [showAgentModal, setShowAgentModal] = useState(false);
   const [modalPropId, setModalPropId] = useState(null);
+  const [modalPropIds, setModalPropIds] = useState([]);
   const [agentesOptions, setAgentesOptions] = useState([]);
   const [selectedAgents, setSelectedAgents] = useState([]);
   const [savingAgents, setSavingAgents] = useState(false);
@@ -1123,6 +1124,15 @@ function Index() {
               destacarBtn.innerHTML = `<img src="${diamond}" alt="icon" style="width:14px;height:14px;object-fit:contain;flex-shrink:0;" /> Destacar`;
             }
 
+            let asignarAgentesBtn = null;
+            if (isAgenciaRef.current && hasAgentsRef.current) {
+              asignarAgentesBtn = document.createElement('button');
+              asignarAgentesBtn.className = 'btn btn-sm btn-outline-dark rounded-4 px-3 action-btn d-flex align-items-center gap-1';
+              asignarAgentesBtn.id = 'btnAsignarAgentes';
+              asignarAgentesBtn.disabled = true;
+              asignarAgentesBtn.innerHTML = '<i class="fa-solid fa-user-tie"></i> Asignar agentes';
+            }
+
             actionRow.appendChild(checkboxDiv);
             actionRow.appendChild(publicarBtn);
             actionRow.appendChild(borradorBtn);
@@ -1130,6 +1140,9 @@ function Index() {
             actionRow.appendChild(eliminarBtn);
             if (destacarBtn) {
               actionRow.appendChild(destacarBtn);
+            }
+            if (asignarAgentesBtn) {
+              actionRow.appendChild(asignarAgentesBtn);
             }
 
             div.appendChild(filterRow);
@@ -1401,7 +1414,9 @@ function Index() {
 
         const btnSelector = isAdminRef.current
           ? '#btnDesactivar, #btnEliminar, #btnPublicar, #btnBorrador, #btnDestacar'
-          : '#btnDesactivar, #btnEliminar, #btnPublicar, #btnBorrador';
+          : isAgenciaRef.current && hasAgentsRef.current
+            ? '#btnDesactivar, #btnEliminar, #btnPublicar, #btnBorrador, #btnAsignarAgentes'
+            : '#btnDesactivar, #btnEliminar, #btnPublicar, #btnBorrador';
         $(btnSelector).prop('disabled', selectedCount === 0);
 
         if (selectedCount === 0) return;
@@ -1716,6 +1731,16 @@ function Index() {
         }
       });
 
+      dtContainer.on('click', '#btnAsignarAgentes', function() {
+        const ids = dataTableRef.current.$('.delete-checkbox:checked')
+          .map(function() { return $(this).data('id'); }).get();
+        if (ids.length === 0) return;
+        setModalPropId(null);
+        setModalPropIds(ids);
+        setSelectedAgents([]);
+        setShowAgentModal(true);
+      });
+
       // Restaurar búsqueda y página UNA SOLA VEZ después de la 1ra inicialización
       // Usar one() para evitar que se ejecute en cada recarga AJAX
       dataTableRef.current.one('init.dt', function() {
@@ -1895,23 +1920,43 @@ function Index() {
   }, [navigate, agentesOptions]);
 
   const handleSaveAgents = async () => {
-    if (!modalPropId) return;
+    const isMultiple = modalPropIds.length > 0;
+    const ids = isMultiple ? modalPropIds : (modalPropId ? [modalPropId] : []);
+    if (ids.length === 0) return;
     setSavingAgents(true);
-    
-    const result = await assignAgents(modalPropId, selectedAgents.map(a => a.value));
+
+    const agentIds = selectedAgents.map(a => a.value);
+    const results = await Promise.allSettled(
+      ids.map(id => assignAgents(id, agentIds))
+    );
+
     setSavingAgents(false);
-    if (result.success) {
+    const failed = results.filter(r => r.status === 'rejected' || !r.value?.success).length;
+    if (failed === 0) {
       invalidateCache();
       setAlertVariant('success');
-      setAlertMessage('Agentes asignados correctamente.');
+      setAlertMessage(
+        isMultiple
+          ? `Agentes asignados correctamente a ${ids.length} propiedad(es).`
+          : 'Agentes asignados correctamente.'
+      );
       if (dataTableRef.current) dataTableRef.current.ajax.reload(null, false);
+      if (isMultiple) {
+        $('#selectAllCheckbox').prop('checked', false);
+        $('#btnDesactivar, #btnEliminar, #btnPublicar, #btnBorrador, #btnAsignarAgentes').prop('disabled', true);
+      }
     } else {
       setAlertVariant('danger');
-      setAlertMessage(result.error || 'Error al asignar agentes.');
+      setAlertMessage(
+        failed === ids.length
+          ? 'Error al asignar agentes.'
+          : `Asignación parcial: ${ids.length - failed} exitosa(s), ${failed} con error.`
+      );
     }
     setShowAlert(true);
     setTimeout(() => setShowAlert(false), 4000);
     setShowAgentModal(false);
+    setModalPropIds([]);
   };
 
   const handleSaveEasyBroker = async () => {
@@ -2862,7 +2907,13 @@ function Index() {
       {/* Modal asignar agentes */}
       <Modal show={showAgentModal} onHide={() => setShowAgentModal(false)} centered>
         <Modal.Header closeButton>
-          <Modal.Title><i className="fa-solid fa-user-tie me-2"></i>Asignar agentes</Modal.Title>
+          <Modal.Title>
+            <i className="fa-solid fa-user-tie me-2"></i>
+            {modalPropIds.length > 1
+              ? `Asignar agentes a ${modalPropIds.length} propiedades`
+              : 'Asignar agentes'
+            }
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Select
