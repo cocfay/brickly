@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Container, Dropdown, Form, Button, InputGroup, ButtonGroup } from 'react-bootstrap';
 import { FormattedMessage } from 'react-intl';
 import { useCurrency } from '../../context/CurrencyContext';
@@ -128,7 +128,35 @@ function Propiedades() {
 
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const priceState = location.state;
+
+  // Leer filtros desde query params de la URL (enlaces de campaña)
+  // Se ejecuta una sola vez al montar porque searchParams es estable en el primer render
+  const getUrlFilters = () => {
+    const keys = ['mode','type','dept','muni','zone','search','minPrice','maxPrice','beds','baths','featured','exclusive','sort'];
+    if (!keys.some(k => searchParams.has(k))) return null;
+    return {
+      mode:         searchParams.get('mode')              ?? 'Todos',
+      type:         searchParams.get('type')              ?? 'Todos',
+      department:   searchParams.get('dept')              ?? null,
+      municipality: searchParams.get('muni')              ?? null,
+      zone:         searchParams.get('zone')              ?? null,
+      search:       searchParams.get('search')            ?? '',
+      minPrice:     searchParams.has('minPrice') ? Number(searchParams.get('minPrice')) : 0,
+      maxPrice:     searchParams.has('maxPrice') ? Number(searchParams.get('maxPrice')) : PRICE_VISUAL_MAX,
+      beds:         searchParams.get('beds')              ?? 'Cualquiera',
+      baths:        searchParams.get('baths')             ?? 'Cualquiera',
+      featured:     searchParams.get('featured')          === '1',
+      exclusive:    searchParams.get('exclusive')         === '1',
+      minSize:      0,
+      maxSize:      10000000,
+      sortValue:    searchParams.has('sort') ? Number(searchParams.get('sort')) : null,
+    };
+  };
+  // Capturar una vez: ref estable, no causa re-renders
+  const urlFiltersRef = useRef(getUrlFilters());
+  const urlFilters = urlFiltersRef.current;
   const { currency: currencyMode } = useCurrency();
   const { isFavorite, toggle: toggleFav, canFavorite } = useFavorites();
 
@@ -165,42 +193,55 @@ function Propiedades() {
     } catch { return null; }
   };
 
-  const savedFilters = !priceState ? getSavedFilters() : null;
+  // Prioridad: location.state > URL params > sessionStorage > defaults
+  // Si vienen URL params, ignorar sessionStorage para que el enlace de campaña siempre gane
+  const savedFilters = !priceState && !urlFilters ? getSavedFilters() : null;
 
   const [filters, setFilters] = useState({
-    search:     savedFilters?.search     ?? priceState?.search     ?? '',
-    mode:       savedFilters?.mode       ?? priceState?.mode       ?? 'Todos',
-    type:       savedFilters?.type       ?? priceState?.type       ?? 'Todos',
-    minPrice:   savedFilters?.minPrice   ?? priceState?.minPrice   ?? 0,
-    maxPrice:   savedFilters?.maxPrice   ?? priceState?.maxPrice   ?? PRICE_VISUAL_MAX,
-    beds:       savedFilters?.beds       ?? 'Cualquiera',
-    baths:      savedFilters?.baths      ?? 'Cualquiera',
-    department: savedFilters?.department ?? priceState?.department ?? null,
-    municipality: savedFilters?.municipality ?? priceState?.municipality ?? null,
-    zone:       savedFilters?.zone       ?? priceState?.zone       ?? null,
-    minSize:    savedFilters?.minSize    ?? 0,
-    maxSize:    savedFilters?.maxSize    ?? 10000000,
-    featured:   savedFilters?.featured   ?? priceState?.featured   ?? false,
-    exclusive:  savedFilters?.exclusive  ?? priceState?.exclusive  ?? false,
+    search:       priceState?.search       ?? urlFilters?.search       ?? savedFilters?.search       ?? '',
+    mode:         priceState?.mode         ?? urlFilters?.mode         ?? savedFilters?.mode         ?? 'Todos',
+    type:         priceState?.type         ?? urlFilters?.type         ?? savedFilters?.type         ?? 'Todos',
+    minPrice:     priceState?.minPrice     ?? urlFilters?.minPrice     ?? savedFilters?.minPrice     ?? 0,
+    maxPrice:     priceState?.maxPrice     ?? urlFilters?.maxPrice     ?? savedFilters?.maxPrice     ?? PRICE_VISUAL_MAX,
+    beds:         urlFilters?.beds         ?? savedFilters?.beds       ?? 'Cualquiera',
+    baths:        urlFilters?.baths        ?? savedFilters?.baths      ?? 'Cualquiera',
+    department:   priceState?.department   ?? urlFilters?.department   ?? savedFilters?.department   ?? null,
+    municipality: priceState?.municipality ?? urlFilters?.municipality ?? savedFilters?.municipality ?? null,
+    zone:         priceState?.zone         ?? urlFilters?.zone         ?? savedFilters?.zone         ?? null,
+    minSize:      urlFilters?.minSize      ?? savedFilters?.minSize    ?? 0,
+    maxSize:      urlFilters?.maxSize      ?? savedFilters?.maxSize    ?? 10000000,
+    featured:     priceState?.featured     ?? urlFilters?.featured     ?? savedFilters?.featured     ?? false,
+    exclusive:    priceState?.exclusive    ?? urlFilters?.exclusive    ?? savedFilters?.exclusive    ?? false,
   });
 
-  // Restaurar isFiltering si había filtros guardados
+  // Restaurar isFiltering y sortOption si había filtros guardados o vinieron por URL
   useEffect(() => {
-    if (savedFilters) {
-      const hasActive =
-        savedFilters.search !== '' ||
-        savedFilters.mode !== 'Todos' ||
-        savedFilters.type !== 'Todos' ||
-        savedFilters.beds !== 'Cualquiera' ||
-        savedFilters.baths !== 'Cualquiera' ||
-        savedFilters.department != null ||
-        savedFilters.municipality != null ||
-        savedFilters.zone != null ||
-        savedFilters.featured === true ||
-        savedFilters.exclusive === true;
-      if (hasActive) setIsFiltering(true);
+    const src = urlFilters ?? savedFilters;
+    if (!src) return;
+    const hasActive =
+      (src.search ?? '') !== '' ||
+      (src.mode ?? 'Todos') !== 'Todos' ||
+      (src.type ?? 'Todos') !== 'Todos' ||
+      (src.beds ?? 'Cualquiera') !== 'Cualquiera' ||
+      (src.baths ?? 'Cualquiera') !== 'Cualquiera' ||
+      src.department != null ||
+      src.municipality != null ||
+      src.zone != null ||
+      src.featured === true ||
+      src.exclusive === true ||
+      (src.minPrice ?? 0) > 0 ||
+      (src.maxPrice ?? PRICE_VISUAL_MAX) < PRICE_VISUAL_MAX;
+    if (hasActive) setIsFiltering(true);
+    // Aplicar sortOption desde URL si viene el param ?sort=
+    if (urlFilters?.sortValue != null) {
+      const match = [
+        { value: 0 }, { value: 10 }, { value: 1 }, { value: 2 },
+        { value: 3 }, { value: 4 }, { value: 5 }, { value: 6 },
+        { value: 7 }, { value: 8 }, { value: 9 },
+      ].find(o => o.value === urlFilters.sortValue);
+      if (match) setSortOption(match);
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Persistir filtros en sessionStorage cada vez que cambian
   useEffect(() => {
@@ -505,6 +546,49 @@ function Propiedades() {
     setSortOption(null);
     try { sessionStorage.removeItem(SESSION_KEY); } catch { /* ignorar */ }
   };
+
+  // Estado y handler para el botón Compartir
+  const [shareCopied, setShareCopied] = useState(false);
+
+  const handleShareFilters = useCallback(() => {
+    const params = new URLSearchParams();
+    if (filters.mode && filters.mode !== 'Todos')        params.set('mode', filters.mode);
+    if (filters.type && filters.type !== 'Todos')        params.set('type', filters.type);
+    if (filters.department)                              params.set('dept', filters.department);
+    if (filters.municipality)                            params.set('muni', filters.municipality);
+    if (filters.zone)                                    params.set('zone', filters.zone);
+    if (filters.search)                                  params.set('search', filters.search);
+    if (filters.minPrice > 0)                            params.set('minPrice', String(filters.minPrice));
+    if (filters.maxPrice < PRICE_VISUAL_MAX)             params.set('maxPrice', String(filters.maxPrice));
+    if (filters.beds && filters.beds !== 'Cualquiera')   params.set('beds', filters.beds);
+    if (filters.baths && filters.baths !== 'Cualquiera') params.set('baths', filters.baths);
+    if (filters.featured)                                params.set('featured', '1');
+    if (filters.exclusive)                               params.set('exclusive', '1');
+    if (sortOption != null)                              params.set('sort', String(sortOption.value));
+
+    const url = `${window.location.origin}/propiedades?${params.toString()}`;
+
+    const copyFallback = () => {
+      try {
+        const el = document.createElement('textarea');
+        el.value = url;
+        el.style.position = 'fixed';
+        el.style.opacity = '0';
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+      } catch { /* ignorar */ }
+    };
+
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(url).catch(copyFallback);
+    } else {
+      copyFallback();
+    }
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 2500);
+  }, [filters, sortOption]);
 
   // Función para filtrar valores inválidos de ubicación (Ninguno, nungino, none)
   const isValidLocation = (val) => val && !['ninguno', 'nunguno', 'none'].includes(val.toLowerCase());
@@ -1163,6 +1247,17 @@ function Propiedades() {
                 style={{ backgroundColor: 'transparent', border: '1px solid #1a1a1a', color: '#1a1a1a', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
               >
                 {t('Limpiar todo', 'Clear all')} <i className="fa-solid fa-xmark ms-1"></i>
+              </button>
+              <button
+                onClick={handleShareFilters}
+                className="d-inline-flex align-items-center gap-1 px-3 py-1 rounded-pill"
+                title={t('Copiar enlace con filtros activos', 'Copy link with active filters')}
+                style={{ backgroundColor: shareCopied ? '#1a1a1a' : 'transparent', border: '1px solid #1a1a1a', color: shareCopied ? '#fff' : '#1a1a1a', fontSize: '13px', fontWeight: 500, cursor: 'pointer', transition: 'background-color 0.2s, color 0.2s' }}
+              >
+                {shareCopied
+                  ? <><i className="fa-solid fa-check me-1"></i>{t('¡Enlace copiado!', 'Link copied!')}</>
+                  : <><i className="fa-solid fa-share-nodes me-1"></i>{t('Compartir', 'Share')}</>
+                }
               </button>
             </div>
           );

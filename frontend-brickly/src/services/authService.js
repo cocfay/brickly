@@ -73,6 +73,14 @@ const setSession = (token, user = null) => {
   if (token) setCookie('authToken', token)
   if (user) setCookie('user', JSON.stringify(user))
   if (token) broadcastAuthEvent('login');
+  // Limpiar filtros persistentes de propiedades (frontend y cpanel) para evitar confusiones al cambiar de usuario
+  try {
+    Object.keys(sessionStorage).forEach(key => {
+      if (key.startsWith('propiedades_filters_') || key.startsWith('propiedades_state_') || key.startsWith('cpanel_propiedades_dt_')) {
+        sessionStorage.removeItem(key);
+      }
+    });
+  } catch (e) {}
 };
 
 // Procesar token de Google en la URL
