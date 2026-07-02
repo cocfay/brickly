@@ -195,9 +195,12 @@ function About() {
       result = [...result].sort((a, b) => {
         const aFeatured = a.featured_user || 0;
         const bFeatured = b.featured_user || 0;
+        const aPropCount = propCounts[a._id] || 0;
+        const bPropCount = propCounts[b._id] || 0;
 
         if (sortOrder === 'featured') {
-          return bFeatured - aFeatured;
+          if (bFeatured !== aFeatured) return bFeatured - aFeatured;
+          return bPropCount - aPropCount;
         }
 
         let primarySort = 0;
@@ -209,6 +212,8 @@ function About() {
           primarySort = (a.name || '').localeCompare(b.name || '');
         } else if (sortOrder === 'za') {
           primarySort = (b.name || '').localeCompare(a.name || '');
+        } else if (sortOrder === 'propcount') {
+          primarySort = bPropCount - aPropCount;
         }
 
         if (primarySort !== 0) return primarySort;
@@ -360,6 +365,7 @@ function About() {
                 <div className='d-flex gap-3 align-items-baseline'>
                     <label htmlFor={fieldIds.sort} className="me-2"><FormattedMessage id='agent.text10' />:</label><select name="sortOrder" id={fieldIds.sort} className='p-1 border-0 rounded-1' style={{ colorScheme: 'auto', backgroundColor: '#e9e9e9', color: 'black' }} value={sortOrder} onChange={e => setSortOrder(e.target.value || 'featured')}>
                     <option value="featured">{t("Destacados", "Featured")}</option>
+                    <option value="propcount">{t("Más Propiedades", "More Properties")}</option>
                     <option value="rating">{t("Mejores Calificados", "Best Rated")}</option>
                     <option value="rating_asc">{t("Menos Calificados", "Lowest Rated")}</option>
                     <option value="az">A-Z</option>

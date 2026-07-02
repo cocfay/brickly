@@ -92,6 +92,29 @@ export class UsersService {
         }
       });
 
+      // Búsqueda por texto en nombre, email y roles
+      if (filters.search && filters.search.toString().trim() !== '') {
+        const searchString = filters.search.toString().trim();
+        const searchRegex = new RegExp(searchString.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+        const searchOr = [
+          { name: { $regex: searchRegex } },
+          { email: { $regex: searchRegex } },
+          { roles: { $regex: searchRegex } },
+        ];
+        delete filters.search;
+
+        if (filters.$or) {
+          const existingOr = filters.$or;
+          delete filters.$or;
+          filters.$and = [
+            { $or: existingOr },
+            { $or: searchOr },
+          ];
+        } else {
+          filters.$or = searchOr;
+        }
+      }
+
       if (filters.parentId !== undefined) {
         const parentIdValue = Array.isArray(filters.parentId)
           ? filters.parentId[0]
