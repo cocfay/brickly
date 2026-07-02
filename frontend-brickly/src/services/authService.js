@@ -114,6 +114,12 @@ export const clearSession = () => {
   Cookies.remove('user', { path: '/' })
   try {
     sessionStorage.removeItem('userFull');
+    // Limpiar estados del DataTable del cpanel
+    Object.keys(sessionStorage).forEach(k => {
+      if (k.startsWith('cpanel_propiedades_dt_')) {
+        sessionStorage.removeItem(k);
+      }
+    });
   } catch (e) {}
   broadcastAuthEvent('logout');
 };

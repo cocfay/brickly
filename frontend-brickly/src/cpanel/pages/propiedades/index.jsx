@@ -146,6 +146,7 @@ function Index() {
   const ownerFilterModePromiseRef = useRef(null);
   const usersMapRef = useRef({});
   const agenciesMapRef = useRef({});
+  const navigatingToSubpageRef = useRef(false);
 
   const resolveOwnerFilterMode = useCallback(async () => {
     if (isAdminRef.current) {
@@ -293,6 +294,13 @@ function Index() {
       sessionStorage.setItem(DT_SESSION_KEY, JSON.stringify(nextState));
       savedSearchRef.current = search;
       savedPageRef.current = page;
+    } catch { /* ignorar */ }
+  }, [DT_SESSION_KEY]);
+
+  // Limpiar estado del DataTable al salir de propiedades
+  const clearDataTableState = useCallback(() => {
+    try {
+      sessionStorage.removeItem(DT_SESSION_KEY);
     } catch { /* ignorar */ }
   }, [DT_SESSION_KEY]);
 
@@ -1766,18 +1774,22 @@ function Index() {
     // Cleanup al desmontar
     return () => {
       if (dataTableRef.current) {
-        saveDataTableState();
+        if (!navigatingToSubpageRef.current) {
+          clearDataTableState();
+        }
+        navigatingToSubpageRef.current = false;
         dataTableRef.current.destroy();
         dataTableRef.current = null;
       }
     };
-  }, [loadingShow, fetchPage, saveDataTableState]);
+  }, [loadingShow, fetchPage, clearDataTableState]);
 
   // Editar propiedad
   useEffect(() => {
     const handleEdit = function(e) {
       e.preventDefault();
       const id = this.dataset.id;
+      navigatingToSubpageRef.current = true;
       saveDataTableState();
       navigate(`/cpanel/propiedades/edit/${id}`);
     };
@@ -1793,6 +1805,7 @@ function Index() {
     const handleView = function(e) {
       e.preventDefault();
       const id = this.dataset.id;
+      navigatingToSubpageRef.current = true;
       saveDataTableState();
       navigate(`/cpanel/propiedades/view/${id}`);
     };

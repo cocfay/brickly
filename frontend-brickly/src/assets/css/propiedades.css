@@ -40,3 +40,104 @@ body{
         background-color: white;
     }
 }
+
+.agent-fixed-bar {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    background: white;
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.12);
+    padding: 12px 16px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    width: 100%;
+    box-sizing: border-box;
+    max-width: 100vw;
+    overflow: hidden;
+}
+
+.agent-fixed-bar .agent-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.agent-fixed-bar .agent-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.agent-fixed-bar .agent-name {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #1a1a1a;
+}
+
+.agent-fixed-bar .agent-rating {
+    font-size: 12px;
+    color: #666;
+}
+
+.agent-fixed-bar .btn-contactar {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: #000000;
+    color: white;
+    font-size: 17px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    margin-top: 10px;
+    text-decoration: none;
+}
+
+.agent-fixed-bar .btn-contactar:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+}
+
+.agent-fixed-bar .agent-ver-perfil {
+    font-size: 13px;
+    font-weight: 600;
+    color: #000000;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.agent-fixed-bar .agent-ver-perfil i {
+    font-size: 11px;
+    margin-left: 3px;
+}
+
+@media (max-width: 1199.98px) {
+    html {
+        overflow-x: hidden;
+        width: 100%;
+    }
+    body {
+        padding-bottom: 110px;
+        overflow-x: hidden;
+        width: 100%;
+        position: relative;
+    }
+    .agent-fixed-bar {
+        display: block;
+    }
+}
+
+@media (min-width: 1200px) {
+    .agent-fixed-bar {
+        display: none !important;
+    }
+}
