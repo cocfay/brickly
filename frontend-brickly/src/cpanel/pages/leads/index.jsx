@@ -8,7 +8,7 @@ import {
 } from '../../../services/contactService';
 import { getCurrentUser } from '../../../services/authService';
 import { getUsers } from '../../../services/listUsers';
-import { getAgentes } from '../../services/agentes';
+
 import $ from 'jquery';
 import 'datatables.net-dt';
 import 'datatables.net-dt/css/dataTables.dataTables.css';
@@ -146,19 +146,13 @@ function Leads() {
             });
         }
 
-        // Para agencia: obtener IDs de sus agentes para filtrar en cliente
-        let agencyAgentIds = [];
-        if (isAgencia) {
-            const agentesResult = await getAgentes();
-            if (agentesResult.success && Array.isArray(agentesResult.data)) {
-                agencyAgentIds = agentesResult.data.map(a => a._id);
-            }
-        }
-
         // Cargar leads
         const params = {};
         if (isAgente && !isAgencia) {
             params.agentId = currentUser._id;
+        }
+        if (isAgencia) {
+            params.agenciaId = currentUser._id;
         }
 
         const result = await getContactLeads(params);
@@ -237,14 +231,7 @@ function Leads() {
                 return db - da;
             });
 
-            let filteredGroupedData = groupedData;
-            if (isAgencia && agencyAgentIds.length > 0) {
-                filteredGroupedData = groupedData.filter(item =>
-                    item.agentIds.some(id => agencyAgentIds.includes(id))
-                );
-            }
-
-            processedLeads = filteredGroupedData;
+            processedLeads = groupedData;
         } else {
             setAlertVariant('danger');
             setAlertMessage(result.error || 'Error al cargar leads.');

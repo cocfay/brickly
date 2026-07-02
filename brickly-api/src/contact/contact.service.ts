@@ -26,7 +26,21 @@ export class ContactService {
     private usersService: UsersService,
   ) {}
 
-  findLead(query: any) {
+  async findLead(query: any) {
+    // Si se envía agenciaId, resolver la agencia + sus agentes hijos
+    if (query.agenciaId) {
+      const objectId = new Types.ObjectId(query.agenciaId);
+      const childAgents = await this.userModel.find(
+        { parentId: objectId },
+        { _id: 1 },
+      );
+      const agentsIds = [
+        objectId,
+        ...childAgents.map(agent => agent._id),
+      ];
+      delete query.agenciaId;
+      query.agentId = { $in: agentsIds };
+    }
     return this.leadformModel.find(query).sort({ createdAt: -1 });
   }
 
