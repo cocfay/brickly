@@ -2,6 +2,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { Container, Breadcrumb, Button, Row, Col, Modal } from 'react-bootstrap';
 import 'glightbox/dist/css/glightbox.min.css';
 import '../../assets/css/glightbox-custom.css';
+import '../../assets/css/propiedades.css';
 import useGLightbox from '../../assets/js/useGLightbox'; 
 import { FormattedMessage } from 'react-intl';
 import { useFavorites } from '../../hooks/useFavorites'
@@ -959,8 +960,7 @@ function Propiedad() {
 
                             <div className="col-lg-5 ps-lg-5">
                                 <div className='sticky-lg-top' style={{ top: '100px' }}>
-                                    <div className='fs-3 mb-4'><FormattedMessage id='home.text11' /></div>
-                                    <div className='d-flex flex-column gap-4'>
+                                    {/* <div className='d-flex flex-column gap-4'> */}
                                         { loadingAgentes ? (
                                             <div className="d-flex justify-content-center align-items-center py-5">
                                                 <div className="spinner-border text-dark" role="status">
@@ -968,52 +968,29 @@ function Propiedad() {
                                                 </div>
                                             </div>
                                         ) : agentes.length === 0 ? null : agentes.map((items, index) => (
-                                            <div key={index} className="d-none d-xl-flex align-items-start justify-content-between align-items-lg-center flex-column flex-md-row gap-4">
-                                                <Link to={getUserProfilePath(items)} className='text-body'>
-                                                    <div className="d-flex align-items-start gap-2">
-                                                        <div className='rounded-circle' style={{ width: '80px', height: '80px' }}><img src={items.avatar} alt="Avatar" style={{ width: '80px', height: '80px' }} className='rounded-circle object-fit-cover' loading="lazy" /></div>
-                                                        <div>
-                                                            <div className='lh-sm' style={{fontSize: '18px'}}>{items.name}  { getAgencyName(items?.agencia) && <> <br /> <span style={{fontSize: '16px'}}>{getAgencyName(items.agencia)}</span> </>}</div>
-                                                            <div className='mt-2' style={{ fontSize: '12px' }}>
-                                                                <StarRating rating={items.ratingAverage} size='11px' />
+                                            <div className="d-none d-xl-block" style={{ marginBottom: '4rem' }} key={index}>
+                                                <div className='fs-3 mb-4'><FormattedMessage id='home.text11' /></div>
+                                                <div className="d-flex align-items-start justify-content-between align-items-lg-center flex-column flex-md-row gap-4">
+                                                    <Link to={getUserProfilePath(items)} className='text-body'>
+                                                        <div className="d-flex align-items-start gap-2">
+                                                            <div className='rounded-circle' style={{ width: '80px', height: '80px' }}><img src={items.avatar} alt="Avatar" style={{ width: '80px', height: '80px' }} className='rounded-circle object-fit-cover' loading="lazy" /></div>
+                                                            <div>
+                                                                <div className='lh-sm' style={{fontSize: '18px'}}>{items.name}  { getAgencyName(items?.agencia) && <> <br /> <span style={{fontSize: '16px'}}>{getAgencyName(items.agencia)}</span> </>}</div>
+                                                                <div className='mt-2' style={{ fontSize: '12px' }}>
+                                                                    <StarRating rating={items.ratingAverage} size='11px' />
+                                                                </div>
                                                             </div>
                                                         </div>
+                                                    </Link>
+                                                    <div className="d-flex justify-content-md-end flex-column">
+                                                        <div className='mb-2 lh-1' style={lang == 'es' ? {fontSize: '20px'} : {fontSize: '16px'}}><FormattedMessage id="home.text12" /></div>
+                                                        <a href={`https://wa.me/${items.phone.replace(/\D/g, '')}?text=` + encodeURIComponent('¡Hola! Me comunico desde la plataforma Brickly Homes. Estoy interesado en la propiedad '+ data.market?.title +'.')} target='_blank' className="rounded-1 text-center border-0 py-1" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box', padding: '2px 8px' }} rel="noreferrer" aria-label={`Contactar por WhatsApp a ${items.name || 'agente'}`} onClick={() => registerWSClick(items._id)}><i className="fa-brands fa-whatsapp me-2" aria-hidden="true"></i> <FormattedMessage id="home.text13" /></a>
                                                     </div>
-                                                </Link>
-                                                <div className="d-flex justify-content-md-end flex-column">
-                                                    <div className='mb-2 lh-1' style={lang == 'es' ? {fontSize: '20px'} : {fontSize: '16px'}}><FormattedMessage id="home.text12" /></div>
-                                                <a href={`https://wa.me/${items.phone.replace(/\D/g, '')}?text=` + encodeURIComponent('¡Hola! Me comunico desde la plataforma Brickly Homes. Estoy interesado en la propiedad '+ data.market?.title +'.')} target='_blank' className="rounded-1 text-center border-0 py-1" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box', padding: '2px 8px' }} rel="noreferrer" aria-label={`Contactar por WhatsApp a ${items.name || 'agente'}`} onClick={() => registerWSClick(items._id)}><i className="fa-brands fa-whatsapp me-2" aria-hidden="true"></i> <FormattedMessage id="home.text13" /></a>
                                                 </div>
                                             </div>
                                         )) }
-                                        
-                                        { agentes.map((items, index) => (
-                                            <div key={index} className="d-flex d-xl-none align-items-start justify-content-between align-items-xl-center flex-column flex-md-row gap-4">
-                                                <Link to={getUserProfilePath(items)} className='text-body'>
-                                                    <div className="d-flex align-items-start gap-4">
-                                                        <div className='rounded-circle' style={{ width: '100px', height: '100px' }}><img src={items.avatar} alt="Avatar" style={{ width: '100px', height: '100px' }} className='rounded-circle object-fit-cover' loading="lazy" /></div>
-                                                        <div>
-                                                            <div className='lh-sm' style={{fontSize: '18px'}}>{items.name}  { getAgencyName(items?.agencia) && <> <br /> <span style={{fontSize: '16px'}}>{getAgencyName(items.agencia)}</span> </>}</div>
-                                                            <div style={{ fontSize: '12px' }}>
-                                                                <StarRating rating={items.ratingAverage} size='11px' />
-                                                            </div>
-
-                                                            <div className="mt-3 d-flex justify-content-md-end flex-column">
-                                                                <div className='mb-2 lh-1' style={lang == 'es' ? {fontSize: '20px'} : {fontSize: '16px'}}><FormattedMessage id="home.text12" /></div>
-                                                                <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation();
-                                                                    registerWSClick(items._id);
-                                                                    window.open(`https://wa.me/${items.phone.replace(/\D/g, '')}?text=` + encodeURIComponent('¡Hola! Me comunico desde la plataforma Brickly Homes. Estoy interesado en la propiedad "' + data?.market?.title + '".'), '_blank');
-                                                                }} aria-label={`Contactar por WhatsApp a ${items.name || 'agente'}`} className="rounded-1 text-center border-0 py-1" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box', padding: '2px 8px' }}><i className="fa-brands fa-whatsapp me-2" aria-hidden="true"></i> <FormattedMessage id="home.text13" /></button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </Link>
-                                            </div>
-                                        )) }
-
-
-                                    </div>
-                                    <div style={{ marginTop: '4rem' }}>
+                                    {/* </div> */}
+                                    <div>
                                         <ContactForm
                                             agentId={agentes.map(a => a._id)}
                                             type="Formulario Propiedad"
@@ -1175,7 +1152,40 @@ function Propiedad() {
                             </div>
                             )
                         })}
-                    </div>            
+                    </div>
+
+                    {/* Barra fija del agente en móvil */}
+                    {agentes.length > 0 && (
+                        <div className="agent-fixed-bar">
+                            <div className="agent-info">
+                                <Link to={getUserProfilePath(agentes[0])} className="text-body text-decoration-none d-flex align-items-center gap-2 flex-grow-1">
+                                    <img src={agentes[0].avatar} alt={agentes[0].name} className="agent-avatar" />
+                                    <div>
+                                        <div className="agent-name">{agentes[0].name}</div>
+                                        <div className="agent-rating">
+                                            <StarRating rating={agentes[0].ratingAverage} size="10px" />
+                                        </div>
+                                    </div>
+                                </Link>
+                                <Link to={getUserProfilePath(agentes[0])} className="agent-ver-perfil">
+                                    Ver perfil <i className="fa-solid fa-arrow-right"></i>
+                                </Link>
+                            </div>
+                            <button
+                                className="btn-contactar"
+                                onClick={() => {
+                                    registerWSClick(agentes[0]._id);
+                                    window.open(
+                                        `https://wa.me/${agentes[0].phone.replace(/\D/g, '')}?text=` +
+                                        encodeURIComponent('¡Hola! Me comunico desde la plataforma Brickly Homes. Estoy interesado en la propiedad "' + data?.market?.title + '".'),
+                                        '_blank'
+                                    );
+                                }}
+                            >
+                                <i className="fa-brands fa-whatsapp me-2"></i>Contactar agente
+                            </button>
+                        </div>
+                    )}
                 </Container>
             ) }
 
