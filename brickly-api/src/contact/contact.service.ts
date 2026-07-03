@@ -11,7 +11,7 @@ import { User } from '../users/user.schema';
 @Injectable()
 export class ContactService {
   private API_URL = 'https://api.brevo.com/v3/smtp/email';
-  private EMAIL_SENDER = 'no-reply@brickly.mydesk.digital';
+  private EMAIL_SENDER = 'no-reply@bricklyhomes.com';
   private EMAIL_INTERNAL_RECEIVE = 'info@bricklyhomes.com';
 
   constructor(

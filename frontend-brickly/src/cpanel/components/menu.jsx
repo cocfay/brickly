@@ -108,6 +108,12 @@ function Menu({open}){
                         {isActive('/cpanel/agentes') && <ActiveIcon />}
                     </Link>
                 )}
+                {user?.roles?.includes("agencia") && profileOk && (
+                    <Link to="/cpanel/solicitudes" className="d-flex gap-2 align-items-center text-body">
+                        <i className="fa-solid fa-user-plus"></i> Solicitudes
+                        {isActive('/cpanel/solicitudes') && <ActiveIcon />}
+                    </Link>
+                )}
                 {!user?.roles?.includes("arquitecto") && !user?.roles?.includes("admin") && profileOk && (
                     <Link to="/cpanel/leads" className="d-flex gap-2 align-items-center text-body">
                         <i className="fa-solid fa-message"></i> Leads

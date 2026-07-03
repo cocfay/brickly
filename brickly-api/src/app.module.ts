@@ -12,6 +12,7 @@ import { ContactModule } from './contact/contact.module'
 import { ProjectsModule } from './projects/projects.module'
 import { PartnersModule } from './partners/partners.module'
 import { EasybrokerModule } from './easybroker/easybroker.module';
+import { AssignmentRequestsModule } from './assignment-requests/assignment-requests.module';
 
 @Module({
   imports: [
@@ -27,7 +28,8 @@ import { EasybrokerModule } from './easybroker/easybroker.module';
     ContactModule,
     ProjectsModule,
     PartnersModule,
-    EasybrokerModule
+    EasybrokerModule,
+    AssignmentRequestsModule
   ],
 })
 export class AppModule {}

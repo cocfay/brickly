@@ -12,7 +12,8 @@ import StarRating from '../../components/StarRating';
 
 import { getPropiedades, getPropiedadById } from '../../cpanel/services/propiedades';
 import { getUsers } from '../../services/listUsers';
-import { getCurrentUser, API_URL, isAuthenticated } from '../../services/authService'; // 👈 I
+import { getCurrentUser, API_URL, isAuthenticated } from '../../services/authService';
+import { checkAssignmentEligibility, createAssignmentRequest } from '../../services/assignmentRequestService';
 import { amenitiesMap } from '../../cpanel/data/amenites'
 import ContactForm from '../../components/ContactForm';
 import { registerWSClick } from '../../services/countWS';
@@ -55,6 +56,9 @@ function Propiedad() {
     const [loadingAgentes, setLoadingAgentes] = useState(true)
     const [whatsappUrl, setwhatsappUrl] = useState('')
     const [loading, setLoading] = useState(true)
+    const [assignmentEligible, setAssignmentEligible] = useState(false)
+    const [assignmentSent, setAssignmentSent] = useState(false)
+    const [assigning, setAssigning] = useState(false)
 
     const lightbox = useGLightbox({
         autoplayVideos: false,
@@ -233,6 +237,25 @@ function Propiedad() {
         }
         loadData()
     },[propertyIdentifier, slug, navigate])
+
+    useEffect(() => {
+        if (!data?._id || loadingAgentes) return
+        const currentUser = getCurrentUser()
+        if (!currentUser || !currentUser.roles?.includes('agente')) return
+        checkAssignmentEligibility(data._id).then(res => {
+            if (res.eligible) setAssignmentEligible(true)
+        })
+    }, [data?._id, loadingAgentes])
+
+    const handleRequestAssignment = async () => {
+        setAssigning(true)
+        const res = await createAssignmentRequest(data._id)
+        if (res.success) {
+            setAssignmentSent(true)
+            setAssignmentEligible(false)
+        }
+        setAssigning(false)
+    }
 
     const propiedadesSecundarias = useMemo(() => {
         if (!todasPropiedades.length) return [];
@@ -967,29 +990,54 @@ function Propiedad() {
                                                     <span className="visually-hidden">Cargando...</span>
                                                 </div>
                                             </div>
-                                        ) : agentes.length === 0 ? null : agentes.map((items, index) => (
-                                            <div className="d-none d-xl-block" style={{ marginBottom: '4rem' }} key={index}>
-                                                <div className='fs-3 mb-4'><FormattedMessage id='home.text11' /></div>
-                                                <div className="d-flex align-items-start justify-content-between align-items-lg-center flex-column flex-md-row gap-4">
-                                                    <Link to={getUserProfilePath(items)} className='text-body'>
-                                                        <div className="d-flex align-items-start gap-2">
-                                                            <div className='rounded-circle' style={{ width: '80px', height: '80px' }}><img src={items.avatar} alt="Avatar" style={{ width: '80px', height: '80px' }} className='rounded-circle object-fit-cover' loading="lazy" /></div>
-                                                            <div>
-                                                                <div className='lh-sm' style={{fontSize: '18px'}}>{items.name}  { getAgencyName(items?.agencia) && <> <br /> <span style={{fontSize: '16px'}}>{getAgencyName(items.agencia)}</span> </>}</div>
-                                                                <div className='mt-2' style={{ fontSize: '12px' }}>
-                                                                    <StarRating rating={items.ratingAverage} size='11px' />
+                                        ) : (
+                                            <>
+                                            {agentes.length > 0 && (
+                                                <div className="d-none d-xl-block" style={{ marginBottom: '4rem' }}>
+                                                    <div className='fs-3 mb-4 d-flex align-items-center gap-3'>
+                                                        <FormattedMessage id='home.text11' />
+                                                    </div>
+                                                    {agentes.map((items, index) => (
+                                                    <div key={index} style={{ marginBottom: '2rem' }}>
+                                                    <div className="d-flex align-items-start justify-content-between align-items-lg-center flex-column flex-md-row gap-4">
+                                                        <Link to={getUserProfilePath(items)} className='text-body'>
+                                                            <div className="d-flex align-items-start gap-2">
+                                                                <div className='rounded-circle' style={{ width: '80px', height: '80px' }}><img src={items.avatar} alt="Avatar" style={{ width: '80px', height: '80px' }} className='rounded-circle object-fit-cover' loading="lazy" /></div>
+                                                                <div>
+                                                                    <div className='lh-sm' style={{fontSize: '18px'}}>{items.name}  { getAgencyName(items?.agencia) && <> <br /> <span style={{fontSize: '16px'}}>{getAgencyName(items.agencia)}</span> </>}</div>
+                                                                    <div className='mt-2' style={{ fontSize: '12px' }}>
+                                                                        <StarRating rating={items.ratingAverage} size='11px' />
+                                                                    </div>
                                                                 </div>
                                                             </div>
+                                                        </Link>
+                                                        <div className="d-flex justify-content-md-end flex-column">
+                                                            <div className='mb-2 lh-1' style={lang == 'es' ? {fontSize: '20px'} : {fontSize: '16px'}}><FormattedMessage id="home.text12" /></div>
+                                                            <a href={`https://wa.me/${items.phone.replace(/\D/g, '')}?text=` + encodeURIComponent('¡Hola! Me comunico desde la plataforma Brickly Homes. Estoy interesado en la propiedad '+ data.market?.title +'.')} target='_blank' className="rounded-1 text-center border-0 py-1" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box', padding: '2px 8px' }} rel="noreferrer" aria-label={`Contactar por WhatsApp a ${items.name || 'agente'}`} onClick={() => registerWSClick(items._id)}><i className="fa-brands fa-whatsapp me-2" aria-hidden="true"></i> <FormattedMessage id="home.text13" /></a>
                                                         </div>
-                                                    </Link>
-                                                    <div className="d-flex justify-content-md-end flex-column">
-                                                        <div className='mb-2 lh-1' style={lang == 'es' ? {fontSize: '20px'} : {fontSize: '16px'}}><FormattedMessage id="home.text12" /></div>
-                                                        <a href={`https://wa.me/${items.phone.replace(/\D/g, '')}?text=` + encodeURIComponent('¡Hola! Me comunico desde la plataforma Brickly Homes. Estoy interesado en la propiedad '+ data.market?.title +'.')} target='_blank' className="rounded-1 text-center border-0 py-1" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box', padding: '2px 8px' }} rel="noreferrer" aria-label={`Contactar por WhatsApp a ${items.name || 'agente'}`} onClick={() => registerWSClick(items._id)}><i className="fa-brands fa-whatsapp me-2" aria-hidden="true"></i> <FormattedMessage id="home.text13" /></a>
-                                                    </div>
                                                 </div>
                                             </div>
                                         )) }
-                                    {/* </div> */}
+                                                </div>
+                                            )}
+                                            <div className="d-flex align-items-center gap-2 mb-3">
+                                                {assignmentEligible && (
+                                                    <button
+                                                        className="btn btn-sm btn-outline-dark rounded-1"
+                                                        onClick={handleRequestAssignment}
+                                                        disabled={assigning}
+                                                        style={{ fontSize: '13px' }}
+                                                    >
+                                                        {assigning ? 'Solicitando...' : 'Solicitar asignación'}
+                                                    </button>
+                                                )}
+                                                {assignmentSent && (
+                                                    <span className="badge bg-dark" style={{ fontSize: '12px' }}>Solicitud enviada</span>
+                                                )}
+                                            </div>
+                                            </>
+                                    ) }
+                                    
                                     <div>
                                         <ContactForm
                                             agentId={agentes.map(a => a._id)}
