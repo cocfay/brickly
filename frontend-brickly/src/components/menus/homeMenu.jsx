@@ -95,9 +95,9 @@ function HomeMenu() {
             </div>
           </div>
           <div style={{ marginTop: 'clamp(3rem, 10vw, 4rem)' }}>
-            <Link to="/login" style={{ fontSize: '16px' }} className='lh-1 text-white d-flex align-items-center gap-2 fw-light'>
+            <div style={{ fontSize: '16px' }} className='lh-1 text-white d-flex align-items-center gap-2 fw-light'>
               <i className="fa-solid fa-magnifying-glass"></i> <FormattedMessage id='bannerhome.text3' />
-            </Link>
+            </div>
             <SearchBar />
           </div>
         </Container>
