@@ -6,6 +6,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { ConfigService } from '@nestjs/config';
+import { Types } from 'mongoose';
 type AppType = 'panel' | 'web' | 'mobile';
 
 @Controller('auth')
@@ -36,7 +37,7 @@ export class AuthController {
       requesterRoles.includes(Role.DESARROLLADORA)
     ) {
       roleToAssign = Role.AGENTE;
-      body.parentId = req.user.userId;
+      body.parentId = new Types.ObjectId(req.user.userId);
     }
 
 	 return this.authService.register(body, roleToAssign);

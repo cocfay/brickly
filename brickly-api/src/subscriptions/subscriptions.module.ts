@@ -4,6 +4,10 @@ import {
   Subscription,
   SubscriptionSchema,
 } from './schemas/subscription.schema';
+import {
+  WebhookEvent,
+  WebhookEventSchema,
+} from './schemas/webhook-event.schema';
 import { SubscriptionsService } from './subscriptions.service';
 
 @Module({
@@ -12,6 +16,10 @@ import { SubscriptionsService } from './subscriptions.service';
       {
         name: Subscription.name,
         schema: SubscriptionSchema,
+      },
+      {
+        name: WebhookEvent.name,
+        schema: WebhookEventSchema,
       },
     ]),
   ],
