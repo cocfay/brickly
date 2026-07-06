@@ -15,6 +15,7 @@ import { useT } from '../hooks/useT';
 import { getAgenciesWithProperties } from '../services/listUsers';
 import { getAgencyProfilePath } from '../utils/profileRoutes';
 import SEO from '../components/SEO';
+import Select, { components } from 'react-select';
 
 const ITEMS_PER_PAGE = 21;
 
@@ -162,20 +163,55 @@ function Associates() {
         <div className="d-flex justify-content-lg-end flex-column flex-lg-row gap-4 align-items-center mt-4 mt-lg-5">
             <div className='d-flex gap-3 align-items-baseline'>
                 <label htmlFor={sortSelectId}><FormattedMessage id='agent.text10' />:</label>
-                <select
-                  name="sortOrder"
-                  id={sortSelectId}
-                  className='p-1 border-0 rounded-1'
-                  style={{ colorScheme: 'auto', backgroundColor: '#e9e9e9', color: 'black' }}
-                  value={orden}
-                  onChange={(e) => setOrden(e.target.value)}
-                >
-                  <option value="destacadas"><FormattedMessage id='associate.sortFeatured' defaultMessage="Destacadas" /></option>
-                  <option value="mas"><FormattedMessage id='associate.sortMore' defaultMessage="Más propiedades" /></option>
-                  <option value="menos"><FormattedMessage id='associate.sortLess' defaultMessage="Menos propiedades" /></option>
-                  <option value="az"><FormattedMessage id='associate.sortAZ' defaultMessage="Nombre: A-Z" /></option>
-                  <option value="za"><FormattedMessage id='associate.sortZA' defaultMessage="Nombre: Z-A" /></option>
-                </select>
+                <Select
+                  options={[
+                    { value: 'destacadas', label: t("Destacadas", "Featured") },
+                    { value: 'mas', label: t("Más propiedades", "More Properties") },
+                    { value: 'menos', label: t("Menos propiedades", "Less Properties") },
+                    { value: 'az', label: t("Nombre: A-Z", "Name: A-Z") },
+                    { value: 'za', label: t("Nombre: Z-A", "Name: Z-A") },
+                  ]}
+                  value={{ value: orden, label: orden === 'destacadas' ? t("Destacadas", "Featured") : orden === 'mas' ? t("Más propiedades", "More Properties") : orden === 'menos' ? t("Menos propiedades", "Less Properties") : orden === 'az' ? t("Nombre: A-Z", "Name: A-Z") : t("Nombre: Z-A", "Name: Z-A") }}
+                  placeholder={<><i className="fa-solid fa-arrow-up-short-wide me-2"></i>Ordenar por</>}
+                  isSearchable={false}
+                  inputId={sortSelectId}
+                  aria-label={t('Ordenar asociados', 'Sort associates')}
+                  onChange={(v) => setOrden(v?.value || 'destacadas')}
+                  components={{
+                    SingleValue: ({ children, ...props }) => (
+                      <components.SingleValue {...props}>
+                        <i className="fa-solid fa-arrow-up-short-wide me-2"></i>{children}
+                      </components.SingleValue>
+                    )
+                  }}
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      flexWrap: 'nowrap',
+                      fontSize: '14px',
+                      minHeight: 'unset',
+                      height: '35.33px',
+                      borderColor: '#000',
+                      boxShadow: 'none',
+                      outline: 'none',
+                      cursor: 'pointer',
+                      borderRadius: '6px',
+                      '&:hover': { borderColor: '#000' },
+                    }),
+                    indicatorsContainer: (base) => ({ ...base, height: '35.33px', alignItems: 'center' }),
+                    indicatorSeparator: (base) => ({ ...base, alignSelf: 'center', height: '60%' }),
+                    valueContainer: (base) => ({ ...base, flexWrap: 'nowrap', overflow: 'hidden', height: '35.33px', padding: '0 8px', alignItems: 'center' }),
+                    menu: (base) => ({ ...base, minWidth: 'max-content' }),
+                    menuList: (base) => ({ ...base, maxHeight: 'none', overflowY: 'visible' }),
+                    option: (base, state) => ({
+                      ...base,
+                      backgroundColor: state.isSelected ? '#000' : state.isFocused ? '#e9e9e9' : 'transparent',
+                      color: state.isSelected ? '#fff' : '#000',
+                      cursor: 'pointer',
+                      '&:active': { backgroundColor: '#000', color: '#fff' },
+                    }),
+                  }}
+                />
 
             </div>
         </div>

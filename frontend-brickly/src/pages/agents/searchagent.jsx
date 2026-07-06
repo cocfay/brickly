@@ -18,6 +18,7 @@ import SEO from '../../components/SEO';
 import { fetchAllPages } from '../../utils/fetchAll';
 import { useT } from '../../hooks/useT';
 import { getAgentProfilePath } from '../../utils/profileRoutes';
+import Select, { components } from 'react-select';
 
 function About() {
   const intl = useIntl();
@@ -214,6 +215,8 @@ function About() {
           primarySort = (b.name || '').localeCompare(a.name || '');
         } else if (sortOrder === 'propcount') {
           primarySort = bPropCount - aPropCount;
+        } else if (sortOrder === 'propcount_asc') {
+          primarySort = aPropCount - bPropCount;
         }
 
         if (primarySort !== 0) return primarySort;
@@ -363,14 +366,58 @@ function About() {
             <div className="d-flex justify-content-between flex-column flex-lg-row gap-4 align-items-center mt-4">
                 <div style={{ fontSize: 'clamp(20px, 3vw, 24px)'}}>{filtered.length} <FormattedMessage id='agent.text9' /></div>
                 <div className='d-flex gap-3 align-items-baseline'>
-                    <label htmlFor={fieldIds.sort} className="me-2"><FormattedMessage id='agent.text10' />:</label><select name="sortOrder" id={fieldIds.sort} className='p-1 border-0 rounded-1' style={{ colorScheme: 'auto', backgroundColor: '#e9e9e9', color: 'black' }} value={sortOrder} onChange={e => setSortOrder(e.target.value || 'featured')}>
-                    <option value="featured">{t("Destacados", "Featured")}</option>
-                    <option value="propcount">{t("Más Propiedades", "More Properties")}</option>
-                    <option value="rating">{t("Mejores Calificados", "Best Rated")}</option>
-                    <option value="rating_asc">{t("Menos Calificados", "Lowest Rated")}</option>
-                    <option value="az">A-Z</option>
-                    <option value="za">Z-A</option>
-                    </select>
+                    <label className="me-2"><FormattedMessage id='agent.text10' />:</label>
+                    <Select
+                      options={[
+                        { value: 'featured', label: t("Destacados", "Featured") },
+                        { value: 'propcount', label: t("Más Propiedades", "More Properties") },
+                        { value: 'propcount_asc', label: t("Menos Propiedades", "Less Properties") },
+                        { value: 'rating', label: t("Mejores Calificados", "Best Rated") },
+                        { value: 'rating_asc', label: t("Menos Calificados", "Lowest Rated") },
+                        { value: 'az', label: 'A-Z' },
+                        { value: 'za', label: 'Z-A' },
+                      ]}
+                      value={{ value: sortOrder, label: sortOrder === 'featured' ? t("Destacados", "Featured") : sortOrder === 'propcount' ? t("Más Propiedades", "More Properties") : sortOrder === 'propcount_asc' ? t("Menos Propiedades", "Less Properties") : sortOrder === 'rating' ? t("Mejores Calificados", "Best Rated") : sortOrder === 'rating_asc' ? t("Menos Calificados", "Lowest Rated") : sortOrder === 'az' ? 'A-Z' : 'Z-A' }}
+                      placeholder={<><i className="fa-solid fa-arrow-up-short-wide me-2"></i>Ordenar por</>}
+                      isSearchable={false}
+                      inputId={fieldIds.sort}
+                      aria-label={t('Ordenar agentes', 'Sort agents')}
+                      onChange={(v) => setSortOrder(v?.value || 'featured')}
+                      components={{
+                        SingleValue: ({ children, ...props }) => (
+                          <components.SingleValue {...props}>
+                            <i className="fa-solid fa-arrow-up-short-wide me-2"></i>{children}
+                          </components.SingleValue>
+                        )
+                      }}
+                      styles={{
+                        control: (base) => ({
+                          ...base,
+                          flexWrap: 'nowrap',
+                          fontSize: '14px',
+                          minHeight: 'unset',
+                          height: '35.33px',
+                          borderColor: '#000',
+                          boxShadow: 'none',
+                          outline: 'none',
+                          cursor: 'pointer',
+                          borderRadius: '6px',
+                          '&:hover': { borderColor: '#000' },
+                        }),
+                        indicatorsContainer: (base) => ({ ...base, height: '35.33px', alignItems: 'center' }),
+                        indicatorSeparator: (base) => ({ ...base, alignSelf: 'center', height: '60%' }),
+                        valueContainer: (base) => ({ ...base, flexWrap: 'nowrap', overflow: 'hidden', height: '35.33px', padding: '0 8px', alignItems: 'center' }),
+                        menu: (base) => ({ ...base, minWidth: 'max-content' }),
+                        menuList: (base) => ({ ...base, maxHeight: 'none', overflowY: 'visible' }),
+                        option: (base, state) => ({
+                          ...base,
+                          backgroundColor: state.isSelected ? '#000' : state.isFocused ? '#e9e9e9' : 'transparent',
+                          color: state.isSelected ? '#fff' : '#000',
+                          cursor: 'pointer',
+                          '&:active': { backgroundColor: '#000', color: '#fff' },
+                        }),
+                      }}
+                    />
                 </div>
             </div>
 

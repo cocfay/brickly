@@ -146,6 +146,10 @@ function Index() {
         if (filterRoleRef.current === 'agente') params.parentId = 'none';
         if (search) params.search = search;
 
+        const SORT_COLUMNS = { 1: 'name', 2: 'email', 3: 'roles', 4: 'isEnabled' };
+        const order = data.order?.[0];
+        if (order) params.orderby = `${SORT_COLUMNS[order.column]}:${order.dir}`;
+
         const result = await getUsersPaginados(params);
         if (!result.success) {
           setAlertVariant('danger');

@@ -251,7 +251,7 @@ function Index() {
   useEffect(() => { agenciesMapRef.current = agenciesMap; }, [agenciesMap]);
 
   // Función para cargar propiedades paginadas desde la API (usa refs para evitar dependencias)
-  const fetchPage = useCallback(async (page, limit, status, mode, search, propertyType, price, location) => {
+  const fetchPage = useCallback(async (page, limit, status, mode, search, propertyType, price, location, orderby) => {
     const params = { page, limit };
     if (status && status !== 'all') params.status = status;
     if (mode && mode !== 'all') params.mode = mode;
@@ -263,6 +263,7 @@ function Index() {
     if (price?.max != null && price.max < maxPriceLimitRef.current) params.priceUSDMax = price.max;
     Object.assign(params, await getOwnerFilterParams());
     if (search) params.search = search;
+    if (orderby) params.orderby = orderby;
 
     const response = await getPropiedadesPaginadas(params);
     if (response.success) {
@@ -517,7 +518,12 @@ function Index() {
           const location = locationFilterRef.current;
           const search = data.search?.value || '';
 
-          const result = await fetchPage(page, limit, status, mode, search, propertyType, price, location);
+          // Mapeo de índice de columna a campo de la API para ordenamiento
+          const SORT_COLUMNS = { 3: 'market.title', 4: 'market.type', 5: 'location.zone', 6: 'market.mode', 7: 'market.priceUSD', 8: 'status' };
+          const order = data.order?.[0];
+          const orderby = order ? `${SORT_COLUMNS[order.column]}:${order.dir}` : undefined;
+
+          const result = await fetchPage(page, limit, status, mode, search, propertyType, price, location, orderby);
 
           callback({
             draw: data.draw,
