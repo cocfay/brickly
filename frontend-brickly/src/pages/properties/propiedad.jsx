@@ -1023,11 +1023,12 @@ function Propiedad() {
                                             <div className="d-flex align-items-center gap-2 mb-3">
                                                 {assignmentEligible && (
                                                     <button
-                                                        className="btn btn-sm btn-outline-dark rounded-1"
+                                                        className="rounded-1 text-center border-0 py-1"
                                                         onClick={handleRequestAssignment}
                                                         disabled={assigning}
-                                                        style={{ fontSize: '13px' }}
+                                                        style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box', padding: '2px 8px', fontSize: '13px' }}
                                                     >
+                                                        <i className="fa-solid fa-user me-2"></i>
                                                         {assigning ? 'Solicitando...' : 'Solicitar asignación'}
                                                     </button>
                                                 )}
