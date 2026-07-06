@@ -1071,7 +1071,7 @@ export class PropertiesService {
     // TOTAL VISITAS Y CLICKS
     //////////////////////////
 
-    const totalspropertyVisit =
+        const totalspropertyVisit =
         await this.propertyModel.aggregate([
           {
             $match: {

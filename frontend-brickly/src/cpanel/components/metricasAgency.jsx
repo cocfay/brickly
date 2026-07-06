@@ -483,7 +483,7 @@ export default function MetricasAgency() {
             {(() => {
               const properties = propertyViewMode === 'most'
                 ? (metricas?.topProperties ? Object.values(metricas.topProperties) : [])
-                : (metricas?.topPropertiesRawMinus ? Object.values(metricas.topPropertiesRawMinus) : []);
+                : (metricas?.topPropertiesMinus ? Object.values(metricas.topPropertiesMinus) : []);
               if (properties.length === 0) {
                 return (
                   <div className="d-flex flex-column align-items-center justify-content-center text-muted" style={{ minHeight: '250px', fontSize: '14px' }}>
@@ -495,19 +495,19 @@ export default function MetricasAgency() {
               // Calcular maxViews correctamente según el origen de datos
               const allPropsForMax = propertyViewMode === 'most'
                 ? Object.values(metricas?.topProperties || {})
-                : Object.values(metricas?.topPropertiesRawMinus || {});
+                : Object.values(metricas?.topPropertiesMinus || {});
               const maxViews = Math.max(...allPropsForMax.map(p => p.visitCounter), 1);
               return properties.map((item, idx) => {
                 const widthPct = Math.round((item.visitCounter / maxViews) * 100);
-                // Normalizar imagen: soporta item.picture (topProperties) y media.photos (topPropertiesRawMinus)
+                // Normalizar imagen: soporta item.picture (topProperties) y media.photos (topPropertiesMinus)
                 const mainPhoto = item.picture
                   ? item.picture
                   : item.media?.photos?.find(p => p.isMain)?.thumbnail || null;
                 const imgSrc = mainPhoto ? `${API_URL}/${mainPhoto}` : null;
-                // Normalizar precio: item.priceUSD (topProperties) o item.market.priceUSD (topPropertiesRawMinus)
+                // Normalizar precio: item.priceUSD (topProperties) o item.market.priceUSD (topPropertiesMinus)
                 const priceUSD = item.priceUSD ?? item.market?.priceUSD ?? 0;
                 const formattedPrice = `$${Number(priceUSD).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
-                // Normalizar nombre: item.name (topProperties) o item.market.title (topPropertiesRawMinus)
+                // Normalizar nombre: item.name (topProperties) o item.market.title (topPropertiesMinus)
                 const propName = item.name || item.market?.title || 'Sin título';
                 return (
                   <div key={item.id || item._id} className="d-flex align-items-center flex-wrap justify-content-between py-2 mb-1">
