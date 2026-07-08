@@ -472,7 +472,7 @@ function profileAgency() {
                                         <div>
                                             <div className='mb-3' style={{ fontSize: '18px' }}>{t('Agentes disponibles', 'Available agents')}</div>
                                             {agentesDisponibles.length === 1 ? (
-                                                <div style={{ maxWidth: isMobile ? '50%' : '20%', minWidth: '200px' }}>
+                                                <div style={{ maxWidth: isMobile ? '50%' : '250px', minWidth: '160px' }}>
                                                     {agentesDisponibles.map((agnt, i) => (
                                                         <div key={i} className="px-2">
                                                             <Link to={getAgentProfilePath(agnt)} className="text-body text-decoration-none d-block">
@@ -506,7 +506,7 @@ function profileAgency() {
                                                     ))}
                                                 </div>
                                             ) : (
-                                                <div className="agentes-slider" ref={sliderContainerRef}>
+                                                <div className="agentes-slider" ref={sliderContainerRef} style={agentesDisponibles.length <= 2 ? { maxWidth: '500px' } : undefined}>
                                                 <Slider
                                                     key={isMobile ? 'mobile' : 'desktop'}
                                                     dots={false}

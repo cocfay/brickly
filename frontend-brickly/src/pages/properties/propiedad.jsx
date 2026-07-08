@@ -59,6 +59,8 @@ function Propiedad() {
     const [assignmentEligible, setAssignmentEligible] = useState(false)
     const [assignmentSent, setAssignmentSent] = useState(false)
     const [assigning, setAssigning] = useState(false)
+    const [activeAgentIndex, setActiveAgentIndex] = useState(0)
+    const [isSnapping, setIsSnapping] = useState(false)
 
     const lightbox = useGLightbox({
         autoplayVideos: false,
@@ -268,6 +270,33 @@ function Propiedad() {
     const { currency: currencyMode } = useCurrency();
     const [showShare, setShowShare] = useState(false);
 
+    // Auto-slide infinito tipo carrusel
+    useEffect(() => {
+        if (agentes.length <= 1) return;
+        const interval = setInterval(() => {
+            setActiveAgentIndex(prev => {
+                if (prev === agentes.length) {
+                    setIsSnapping(true);
+                    return 0;
+                }
+                return prev + 1;
+            });
+        }, 3000);
+        return () => clearInterval(interval);
+    }, [agentes.length]);
+
+    useEffect(() => {
+        if (isSnapping) {
+            const timeout = setTimeout(() => setIsSnapping(false), 20);
+            return () => clearTimeout(timeout);
+        }
+    }, [isSnapping]);
+
+    // Resetear índice si agentes cambia
+    useEffect(() => {
+        setActiveAgentIndex(0);
+    }, [agentes]);
+
     const formatPrice = (value, currency) => {
       const num = parseFloat(value) || 0;
       if (currency === 'GTQ') {
@@ -281,6 +310,9 @@ function Propiedad() {
       if (typeof agency === 'string') return agency;
       return agency.name || '';
     };
+
+    // Slides para el carrusel infinito (duplicar el primero al final)
+    const slides = agentes.length > 1 ? [...agentes, agentes[0]] : agentes;
     
     const [showTourModal, setShowTourModal] = useState(false);
 
@@ -1206,33 +1238,44 @@ function Propiedad() {
                     {/* Barra fija del agente en móvil */}
                     {agentes.length > 0 && (
                         <div className="agent-fixed-bar">
-                            <div className="agent-info">
-                                <Link to={getUserProfilePath(agentes[0])} className="text-body text-decoration-none d-flex align-items-center gap-2 flex-grow-1">
-                                    <img src={agentes[0].avatar} alt={agentes[0].name} className="agent-avatar" />
-                                    <div>
-                                        <div className="agent-name">{agentes[0].name}</div>
-                                        <div className="agent-rating">
-                                            <StarRating rating={agentes[0].ratingAverage} size="10px" />
+                            <div className="agent-slider">
+                                <div className="agent-slider-track" style={{
+                                    transform: `translateX(-${activeAgentIndex * 100}%)`,
+                                    transition: isSnapping ? 'none' : 'transform 0.5s ease'
+                                }}>
+                                    {slides.map((agent, index) => (
+                                        <div key={index} className="agent-slide">
+                                            <div className="agent-info">
+                                                <Link to={getUserProfilePath(agent)} className="text-body text-decoration-none d-flex align-items-center gap-2 flex-grow-1">
+                                                    <img src={agent.avatar} alt={agent.name} className="agent-avatar" />
+                                                    <div>
+                                                        <div className="agent-name">{agent.name}</div>
+                                                        <div className="agent-rating">
+                                                            <StarRating rating={agent.ratingAverage} size="10px" />
+                                                        </div>
+                                                    </div>
+                                                </Link>
+                                                <Link to={getUserProfilePath(agent)} className="agent-ver-perfil">
+                                                    Ver perfil <i className="fa-solid fa-arrow-right"></i>
+                                                </Link>
+                                            </div>
+                                            <button
+                                                className="btn-contactar"
+                                                onClick={() => {
+                                                    registerWSClick(agent._id);
+                                                    window.open(
+                                                        `https://wa.me/${agent.phone.replace(/\D/g, '')}?text=` +
+                                                        encodeURIComponent('¡Hola! Me comunico desde la plataforma Brickly Homes. Estoy interesado en la propiedad "' + data?.market?.title + '".'),
+                                                        '_blank'
+                                                    );
+                                                }}
+                                            >
+                                                <i className="fa-brands fa-whatsapp me-2"></i>Contactar agente
+                                            </button>
                                         </div>
-                                    </div>
-                                </Link>
-                                <Link to={getUserProfilePath(agentes[0])} className="agent-ver-perfil">
-                                    Ver perfil <i className="fa-solid fa-arrow-right"></i>
-                                </Link>
+                                    ))}
+                                </div>
                             </div>
-                            <button
-                                className="btn-contactar"
-                                onClick={() => {
-                                    registerWSClick(agentes[0]._id);
-                                    window.open(
-                                        `https://wa.me/${agentes[0].phone.replace(/\D/g, '')}?text=` +
-                                        encodeURIComponent('¡Hola! Me comunico desde la plataforma Brickly Homes. Estoy interesado en la propiedad "' + data?.market?.title + '".'),
-                                        '_blank'
-                                    );
-                                }}
-                            >
-                                <i className="fa-brands fa-whatsapp me-2"></i>Contactar agente
-                            </button>
                         </div>
                     )}
                 </Container>
