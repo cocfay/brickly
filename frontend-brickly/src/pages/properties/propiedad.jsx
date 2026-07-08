@@ -1119,7 +1119,7 @@ function Propiedad() {
                             <div style={{ fontSize: 'clamp(36px, 5vw, 64px)', fontFamily: 'AppleGaramond' }}>
                                 <FormattedMessage id='properties.text9' />
                             </div>
-                            <Link to="/propiedades" className='link-more-black d-flex align-items-center gap-2'>
+                            <Link to="/propiedades" className='link-more-black d-none d-lg-flex align-items-center gap-2'>
                                 <FormattedMessage id='properties.text10' />
                                 <i className="fa-solid fa-angle-right"></i>
                             </Link>
@@ -1233,6 +1233,10 @@ function Propiedad() {
                             </div>
                             )
                         })}
+                        <Link to="/propiedades" className='link-more-black d-lg-none d-flex align-items-center gap-2 mt-4 mx-auto'>
+                            <FormattedMessage id='properties.text10' />
+                            <i className="fa-solid fa-angle-right"></i>
+                        </Link>
                     </div>
 
                     {/* Barra fija del agente en móvil */}
