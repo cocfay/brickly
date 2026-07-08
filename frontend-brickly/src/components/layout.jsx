@@ -100,7 +100,7 @@ function Layout() {
                   <Link to="/agentes" className='text-decoration-none text-white'><FormattedMessage id='link.text4' /></Link>
                   <Link to="/asociados" className='text-decoration-none text-white'><FormattedMessage id='link.text5' /></Link>
                   <Link to="/precios" className='text-decoration-none text-white'><FormattedMessage id='link.text6' /></Link>
-                  <a href="https://blog.bricklyhomes.com/" target="_blank" rel="noreferrer" className='text-decoration-none text-white'>BLOG</a>
+                  <Link to="/blog" target="_blank" rel="noreferrer" className='text-decoration-none text-white'>BLOG</Link>
                 </div>
                   <div>
                   <div className='mb-2 mt-4 mt-xl-0'><FormattedMessage id='footer.text1' /></div>
