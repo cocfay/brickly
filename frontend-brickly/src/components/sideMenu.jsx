@@ -152,9 +152,9 @@ function sideMenu() {
                 <Nav.Link as={NavLink} to="/precios" className="text-white py-3 border-bottom border-secondary" onClick={handleClose} style={{ fontSize: '14px' }}>
                     <FormattedMessage id='link.text6' />
                 </Nav.Link>
-                <Nav.Link as={NavLink} to="/blog" target="_blank" rel="noreferrer" onClick={handleClose} className="text-white py-3 border-bottom border-secondary" style={{ fontSize: '14px' }}>
+                <a href="https://www.bricklyhomes.com/blog" target="_blank" rel="noreferrer" className="text-white text-decoration-none py-3 border-bottom border-secondary d-block" style={{ fontSize: '14px', paddingLeft: 'var(--bs-nav-link-padding-x)' }}>
                     BLOG
-                </Nav.Link>
+                </a>
                 
                 {/* Redes sociales */}
                 <div className="d-flex justify-content-center gap-4 mt-4 pt-4">

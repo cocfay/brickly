@@ -50,7 +50,7 @@ function HomeMenu() {
               <Nav.Link as={NavLink} to="/agentes"><FormattedMessage id='link.text4' /></Nav.Link>
               <Nav.Link as={NavLink} to="/asociados"><FormattedMessage id='link.text5' /></Nav.Link>
               <Nav.Link as={NavLink} to="precios"><FormattedMessage id='link.text6' /></Nav.Link>
-              <Nav.Link as={NavLink} to="/blog" target="_blank" rel="noreferrer">BLOG</Nav.Link>
+              <Nav.Link href="https://www.bricklyhomes.com/blog" target="_blank" rel="noreferrer">BLOG</Nav.Link>
               
               <Boxlogin />
             </Nav>
