@@ -14,16 +14,20 @@ export class PaymentsService {
   private API_KEY = 'pk_test_X7CzDknKDL4kwlWkMSR3klsBrIWrjoOGD9YEDbnYP5A15FbABb8NFYbrk';
   private SECRECT_KEY = 'sk_test_WmJ523ttrdTFWhLLkO9QTufTFCHYvYyxXPJpVodfMloHwcZ7xRG2OceDa';
 
-  // El valor del enum PlanType YA ES el product_id real de Recurrente
-  // (ej. BROKER_MENSUAL = 'prod_dr9boirb'), así que solo hace falta
-  // validar que el plan recibido exista en el enum actual.
-  getPlanId(plan: string): string {
-    const isValidPlan = Object.values(PlanType).includes(plan as PlanType);
+  getPlanId(planKey: string): string {
+    // 1. Validamos si el string recibido pertenece a las llaves (keys) del Enum
+    const planKeys = Object.keys(PlanType);
+    const isValidPlan = planKeys.includes(planKey);
+
     if (!isValidPlan) {
-      console.warn(`[PaymentsService] Plan desconocido recibido: "${plan}". Planes válidos: ${Object.values(PlanType).join(', ')}`);
+      console.warn(
+        `[PaymentsService] Plan desconocido recibido: "${planKey}". Planes válidos: ${planKeys.join(', ')}`
+      );
       return '';
     }
-    return plan;
+
+    // 2. Al ser una llave válida, accedemos al valor real del enum (el prod_id)
+    return PlanType[planKey as keyof typeof PlanType];
   }
 
   async createFeaturedCharge(userId: string, thisId: string, amount_cents:number, title:string, type_send: string, plan: string) {
