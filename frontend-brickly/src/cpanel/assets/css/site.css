@@ -151,7 +151,6 @@
     }
 
     .cpanel-layout .propiedades-table td:nth-child(4) > div {
-        min-width: 180px !important;
         padding-bottom: 0 !important;
     }
 

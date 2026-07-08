@@ -1243,7 +1243,7 @@ function Index() {
             render: function(row) { 
               let data = ''
               if(row.market?.title !== ''){
-              data += `<div style="min-width:220px;position:relative;"><span class="prop-title-text text-truncate"> ${row.market?.title || ''}</span>`;
+              data += `<div style="position:relative;"><span class="prop-title-text text-truncate"> ${row.market?.title || ''}</span>`;
                 if (row.featured?.isActive) {
                   data += `<span class="planes-propiedad btn btn-sm rounded-4 d-inline-flex align-items-center gap-2 px-3 py-1" style="background-color:#198754; color:#fff; border:none; white-space:nowrap; text-decoration:none;">
                     <i class="fa-solid fa-diamond" style="font-size:12px;"></i>Destacada
