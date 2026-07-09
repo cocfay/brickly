@@ -552,6 +552,10 @@ export class UsersService {
       data.password = await bcrypt.hash(data.password, 10);
     }
 
+    if (data.name && !data.profileSlug) {
+      data.profileSlug = await this.ensureUniqueProfileSlug(this.getProfileSlugSource(data), id);
+    }
+
     if (data.profileSlug) {
       data.profileSlug = await this.ensureUniqueProfileSlug(data.profileSlug, id);
     }
