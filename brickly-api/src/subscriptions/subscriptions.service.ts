@@ -89,7 +89,18 @@ export class SubscriptionsService {
       return false;
     }
 
-    const url = `${this.getApiUrl()}/subscriptions/${activeSub.recurrenteId}`;
+    const recurrenteId = activeSub.recurrenteId;
+
+    // Si el ID es de checkout (ch_...) no se puede cancelar como suscripción;
+    // solo lo marcamos como cancelado en local. El subscription.id real
+    // llegará después via subscription.create y se usará en futuros cambios.
+    if (recurrenteId.startsWith('ch_')) {
+      this.logger.warn(`cancelRemotely: ID "${recurrenteId}" es un checkout, no una suscripción. Solo se cancela en local.`);
+      await this.updateStatus(userId, 'CANCELED');
+      return false;
+    }
+
+    const url = `${this.getApiUrl()}/subscriptions/${recurrenteId}`;
     const secretKey = this.getSecretKey();
 
     if (!secretKey) {
@@ -101,13 +112,13 @@ export class SubscriptionsService {
       await axios.delete(url, {
         headers: { 'X-SECRET-KEY': secretKey },
       });
-      this.logger.log(`✅ Suscripción remota ${activeSub.recurrenteId} cancelada para userId=${userId}`);
+      this.logger.log(`✅ Suscripción remota ${recurrenteId} cancelada para userId=${userId}`);
 
       await this.updateStatus(userId, 'CANCELED');
       return true;
     } catch (err: any) {
       this.logger.error(
-        `❌ Error cancelando suscripción remota ${activeSub.recurrenteId} para userId=${userId}: ${err?.response?.data?.message ?? err?.message}`,
+        `❌ Error cancelando suscripción remota ${recurrenteId} para userId=${userId}: ${err?.response?.data?.message ?? err?.message}`,
       );
       return false;
     }
