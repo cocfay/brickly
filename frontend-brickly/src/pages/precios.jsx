@@ -139,7 +139,8 @@ function Precios() {
                     <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#F29500' }}></i><div><strong>Métricas:</strong> Reportes detallados de rendimiento por propiedad y comparativas de efectividad individual.</div></div>
                   </div>
                   <div className='mt-5 mb-2'>
-                    <PlanButton plan='TEST_DAILY' />
+                    {/* <PlanButton plan='TEST_DAILY' /> */}
+                    <PlanButton plan='BROKER_MENSUAL' />
                   </div>
                 </div>
               </div>

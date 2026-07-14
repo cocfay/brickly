@@ -138,6 +138,13 @@ export class WebhooksController {
               break;
             }
 
+            // 🚫 Si es un checkout nuevo (no renovación), cancelar la
+            // suscripción anterior en Recurrente para que el cliente no
+            // quede con dos suscripciones activas facturándose.
+            if (!isRenewal) {
+              await this.subService.cancelRemotely(userId);
+            }
+
             const role = PlanRoleMap[plan];
             if (!role) {
               console.error(`[Webhooks:${eventType}] ⚠️ No hay rol mapeado para el plan "${plan}" en PlanRoleMap.`);
@@ -259,6 +266,15 @@ export class WebhooksController {
 
           if (!userId) {
             console.error('[Webhooks:subscription.cancel] ⚠️ Falta userId en subscription.metadata ->', JSON.stringify(meta));
+            break;
+          }
+
+          // Si el usuario ya tiene un plan activo diferente, este cancel
+          // corresponde a una suscripción anterior que fue reemplazada
+          // por un cambio de plan — la ignoramos para no degradar al usuario.
+          const currentSub = await this.subService.findActiveByUserId(userId);
+          if (currentSub && currentSub.plan !== plan) {
+            console.log(`[Webhooks:subscription.cancel] ⏭️ Ignorado: usuario ya tiene plan activo "${currentSub.plan}" (cancelado: "${plan}")`);
             break;
           }
 

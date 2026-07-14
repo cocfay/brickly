@@ -1,8 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Subscription } from './schemas/subscription.schema';
 import { WebhookEvent } from './schemas/webhook-event.schema';
 import { Model } from 'mongoose';
+import axios from 'axios';
 
 @Injectable()
 export class SubscriptionsService {
@@ -61,6 +62,54 @@ export class SubscriptionsService {
           `Error marcando evento ${eventId} como procesado: ${err?.message}`,
         );
       }
+    }
+  }
+
+  private getApiUrl(): string {
+    return process.env.RECURRENTE_API_URL || 'https://app.recurrente.com/api';
+  }
+
+  private getSecretKey(): string {
+    return process.env.RECURRENTE_SECRET_KEY || '';
+  }
+
+  async findActiveByUserId(userId: string): Promise<Subscription | null> {
+    return this.model.findOne({ userId, status: 'ACTIVE' });
+  }
+
+  /**
+   * Cancela la suscripción activa en Recurrente (remotamente).
+   * Se usa antes de activar un nuevo plan para que el cliente
+   * no quede con dos suscripciones activas.
+   */
+  async cancelRemotely(userId: string): Promise<boolean> {
+    const activeSub = await this.findActiveByUserId(userId);
+    if (!activeSub?.recurrenteId) {
+      this.logger.log(`cancelRemotely: No hay suscripcion activa remota para userId=${userId}`);
+      return false;
+    }
+
+    const url = `${this.getApiUrl()}/subscriptions/${activeSub.recurrenteId}`;
+    const secretKey = this.getSecretKey();
+
+    if (!secretKey) {
+      this.logger.error('cancelRemotely: RECURRENTE_SECRET_KEY no configurada');
+      return false;
+    }
+
+    try {
+      await axios.delete(url, {
+        headers: { 'X-SECRET-KEY': secretKey },
+      });
+      this.logger.log(`✅ Suscripción remota ${activeSub.recurrenteId} cancelada para userId=${userId}`);
+
+      await this.updateStatus(userId, 'CANCELED');
+      return true;
+    } catch (err: any) {
+      this.logger.error(
+        `❌ Error cancelando suscripción remota ${activeSub.recurrenteId} para userId=${userId}: ${err?.response?.data?.message ?? err?.message}`,
+      );
+      return false;
     }
   }
 }
