@@ -11,8 +11,8 @@ export class PaymentsService {
 
   private API_URL = 'https://app.recurrente.com/api';
   //private API_URL = 'https://api.recurrente.com/v1';
-  private API_KEY = 'pk_test_X7CzDknKDL4kwlWkMSR3klsBrIWrjoOGD9YEDbnYP5A15FbABb8NFYbrk';
-  private SECRECT_KEY = 'sk_test_WmJ523ttrdTFWhLLkO9QTufTFCHYvYyxXPJpVodfMloHwcZ7xRG2OceDa';
+  private API_KEY = process.env.RECURRENTE_API_KEY || '';
+  private SECRECT_KEY = process.env.RECURRENTE_SECRET_KEY || '';
 
   getPlanId(planKey: string): string {
     // 1. Validamos si el string recibido pertenece a las llaves (keys) del Enum

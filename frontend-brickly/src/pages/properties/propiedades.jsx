@@ -309,10 +309,10 @@ function Propiedades() {
       case 0:  return 'featured.isActive:desc';
       case 1:  return 'createdAt:desc';
       case 2:  return 'createdAt:asc';
-      case 3:  return 'market.price:asc';
-      case 4:  return 'market.price:desc';
-      case 5:  return 'market.price:asc';
-      case 6:  return 'market.price:desc';
+      case 3:  return ['market.mode:des','market.price:asc'];
+      case 4:  return ['market.mode:des','market.price:desc'];
+      case 5:  return ['market.mode:asc','market.price:asc'];
+      case 6:  return ['market.mode:asc','market.price:desc'];
       case 7:  return 'visitCounter:desc';
       case 8:  return 'dimensions.landM2:desc';
       case 9:  return 'dimensions.landM2:asc';
@@ -371,7 +371,17 @@ function Propiedades() {
 
     // Ordenamiento al backend
     const orderby = sortOptionToOrderby(sortOption);
-    if (orderby) url += `&orderby=${encodeURIComponent(orderby)}`;
+    if (orderby) {
+        if (Array.isArray(orderby)) {
+            const queryParams = orderby
+                .map(item => `orderby=${encodeURIComponent(item)}`)
+                .join('&');
+            url += `&${queryParams}`;
+        } else {
+            url += `&orderby=${encodeURIComponent(orderby)}`;
+        }
+    }
+    //if (orderby) url += `&orderby=${encodeURIComponent(orderby)}`;
 
     return url;
   }, [filters, currencyMode, agentId, userId, sortOption]);

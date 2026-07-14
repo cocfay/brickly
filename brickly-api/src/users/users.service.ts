@@ -614,6 +614,11 @@ export class UsersService {
     const user = await this.userModel.findById(userId);
     if (!user) return null;
 
+    // Si la cuenta que se degrada es una agencia, desactivar todos sus agentes
+    if (user.roles?.includes(Role.AGENCIA)) {
+      await this.deactivateChildAgents(userId);
+    }
+
     const preservedRoles = (user.roles || []).filter((r) => r === Role.ADMIN);
     user.roles = Array.from(new Set([...preservedRoles, Role.CLIENTE]));
 
@@ -626,6 +631,16 @@ export class UsersService {
     return user;
   }
 
+  async deactivateChildAgents(agencyId: string) {
+    await this.userModel.updateMany(
+      {
+        parentId: new Types.ObjectId(agencyId),
+        roles: Role.AGENTE,
+      },
+      { $set: { isEnabled: false } },
+    );
+  }
+
   /**
    * Cuenta los agentes (rol AGENTE) creados bajo una agencia/desarrolladora,
    * sin importar si están activos o desactivados (isEnabled), ya que el
@@ -633,7 +648,7 @@ export class UsersService {
    */
   async countAgentsByParent(parentId: string) {
     return this.userModel.countDocuments({
-      parentId,
+      parentId: new Types.ObjectId(parentId),
       roles: Role.AGENTE,
     });
   }
@@ -746,6 +761,10 @@ export class UsersService {
       await this.userModel.findByIdAndDelete(userId);
       return { message: 'Usuario eliminado correctamente' };
     
+  }
+
+  async removeUserById(userId: string) {
+    await this.userModel.findByIdAndDelete(userId);
   }
 
   async saveEasyBrokerKey(

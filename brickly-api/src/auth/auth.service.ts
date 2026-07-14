@@ -19,6 +19,10 @@ export class AuthService {
     const user = await this.usersService.findByEmail(email);
     if (!user) throw new UnauthorizedException();
 
+    if (user.isEnabled === false) {
+      throw new BadRequestException('Su cuenta se encuentra desactivada');
+    }
+
     const match = await bcrypt.compare(password, user.password);
     if (!match) throw new UnauthorizedException();
 

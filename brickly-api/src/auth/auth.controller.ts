@@ -37,10 +37,11 @@ export class AuthController {
       roleToAssign = body.roles?.[0] || Role.CLIENTE;
     }
 
-    if (
+    const isAgentOrDev =
       requesterRoles.includes(Role.AGENCIA) ||
-      requesterRoles.includes(Role.DESARROLLADORA)
-    ) {
+      requesterRoles.includes(Role.DESARROLLADORA);
+
+    if (isAgentOrDev) {
       roleToAssign = Role.AGENTE;
       body.parentId = new Types.ObjectId(req.user.userId);
 
@@ -60,7 +61,21 @@ export class AuthController {
       }
     }
 
-	 return this.authService.register(body, roleToAssign);
+    const createdUser = await this.authService.register(body, roleToAssign);
+
+    // Post-creation check: evita race condition donde dos peticiones
+    // simultáneas superen el límite
+    if (isAgentOrDev && createdUser) {
+      const limitAfter = await this.usersService.getAgentLimitInfo(req.user.userId);
+      if (limitAfter.current > limitAfter.max) {
+        await this.usersService.removeUserById(createdUser._id.toString());
+        throw new BadRequestException(
+          `Has alcanzado el límite de ${limitAfter.max} agente(s) para tu plan actual. Actualiza tu plan para agregar más.`,
+        );
+      }
+    }
+
+    return createdUser;
   }
   @Get('google')
   @UseGuards(AuthGuard('google'))
