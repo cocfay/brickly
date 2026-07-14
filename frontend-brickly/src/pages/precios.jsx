@@ -8,6 +8,7 @@ import '../assets/css/precios.css';
 import { useT } from '../hooks/useT';
 import { isAuthenticated, getFullUser } from '../services/authService';
 import { subscribeToPlan } from '../services/recurrenteService';
+import { useNavigate } from 'react-router-dom';
 
 
 function Precios() {
@@ -26,6 +27,8 @@ function Precios() {
   const currentPlan = currentUser?.subscriptionStatus === 'ACTIVE'
     ? currentUser?.subscriptionPlan
     : null;
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (periodo === 'mensual') {
@@ -46,7 +49,7 @@ function Precios() {
   const handleContratar = async (plan) => {
     // Sin sesión iniciada -> redirigir a login
     if (!isAuthenticated()) {
-      window.location.href = import.meta.env.PROD ? '/login' : '/frontend-brickly/login';
+      navigate('/login', { replace: true }); 
       return;
     }
 
