@@ -99,10 +99,10 @@ export class PropertiesService {
           const searchString = filters.search.toString().trim();
 
           filters.$text = { $search: searchString };
-          // const hasCustomOrder = filters.orderby || filters['orderby[]'];
-          // if (!hasCustomOrder) {
-          //   orderByReg = { score: { $meta: 'textScore' } };
-          // }
+          const hasCustomOrder = filters.orderby || filters['orderby[]'];
+          if (!hasCustomOrder) {
+            orderByReg = { 'featured.isActive': -1, score: { $meta: 'textScore' } };
+          }
         }
 
         delete filters.page;

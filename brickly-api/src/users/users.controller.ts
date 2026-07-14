@@ -80,6 +80,13 @@ export class UsersController {
     return this.usersService.findById(req.user.userId);
   }
 
+  @Get('me/agent-limit')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.AGENCIA, Role.DESARROLLADORA)
+  getAgentLimit(@Req() req) {
+    return this.usersService.getAgentLimitInfo(req.user.userId);
+  }
+
   @Put('me')
   @UseGuards(AuthGuard('jwt'))
   updateProfile(

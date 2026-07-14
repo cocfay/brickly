@@ -629,8 +629,9 @@ function Propiedades() {
   ]
 
   const sortedPropiedades = [...filteredPropiedades].sort((a, b) => {
-    // Por defecto: destacadas primero, luego por updatedAt descendente
     if (!sortOption) {
+      // Con búsqueda activa: el backend ya ordenó por destacadas + relevancia (título, descripción, departamento)
+      if (filters.search) return 0;
       const aFeatured = a.featured?.isActive ? 1 : 0;
       const bFeatured = b.featured?.isActive ? 1 : 0;
       if (bFeatured !== aFeatured) return bFeatured - aFeatured;

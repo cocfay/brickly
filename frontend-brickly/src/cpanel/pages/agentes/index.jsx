@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Container, Alert } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
-import { getAgentes, deleteAgente, updateAgente } from '../../services/agentes';
+import { getAgentes, deleteAgente, updateAgente, getAgentLimit } from '../../services/agentes';
 import confirm from '../../components/confirmUp';
 import $ from 'jquery';
 import 'datatables.net-dt';
@@ -19,6 +19,7 @@ function Index() {
     const [loadingShow, setLoadingShow] = useState(false);
     const [loaded, setLoaded] = useState(false);
     const [propCounts, setPropCounts] = useState({}); // { [agentId]: total }
+    const [limitInfo, setLimitInfo] = useState(null);
     const [loading, setLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState('Procesando...');
     const [showAlert, setShowAlert] = useState(false);
@@ -63,6 +64,13 @@ function Index() {
         };
         load();
     }, []);
+
+    useEffect(() => {
+        if (!isAgencia) return;
+        getAgentLimit().then(result => {
+            if (result.success) setLimitInfo(result.data);
+        });
+    }, [agentes.length, isAgencia]);
 
     useEffect(() => {
         const firstMay = (value) => {
@@ -382,10 +390,22 @@ function Index() {
     return (
         <Container>
             <div className='fs-1'>Lista de agentes</div>
-            <Link to="/cpanel/agentes/add" className='mt-4 d-flex gap-1 align-items-center text-body mb-5'>
-                <i className="fa-solid fa-plus bg-black rounded-circle text-white" style={{ fontSize: '10px', width: '20px', height: '20px', display: 'grid', placeItems: 'center', paddingRight: '1px' }}></i>
-                <span>Crear agente</span>
-            </Link>
+            {isAgencia && limitInfo && (
+                <div className={`small mb-2 ${!limitInfo.canCreate ? 'text-danger' : 'text-muted'}`}>
+                    Agentes: {limitInfo.current} / {limitInfo.max === 0 ? 'sin cupo en tu plan actual' : limitInfo.max}
+                </div>
+            )}
+            {(!isAgencia || !limitInfo || limitInfo.canCreate) ? (
+                <Link to="/cpanel/agentes/add" className='mt-4 d-flex gap-1 align-items-center text-body mb-5'>
+                    <i className="fa-solid fa-plus bg-black rounded-circle text-white" style={{ fontSize: '10px', width: '20px', height: '20px', display: 'grid', placeItems: 'center', paddingRight: '1px' }}></i>
+                    <span>Crear agente</span>
+                </Link>
+            ) : (
+                <div className='mt-4 d-flex gap-1 align-items-center text-muted mb-5' title={`Límite de ${limitInfo.max} agente(s) alcanzado para tu plan`} style={{ cursor: 'not-allowed' }}>
+                    <i className="fa-solid fa-plus bg-secondary rounded-circle text-white" style={{ fontSize: '10px', width: '20px', height: '20px', display: 'grid', placeItems: 'center', paddingRight: '1px' }}></i>
+                    <span>Crear agente (límite alcanzado)</span>
+                </div>
+            )}
 
             {showAlert && (
                 <Alert variant={alertVariant} onClose={() => setShowAlert(false)} dismissible className="position-fixed bottom-0 end-0 m-3 shadow-sm" style={{ zIndex: 9999 }}>

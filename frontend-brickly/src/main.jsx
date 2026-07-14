@@ -46,6 +46,7 @@ const About = lazy(() => import('./pages/about.jsx'));
 const Login = lazy(() => import('./pages/login.jsx'));
 const Register = lazy(() => import('./pages/register.jsx'));
 const ForgotPassword = lazy(() => import('./pages/forgotPassword.jsx'));
+const RefreshSession = lazy(() => import('./pages/refreshSession.jsx'));
 
 /* cpanel - lazy loaded */
 const LayoutCpanel = lazy(() => import('./cpanel/pages/cpanelLayout.jsx'));
@@ -142,6 +143,7 @@ const App = () => {
               <Route path="registro" element={<Register />} />
               <Route path="recuperar-contrasena" element={<ForgotPassword />} />
               <Route path="perfil" element={<Profile />} />
+              <Route path="refresh-session" element={<RefreshSession />} />
             </Route>
 
             {/* Rutas del CPanel */}

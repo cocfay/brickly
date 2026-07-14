@@ -8,6 +8,7 @@ import { Subscription } from '../subscriptions/schemas/subscription.schema';
 import * as bcrypt from 'bcrypt';
 import { Role } from '../auth/roles.enum';
 import { ActivityLogsService } from '../activitylogs/activitylogs.service';
+import { PlanMaxProfiles } from '../common/enums/plan.enum';
 
 @Injectable()
 export class UsersService {
@@ -567,6 +568,99 @@ export class UsersService {
 
     if (!user) throw new NotFoundException('Usuario no encontrado');
     return this.ensureProfileSlugForUser(user);
+  }
+
+  /**
+   * Activa (o refresca) la suscripción de un usuario: REEMPLAZA sus roles
+   * relacionados a planes por el rol correspondiente al plan adquirido
+   * (evita que un usuario quede con, por ejemplo, "agente" Y "agencia" a
+   * la vez, lo cual causaba conflictos en la plataforma). El rol `admin`
+   * se preserva siempre por seguridad, para no desadministrar una cuenta
+   * por accidente si un admin llega a probar una suscripción.
+   * Es idempotente: llamarla varias veces con los mismos datos no causa
+   * problemas (útil porque puede dispararse tanto desde el pago exitoso
+   * del checkout como, más tarde, desde subscription.create o cada renovación).
+   */
+  async activateSubscription(
+    userId: string,
+    data: { plan: string; role: Role; expiresAt: Date },
+  ) {
+    const user = await this.userModel.findById(userId);
+    if (!user) return null;
+
+    const preservedRoles = (user.roles || []).filter((r) => r === Role.ADMIN);
+    user.roles = Array.from(new Set([...preservedRoles, data.role]));
+
+    user.subscriptionPlan = data.plan;
+    user.subscription_expire = data.expiresAt;
+    user.subscriptionStatus = 'ACTIVE';
+
+    await user.save();
+    return user;
+  }
+
+  /**
+   * Desactiva la suscripción de un usuario: REEMPLAZA sus roles por
+   * `cliente` (quitando el rol del plan que tenía) y marca el estado
+   * correspondiente (CANCELED / PAST_DUE). Se usa tanto para cancelación
+   * definitiva como para un cobro recurrente no procesado. El rol `admin`
+   * se preserva siempre por seguridad. Mantiene `subscriptionPlan` como
+   * referencia histórica de cuál fue el último plan adquirido.
+   */
+  async deactivateSubscription(
+    userId: string,
+    data: { status: 'CANCELED' | 'PAST_DUE' },
+  ) {
+    const user = await this.userModel.findById(userId);
+    if (!user) return null;
+
+    const preservedRoles = (user.roles || []).filter((r) => r === Role.ADMIN);
+    user.roles = Array.from(new Set([...preservedRoles, Role.CLIENTE]));
+
+    user.subscriptionStatus = data.status;
+    if (data.status === 'CANCELED') {
+      user.subscription_expire = undefined;
+    }
+
+    await user.save();
+    return user;
+  }
+
+  /**
+   * Cuenta los agentes (rol AGENTE) creados bajo una agencia/desarrolladora,
+   * sin importar si están activos o desactivados (isEnabled), ya que el
+   * registro sigue ocupando un cupo del plan mientras exista.
+   */
+  async countAgentsByParent(parentId: string) {
+    return this.userModel.countDocuments({
+      parentId,
+      roles: Role.AGENTE,
+    });
+  }
+
+  /**
+   * Devuelve la info de límite de agentes para una agencia/desarrolladora,
+   * según su plan actualmente activo (PlanMaxProfiles).
+   */
+  async getAgentLimitInfo(agencyId: string) {
+    const agency = await this.userModel.findById(agencyId);
+    if (!agency) throw new NotFoundException('Usuario no encontrado');
+
+    const isActive =
+      agency.subscriptionStatus === 'ACTIVE' &&
+      (!agency.subscription_expire || agency.subscription_expire > new Date());
+
+    const max = isActive ? (PlanMaxProfiles[agency.subscriptionPlan ?? ''] ?? 0) : 0;
+    const current = await this.countAgentsByParent(agencyId);
+
+    return {
+      plan: agency.subscriptionPlan ?? null,
+      subscriptionStatus: agency.subscriptionStatus ?? 'INACTIVE',
+      max,
+      current,
+      remaining: Math.max(max - current, 0),
+      canCreate: current < max,
+    };
   }
 
   async addRole(userId: string, role: Role) {

@@ -33,6 +33,12 @@ export class User {
   @Prop()
   subscription_expire?: Date;
 
+  @Prop()
+  subscriptionPlan?: string; // PlanType adquirido (ej. AGENCIA_GOLD, BROKER_ANUAL, etc.)
+
+  @Prop({ default: 'INACTIVE' })
+  subscriptionStatus?: string; // ACTIVE | PAST_DUE | CANCELED | INACTIVE
+
   @Prop({ default: "free" })
   planUse?: string;
 

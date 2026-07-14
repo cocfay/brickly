@@ -1,6 +1,7 @@
-import { Controller, Post, Body, Get, UseGuards, Req, Res} from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Req, Res, BadRequestException} from '@nestjs/common';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
+import { UsersService } from '../users/users.service';
 import { Role } from './roles.enum';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../auth/roles.decorator';
@@ -11,7 +12,11 @@ type AppType = 'panel' | 'web' | 'mobile';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService, private configService: ConfigService) {}
+  constructor(
+    private authService: AuthService,
+    private usersService: UsersService,
+    private configService: ConfigService,
+  ) {}
 
   @Post('login')
   login(@Body() body: any) {
@@ -24,7 +29,7 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin','agencia','desarrolladora')
   @Post('create-user')
-  create(@Req() req, @Body() body: any) {
+  async create(@Req() req, @Body() body: any) {
     const requesterRoles = req.user.roles || [];
     let roleToAssign = Role.CLIENTE;
 
@@ -38,6 +43,21 @@ export class AuthController {
     ) {
       roleToAssign = Role.AGENTE;
       body.parentId = new Types.ObjectId(req.user.userId);
+
+      // 🔒 Validar límite de agentes según el plan activo de la agencia
+      const limitInfo = await this.usersService.getAgentLimitInfo(req.user.userId);
+      console.log(`[Auth.create-user] Chequeo de límite para agencia=${req.user.userId} ->`, JSON.stringify(limitInfo));
+
+      if (!limitInfo.canCreate) {
+        if (limitInfo.max === 0) {
+          throw new BadRequestException(
+            'Tu plan actual no permite crear agentes, o tu suscripción no está activa. Actualiza tu plan para continuar.',
+          );
+        }
+        throw new BadRequestException(
+          `Has alcanzado el límite de ${limitInfo.max} agente(s) para tu plan actual. Actualiza tu plan para agregar más.`,
+        );
+      }
     }
 
 	 return this.authService.register(body, roleToAssign);

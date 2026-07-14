@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Container, Alert } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
-import { createAgente } from '../../services/agentes';
+import { createAgente, getAgentLimit } from '../../services/agentes';
 
 import arrow from '../../../assets/images/iconos/arrow.png'
 
@@ -10,6 +10,24 @@ function Add() {
     const [form, setForm] = useState({ name: '', password: '', email: '' });
     const [loading, setLoading] = useState(false);
     const [alert, setAlert] = useState(null);
+    const [limitInfo, setLimitInfo] = useState(null);
+    const [checkingLimit, setCheckingLimit] = useState(true);
+
+    useEffect(() => {
+        const checkLimit = async () => {
+            setCheckingLimit(true);
+            const result = await getAgentLimit();
+            if (result.success) {
+                setLimitInfo(result.data);
+            } else {
+                // Si falla la consulta, no bloqueamos el formulario aquí:
+                // el backend igual valida el límite al enviar el formulario.
+                setLimitInfo(null);
+            }
+            setCheckingLimit(false);
+        };
+        checkLimit();
+    }, []);
 
     const handleChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
@@ -29,6 +47,8 @@ function Add() {
         setLoading(false);
     };
 
+    const limitReached = limitInfo && !limitInfo.canCreate;
+
     return (
         <Container>
             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -46,40 +66,59 @@ function Add() {
                 </Alert>
             )}
 
-            <form onSubmit={handleSubmit}>
-                <div className="row g-4">
-                    <div className="col-md-4">
-                        <label className="form-label">Nombre del agente*</label>
-                        <input
-                            type="text" name="name" required
-                            className="form-control rounded-pill"
-                            value={form.name} onChange={handleChange}
-                        />
-                    </div>
-                    <div className="col-md-4">
-                        <label className="form-label">Clave de usuario*</label>
-                        <input
-                            type="password" name="password" required
-                            className="form-control rounded-pill"
-                            value={form.password} onChange={handleChange}
-                        />
-                    </div>
-                    <div className="col-md-4">
-                        <label className="form-label">Correo electrónico*</label>
-                        <input
-                            type="email" name="email" required
-                            className="form-control rounded-pill"
-                            value={form.email} onChange={handleChange}
-                        />
-                    </div>
+            {!checkingLimit && limitInfo && (
+                <div className={`mb-4 small ${limitReached ? 'text-danger' : 'text-muted'}`}>
+                    Agentes creados: {limitInfo.current} / {limitInfo.max === 0 ? 'sin cupo en tu plan actual' : limitInfo.max}
                 </div>
-                <div className="d-flex justify-content-end mt-5">
-                    <button type="submit" className="btn btn-dark rounded-pill px-4" disabled={loading}>
-                        {loading ? <span className="spinner-border spinner-border-sm me-2" /> : null}
-                        Crear agente
-                    </button>
-                </div>
-            </form>
+            )}
+
+            {limitReached ? (
+                <Alert variant="warning">
+                    <div className="d-flex align-items-center gap-2">
+                        <i className="fa-solid fa-triangle-exclamation"></i>
+                        <span>
+                            {limitInfo.max === 0
+                                ? 'Tu plan actual no permite crear agentes, o tu suscripción no está activa. Actualiza tu plan para continuar.'
+                                : `Has alcanzado el límite de ${limitInfo.max} agente(s) para tu plan actual. Actualiza tu plan para agregar más.`}
+                        </span>
+                    </div>
+                </Alert>
+            ) : (
+                <form onSubmit={handleSubmit}>
+                    <div className="row g-4">
+                        <div className="col-md-4">
+                            <label className="form-label">Nombre del agente*</label>
+                            <input
+                                type="text" name="name" required
+                                className="form-control rounded-pill"
+                                value={form.name} onChange={handleChange}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <label className="form-label">Clave de usuario*</label>
+                            <input
+                                type="password" name="password" required
+                                className="form-control rounded-pill"
+                                value={form.password} onChange={handleChange}
+                            />
+                        </div>
+                        <div className="col-md-4">
+                            <label className="form-label">Correo electrónico*</label>
+                            <input
+                                type="email" name="email" required
+                                className="form-control rounded-pill"
+                                value={form.email} onChange={handleChange}
+                            />
+                        </div>
+                    </div>
+                    <div className="d-flex justify-content-end mt-5">
+                        <button type="submit" className="btn btn-dark rounded-pill px-4" disabled={loading || checkingLimit}>
+                            {loading ? <span className="spinner-border spinner-border-sm me-2" /> : null}
+                            Crear agente
+                        </button>
+                    </div>
+                </form>
+            )}
         </Container>
     );
 }

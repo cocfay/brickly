@@ -27,6 +27,23 @@ export const createAgente = async (data) => {
     }
 };
 
+export const getAgentLimit = async () => {
+    try {
+        const token = getToken();
+        const response = await fetch(`${API_URL}/users/me/agent-limit`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) {
+            if (response.status === 401) { handleAuthError(); throw new Error('Sesión expirada'); }
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.message || `Error ${response.status}`);
+        }
+        return { success: true, data: await response.json() };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+};
+
 export const getAgentes = async () => {
     try {
         const token = getToken();

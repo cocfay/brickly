@@ -92,6 +92,8 @@ export class PaymentsService {
         plan,
         type: 'subscription',
       },
+      success_url: `${this.getFrontendUrl('refresh-session')}?plan=${encodeURIComponent(plan)}`,
+      cancel_url: this.getFrontendUrl('precios'),
     };
 
     console.log('[PaymentsService.createSubscription] Request a Recurrente ->', JSON.stringify(body, null, 2));
@@ -113,6 +115,16 @@ export class PaymentsService {
       throw err;
     }
   }
+  /**
+   * Construye una URL absoluta hacia el frontend (ej. para success_url /
+   * cancel_url del checkout de Recurrente), reutilizando la misma base
+   * que ya se usa para los redirects de Google login.
+   */
+  private getFrontendUrl(path: string): string {
+    const base = process.env.LOGIN_GOOGLE_REDIR_WEB || '/';
+    return `${base.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
+  }
+
   async createCustomer(user) {
     const response = await axios.post(
       `${this.API_URL}/customers`,

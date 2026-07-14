@@ -190,8 +190,8 @@ PropertySchema.index(
   {
     weights: {
       'market.title': 10, 
-      'location.department': 5,
-      'market.description': 1
+      'market.description': 5,
+      'location.department': 1,
     },
     name: 'BuscadorGlobalPropiedades'
   }
