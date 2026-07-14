@@ -50,6 +50,12 @@ function Precios() {
       return;
     }
 
+    // Agente heredado de una agencia no puede adquirir plan propio
+    if (currentUser?.roles?.includes('agente') && currentUser?.parentId) {
+      setErrorMsg('Lo sentimos, No puede adquirir un plan al ser una cuenta heredada.');
+      return;
+    }
+
     // Ya tiene este plan activo -> no hacer nada (el botón ya está deshabilitado)
     if (plan === currentPlan) return;
 
