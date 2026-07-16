@@ -589,12 +589,15 @@ export class UsersService {
     if (!user) return null;
 
     // Si el usuario era agencia y el nuevo rol no es de agencia,
-    // o el plan no permite agentes (max=0), desactivar agentes hijos
-    if (
-      user.roles?.includes(Role.AGENCIA) &&
-      (data.role !== Role.AGENCIA || (PlanMaxProfiles[data.plan] ?? 0) === 0)
-    ) {
-      await this.deactivateChildAgents(userId);
+    // o el plan tiene menos cupos que los agentes actuales, desactivar agentes hijos
+    if (user.roles?.includes(Role.AGENCIA)) {
+      const currentAgents = await this.countAgentsByParent(userId);
+      if (
+        data.role !== Role.AGENCIA ||
+        (PlanMaxProfiles[data.plan] ?? 0) < currentAgents
+      ) {
+        await this.deactivateChildAgents(userId);
+      }
     }
 
     const preservedRoles = (user.roles || []).filter((r) => r === Role.ADMIN);
