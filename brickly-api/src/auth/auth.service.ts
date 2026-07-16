@@ -23,6 +23,8 @@ export class AuthService {
       throw new BadRequestException('Su cuenta se encuentra desactivada');
     }
 
+    if (!user.password) throw new UnauthorizedException();
+
     const match = await bcrypt.compare(password, user.password);
     if (!match) throw new UnauthorizedException();
 

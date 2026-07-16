@@ -588,6 +588,15 @@ export class UsersService {
     const user = await this.userModel.findById(userId);
     if (!user) return null;
 
+    // Si el usuario era agencia y el nuevo rol no es de agencia,
+    // o el plan no permite agentes (max=0), desactivar agentes hijos
+    if (
+      user.roles?.includes(Role.AGENCIA) &&
+      (data.role !== Role.AGENCIA || (PlanMaxProfiles[data.plan] ?? 0) === 0)
+    ) {
+      await this.deactivateChildAgents(userId);
+    }
+
     const preservedRoles = (user.roles || []).filter((r) => r === Role.ADMIN);
     user.roles = Array.from(new Set([...preservedRoles, data.role]));
 
