@@ -90,7 +90,7 @@ function Precios() {
 
     return (
       <button
-        className={`btn w-100 py-2 rounded-0 fs-5 ${isCurrent ? 'bg-secondary text-white' : 'bg-dark text-white'}`}
+        className={`btn w-100 py-2 rounded-3 fs-5 ${isCurrent ? 'bg-secondary text-white' : 'bg-dark text-white'}`}
         onClick={() => handleContratar(plan)}
         disabled={isCurrent || isLoading}
       >
@@ -131,8 +131,8 @@ function Precios() {
         {periodo === 'mensual' ? (
           <>
             <Col md={6} xxl={3}>
-              <div className='border border-1 h-100 d-flex flex-column'>
-                <div className='bg-dark text-white text-center py-1' style={{ fontFamily: 'AppleGaramond', borderBottom: '6px solid #F29500', fontSize: 'clamp(36px, 3vw, 40px)' }}>AGENTE INDIVIDUAL</div>
+              <div className='border border-1 rounded-4 h-100 d-flex flex-column overflow-hidden'>
+                <div className='bg-dark text-white text-center py-1' style={{ fontFamily: 'AppleGaramond', borderBottom: '6px solid #F29500', fontSize: 'clamp(30px, 2.5vw, 34px)' }}>AGENTE INDIVIDUAL</div>
                 <div className='p-4 d-flex flex-column flex-grow-1 mt-2'>
                   <div className="d-flex flex-column align-items-center">
                     <div className="d-flex flex-column align-items-center">
@@ -154,8 +154,8 @@ function Precios() {
               </div>
             </Col>
             <Col md={6} xxl={3}>
-              <div className='border border-1 h-100 d-flex flex-column'>
-                <div className='bg-dark text-white text-center py-1' style={{ fontFamily: 'AppleGaramond', borderBottom: '6px solid #005051', fontSize: 'clamp(36px, 3vw, 40px)' }}>AGENCIA SILVER</div>
+              <div className='border border-1 rounded-4 h-100 d-flex flex-column overflow-hidden'>
+                <div className='bg-dark text-white text-center py-1' style={{ fontFamily: 'AppleGaramond', borderBottom: '6px solid rgb(180 180 180)', fontSize: 'clamp(30px, 2.5vw, 34px)' }}>AGENCIA SILVER</div>
                 <div className='p-4 d-flex flex-column flex-grow-1 mt-2'>
                   <div className="d-flex flex-column align-items-center">
                     <div className="d-flex flex-column align-items-center">
@@ -164,10 +164,10 @@ function Precios() {
                     </div>
                   </div>
                   <div className="d-flex flex-column gap-3 mt-4 flex-grow-1" style={{ fontSize: '16px' }}>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Equipo bajo control:</strong> Incluye 1 punto de contacto centralizado para que manejes a todo tu equipo.</div></div>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Reparto de leads:</strong> Recibe todos los prospectos y asígnalos por zona o presupuesto.</div></div>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Marca de agencia:</strong> Perfil corporativo premium para que tu agencia resalte.</div></div>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Gestión de propiedades:</strong> Administra y da seguimiento a todo tu portafolio desde un solo lugar.</div></div>
+                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(180 180 180)' }}></i><div><strong>Equipo bajo control:</strong> Incluye 1 punto de contacto centralizado para que manejes a todo tu equipo.</div></div>
+                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(180 180 180)' }}></i><div><strong>Reparto de leads:</strong> Recibe todos los prospectos y asígnalos por zona o presupuesto.</div></div>
+                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(180 180 180)' }}></i><div><strong>Marca de agencia:</strong> Perfil corporativo premium para que tu agencia resalte.</div></div>
+                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(180 180 180)' }}></i><div><strong>Gestión de propiedades:</strong> Administra y da seguimiento a todo tu portafolio desde un solo lugar.</div></div>
                   </div>
                   <div className='mt-5 mb-2'>
                     <PlanButton plan='AGENCIA_SILVER' />
@@ -176,8 +176,8 @@ function Precios() {
               </div>
             </Col>
             <Col md={6} xxl={3}>
-              <div className='border border-1 h-100 d-flex flex-column'>
-                <div className='bg-dark text-white text-center py-1' style={{ fontFamily: 'AppleGaramond', borderBottom: '6px solid #005051', fontSize: 'clamp(36px, 3vw, 40px)' }}>AGENCIA GOLD</div>
+              <div className='border border-1 rounded-4 h-100 d-flex flex-column overflow-hidden'>
+                <div className='bg-dark text-white text-center py-1' style={{ fontFamily: 'AppleGaramond', borderBottom: '6px solid rgb(200 165 14)', fontSize: 'clamp(30px, 2.5vw, 34px)' }}>AGENCIA GOLD</div>
                 <div className='p-4 d-flex flex-column flex-grow-1 mt-2'>
                   <div className="d-flex flex-column align-items-center">
                     <div className="d-flex flex-column align-items-center">
@@ -211,9 +211,9 @@ function Precios() {
                         <span className='fw-bold'>Total: GTQ {650 + extraAgents * 75}</span>
                       </div>
                     </div>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Reparto de leads:</strong> Recibe todos los prospectos y asígnalos por zona o presupuesto.</div></div>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Marca de agencia:</strong> Perfil corporativo premium para que tu agencia resalte.</div></div>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Visibilidad del equipo:</strong> Consulta el estado, desempeño y actividad de todos los brokers desde tu panel de administración.</div></div>
+                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(200 165 14)' }}></i><div><strong>Reparto de leads:</strong> Recibe todos los prospectos y asígnalos por zona o presupuesto.</div></div>
+                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(200 165 14)' }}></i><div><strong>Marca de agencia:</strong> Perfil corporativo premium para que tu agencia resalte.</div></div>
+                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(200 165 14)' }}></i><div><strong>Visibilidad del equipo:</strong> Consulta el estado, desempeño y actividad de todos los brokers desde tu panel de administración.</div></div>
                   </div>
                   <div className='mt-5 mb-2'>
                     <PlanButton plan={extraAgents === 0 ? 'AGENCIA_GOLD' : `AGENCIA_GOLD${extraAgents + 5}`} />
@@ -222,8 +222,8 @@ function Precios() {
               </div>
             </Col>
             <Col md={6} xxl={3}>
-              <div className='border border-1 h-100 d-flex flex-column'>
-                <div className='bg-dark text-white text-center py-1' style={{ fontFamily: 'AppleGaramond', borderBottom: '6px solid #005051', fontSize: 'clamp(36px, 3vw, 40px)' }}>AGENCIA DIAMOND</div>
+              <div className='border border-1 rounded-4 h-100 d-flex flex-column overflow-hidden'>
+                <div className='bg-dark text-white text-center py-1' style={{ fontFamily: 'AppleGaramond', borderBottom: '6px solid rgb(0 154 241)', fontSize: 'clamp(30px, 2.5vw, 34px)' }}>AGENCIA DIAMOND</div>
                 <div className='p-4 d-flex flex-column flex-grow-1 mt-2'>
                   <div className="d-flex flex-column align-items-center">
                     <div className="d-flex flex-column align-items-center">
@@ -232,10 +232,10 @@ function Precios() {
                     </div>
                   </div>
                   <div className="d-flex flex-column gap-3 mt-4 flex-grow-1" style={{ fontSize: '16px' }}>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Equipo bajo control:</strong> Incluye 10 perfiles de brokers para que manejes a todo tu equipo.</div></div>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Reparto de leads:</strong> Recibe todos los prospectos y asígnalos por zona o presupuesto.</div></div>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Marca de agencia:</strong> Perfil corporativo premium para que tu agencia resalte.</div></div>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Visibilidad del equipo:</strong> Consulta el estado, desempeño y actividad de todos los brokers desde tu panel de administración.</div></div>
+                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(0 154 241)' }}></i><div><strong>Equipo bajo control:</strong> Incluye 10 perfiles de brokers para que manejes a todo tu equipo.</div></div>
+                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(0 154 241)' }}></i><div><strong>Reparto de leads:</strong> Recibe todos los prospectos y asígnalos por zona o presupuesto.</div></div>
+                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(0 154 241)' }}></i><div><strong>Marca de agencia:</strong> Perfil corporativo premium para que tu agencia resalte.</div></div>
+                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(0 154 241)' }}></i><div><strong>Visibilidad del equipo:</strong> Consulta el estado, desempeño y actividad de todos los brokers desde tu panel de administración.</div></div>
                   </div>
                   <div className='mt-5 mb-2'>
                     <PlanButton plan='AGENCIA_DIAMOND' />
@@ -247,8 +247,8 @@ function Precios() {
         ) : (
           <>
             <Col md={6} xxl={3}>
-              <div className='border border-1 h-100 d-flex flex-column'>
-                <div className='bg-dark text-white text-center py-1' style={{ fontFamily: 'AppleGaramond', borderBottom: '6px solid #F29500', fontSize: 'clamp(36px, 3vw, 40px)' }}>AGENTE INDIVIDUAL</div>
+              <div className='border border-1 rounded-4 h-100 d-flex flex-column overflow-hidden'>
+                <div className='bg-dark text-white text-center py-1' style={{ fontFamily: 'AppleGaramond', borderBottom: '6px solid #F29500', fontSize: 'clamp(30px, 2.5vw, 34px)' }}>AGENTE INDIVIDUAL</div>
                 <div className='p-4 d-flex flex-column flex-grow-1 mt-2'>
                   <div className="d-flex flex-column align-items-center">
                     <div className="d-flex flex-column align-items-center">
@@ -269,8 +269,8 @@ function Precios() {
               </div>
             </Col>
             <Col md={6} xxl={3}>
-              <div className='border border-1 h-100 d-flex flex-column'>
-                <div className='bg-dark text-white text-center py-1' style={{ fontFamily: 'AppleGaramond', borderBottom: '6px solid #005051', fontSize: 'clamp(36px, 3vw, 40px)' }}>AGENCIA SILVER</div>
+              <div className='border border-1 rounded-4 h-100 d-flex flex-column overflow-hidden'>
+                <div className='bg-dark text-white text-center py-1' style={{ fontFamily: 'AppleGaramond', borderBottom: '6px solid rgb(180 180 180)', fontSize: 'clamp(30px, 2.5vw, 34px)' }}>AGENCIA SILVER</div>
                 <div className='p-4 d-flex flex-column flex-grow-1 mt-2'>
                   <div className="d-flex flex-column align-items-center">
                     <div className="d-flex flex-column align-items-center">
@@ -279,10 +279,10 @@ function Precios() {
                     </div>
                   </div>
                   <div className="d-flex flex-column gap-3 mt-4 flex-grow-1" style={{ fontSize: '16px' }}>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Equipo bajo control:</strong> Incluye 1 punto de contacto centralizado para que manejes a todo tu equipo.</div></div>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Reparto de leads:</strong> Recibe todos los prospectos y asígnalos por zona o presupuesto.</div></div>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Marca de agencia:</strong> Perfil corporativo premium para que tu agencia resalte.</div></div>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Gestión de propiedades:</strong> Administra y da seguimiento a todo tu portafolio desde un solo lugar.</div></div>
+                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(180 180 180)' }}></i><div><strong>Equipo bajo control:</strong> Incluye 1 punto de contacto centralizado para que manejes a todo tu equipo.</div></div>
+                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(180 180 180)' }}></i><div><strong>Reparto de leads:</strong> Recibe todos los prospectos y asígnalos por zona o presupuesto.</div></div>
+                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(180 180 180)' }}></i><div><strong>Marca de agencia:</strong> Perfil corporativo premium para que tu agencia resalte.</div></div>
+                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(180 180 180)' }}></i><div><strong>Gestión de propiedades:</strong> Administra y da seguimiento a todo tu portafolio desde un solo lugar.</div></div>
                   </div>
                   <div className='mt-5 mb-2'>
                     <PlanButton plan='AGENCIA_SILVER_A' />
@@ -291,8 +291,8 @@ function Precios() {
               </div>
             </Col>
             <Col md={6} xxl={3}>
-              <div className='border border-1 h-100 d-flex flex-column'>
-                <div className='bg-dark text-white text-center py-1' style={{ fontFamily: 'AppleGaramond', borderBottom: '6px solid #005051', fontSize: 'clamp(36px, 3vw, 40px)' }}>AGENCIA GOLD</div>
+              <div className='border border-1 rounded-4 h-100 d-flex flex-column overflow-hidden'>
+                <div className='bg-dark text-white text-center py-1' style={{ fontFamily: 'AppleGaramond', borderBottom: '6px solid rgb(200 165 14)', fontSize: 'clamp(30px, 2.5vw, 34px)' }}>AGENCIA GOLD</div>
                 <div className='p-4 d-flex flex-column flex-grow-1 mt-2'>
                   <div className="d-flex flex-column align-items-center">
                     <div className="d-flex flex-column align-items-center">
@@ -326,9 +326,9 @@ function Precios() {
                         <span className='fw-bold'>Total: GTQ {6500 + extraAgents * 75}</span>
                       </div>
                     </div>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Reparto de leads:</strong> Recibe todos los prospectos y asígnalos por zona o presupuesto.</div></div>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Marca de agencia:</strong> Perfil corporativo premium para que tu agencia resalte.</div></div>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Visibilidad del equipo:</strong> Consulta el estado, desempeño y actividad de todos los brokers desde tu panel de administración.</div></div>
+                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(200 165 14)' }}></i><div><strong>Reparto de leads:</strong> Recibe todos los prospectos y asígnalos por zona o presupuesto.</div></div>
+                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(200 165 14)' }}></i><div><strong>Marca de agencia:</strong> Perfil corporativo premium para que tu agencia resalte.</div></div>
+                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(200 165 14)' }}></i><div><strong>Visibilidad del equipo:</strong> Consulta el estado, desempeño y actividad de todos los brokers desde tu panel de administración.</div></div>
                   </div>
                   <div className='mt-5 mb-2'>
                     <PlanButton plan={extraAgents === 0 ? 'AGENCIA_GOLD_A' : `AGENCIA_GOLD${extraAgents + 5}_A`} />
@@ -337,8 +337,8 @@ function Precios() {
               </div>
             </Col>
             <Col md={6} xxl={3}>
-              <div className='border border-1 h-100 d-flex flex-column'>
-                <div className='bg-dark text-white text-center py-1' style={{ fontFamily: 'AppleGaramond', borderBottom: '6px solid #005051', fontSize: 'clamp(36px, 3vw, 40px)' }}>AGENCIA DIAMOND</div>
+              <div className='border border-1 rounded-4 h-100 d-flex flex-column overflow-hidden'>
+                <div className='bg-dark text-white text-center py-1' style={{ fontFamily: 'AppleGaramond', borderBottom: '6px solid rgb(0 154 241)', fontSize: 'clamp(30px, 2.5vw, 34px)' }}>AGENCIA DIAMOND</div>
                 <div className='p-4 d-flex flex-column flex-grow-1 mt-2'>
                   <div className="d-flex flex-column align-items-center">
                     <div className="d-flex flex-column align-items-center">
@@ -347,10 +347,10 @@ function Precios() {
                     </div>
                   </div>
                   <div className="d-flex flex-column gap-3 mt-4 flex-grow-1" style={{ fontSize: '16px' }}>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Equipo bajo control:</strong> Incluye 10 perfiles de brokers para que manejes a todo tu equipo.</div></div>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Reparto de leads:</strong> Recibe todos los prospectos y asígnalos por zona o presupuesto.</div></div>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Marca de agencia:</strong> Perfil corporativo premium para que tu agencia resalte.</div></div>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Visibilidad del equipo:</strong> Consulta el estado, desempeño y actividad de todos los brokers desde tu panel de administración.</div></div>
+                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(0 154 241)' }}></i><div><strong>Equipo bajo control:</strong> Incluye 10 perfiles de brokers para que manejes a todo tu equipo.</div></div>
+                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(0 154 241)' }}></i><div><strong>Reparto de leads:</strong> Recibe todos los prospectos y asígnalos por zona o presupuesto.</div></div>
+                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(0 154 241)' }}></i><div><strong>Marca de agencia:</strong> Perfil corporativo premium para que tu agencia resalte.</div></div>
+                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(0 154 241)' }}></i><div><strong>Visibilidad del equipo:</strong> Consulta el estado, desempeño y actividad de todos los brokers desde tu panel de administración.</div></div>
                   </div>
                   <div className='mt-5 mb-2'>
                     <PlanButton plan='AGENCIA_DIAMOND_A' />

@@ -1,7 +1,8 @@
 .prices-nav.nav{
     width: fit-content;
-    /* border: 1px solid black; */
     background-color: #e9e9e9;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .prices-nav.nav a{
@@ -14,6 +15,7 @@
     background-color: white;
     border-bottom: 3px solid black;
     box-shadow: 0px 3px 6px 0px rgba(117,117,117,0.75);
+    border-radius: 6px;
 }
 
 .card-price.row div{
