@@ -19,6 +19,7 @@ function Precios() {
   const [renderPeri, setrenderPeri] = useState('')
   const [loadingPlan, setLoadingPlan] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
+  const [extraAgents, setExtraAgents] = useState(0);
 
   // Plan actualmente activo del usuario (si tiene sesión iniciada y su
   // suscripción está ACTIVE). Se recalcula en cada render porque
@@ -36,6 +37,10 @@ function Precios() {
     } else if (periodo === 'anual') {
       setrenderPeri(t('Anual', 'Annual'));
     }
+  }, [periodo]);
+
+  useEffect(() => {
+    setExtraAgents(0);
   }, [periodo]);
 
   useEffect(() => {
@@ -176,18 +181,42 @@ function Precios() {
                 <div className='p-4 d-flex flex-column flex-grow-1 mt-2'>
                   <div className="d-flex flex-column align-items-center">
                     <div className="d-flex flex-column align-items-center">
-                      <span className='fw-bold lh-1 d-flex align-items-start' style={{ fontSize: 'clamp(46px, 3vw, 50px)' }}><span className='fw-normal' style={{ fontSize: '22px', paddingTop: '6px' }}>GTQ </span>650</span>
+                      <span className='fw-bold lh-1 d-flex align-items-start' style={{ fontSize: 'clamp(46px, 3vw, 50px)' }}><span className='fw-normal' style={{ fontSize: '22px', paddingTop: '6px' }}>GTQ </span>{650 + extraAgents * 75}</span>
                       <span className='text-muted' style={{ fontSize: '16px' }}>{ renderPeri }</span>
                     </div>
                   </div>
                   <div className="d-flex flex-column gap-3 mt-4 flex-grow-1" style={{ fontSize: '16px' }}>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Equipo bajo control:</strong> Incluye 5 perfiles de brokers para que manejes a todo tu equipo.</div></div>
+                    <div className='border border-1 p-2 text-center' style={{ backgroundColor: '#f8f9fa', fontSize: '14px' }}>
+                      <strong><i className="fa fa-users"/> Incluye 5 agentes</strong>
+                    </div>
+                    <div className='p-2 border rounded' style={{ backgroundColor: '#f8f9fa' }}>
+                      <div className='d-flex align-items-center justify-content-between mb-2'>
+                        <span style={{ fontSize: '14px' }}>Agentes extra:</span>
+                        <div className='d-flex align-items-center gap-2'>
+                          <button
+                            className='btn btn-outline-secondary btn-sm'
+                            onClick={() => setExtraAgents(Math.max(0, extraAgents - 1))}
+                            disabled={extraAgents === 0}
+                          >−</button>
+                          <span className='fw-bold'>{extraAgents}</span>
+                          <button
+                            className='btn btn-outline-secondary btn-sm'
+                            onClick={() => setExtraAgents(Math.min(4, extraAgents + 1))}
+                            disabled={extraAgents === 4}
+                          >+</button>
+                        </div>
+                      </div>
+                      <div className='d-flex justify-content-between border-top pt-2' style={{ fontSize: '14px' }}>
+                        <span>Total agentes: {5 + extraAgents}</span>
+                        <span className='fw-bold'>Total: GTQ {650 + extraAgents * 75}</span>
+                      </div>
+                    </div>
                     <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Reparto de leads:</strong> Recibe todos los prospectos y asígnalos por zona o presupuesto.</div></div>
                     <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Marca de agencia:</strong> Perfil corporativo premium para que tu agencia resalte.</div></div>
                     <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Visibilidad del equipo:</strong> Consulta el estado, desempeño y actividad de todos los brokers desde tu panel de administración.</div></div>
                   </div>
                   <div className='mt-5 mb-2'>
-                    <PlanButton plan='AGENCIA_GOLD' />
+                    <PlanButton plan={extraAgents === 0 ? 'AGENCIA_GOLD' : `AGENCIA_GOLD${extraAgents + 5}`} />
                   </div>
                 </div>
               </div>
@@ -267,18 +296,42 @@ function Precios() {
                 <div className='p-4 d-flex flex-column flex-grow-1 mt-2'>
                   <div className="d-flex flex-column align-items-center">
                     <div className="d-flex flex-column align-items-center">
-                      <span className='fw-bold lh-1 d-flex align-items-start' style={{ fontSize: 'clamp(46px, 3vw, 50px)' }}><span className='fw-normal' style={{ fontSize: '22px', paddingTop: '6px' }}>GTQ </span>6500</span>
+                      <span className='fw-bold lh-1 d-flex align-items-start' style={{ fontSize: 'clamp(46px, 3vw, 50px)' }}><span className='fw-normal' style={{ fontSize: '22px', paddingTop: '6px' }}>GTQ </span>{6500 + extraAgents * 75}</span>
                       <span className='text-muted' style={{ fontSize: '16px' }}>{ renderPeri }</span>
                     </div>
                   </div>
                   <div className="d-flex flex-column gap-3 mt-4 flex-grow-1" style={{ fontSize: '16px' }}>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Equipo bajo control:</strong> Incluye 5 perfiles de brokers para que manejes a todo tu equipo.</div></div>
+                    <div className='border border-1 p-2 text-center' style={{ backgroundColor: '#f8f9fa', fontSize: '14px' }}>
+                      <strong><i className="fa fa-users"/> Incluye 5 agentes</strong>
+                    </div>
+                    <div className='p-2 border rounded' style={{ backgroundColor: '#f8f9fa' }}>
+                      <div className='d-flex align-items-center justify-content-between mb-2'>
+                        <span style={{ fontSize: '14px' }}>Agentes extra:</span>
+                        <div className='d-flex align-items-center gap-2'>
+                          <button
+                            className='btn btn-outline-secondary btn-sm'
+                            onClick={() => setExtraAgents(Math.max(0, extraAgents - 1))}
+                            disabled={extraAgents === 0}
+                          >−</button>
+                          <span className='fw-bold'>{extraAgents}</span>
+                          <button
+                            className='btn btn-outline-secondary btn-sm'
+                            onClick={() => setExtraAgents(Math.min(4, extraAgents + 1))}
+                            disabled={extraAgents === 4}
+                          >+</button>
+                        </div>
+                      </div>
+                      <div className='d-flex justify-content-between border-top pt-2' style={{ fontSize: '14px' }}>
+                        <span>Total agentes: {5 + extraAgents}</span>
+                        <span className='fw-bold'>Total: GTQ {6500 + extraAgents * 75}</span>
+                      </div>
+                    </div>
                     <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Reparto de leads:</strong> Recibe todos los prospectos y asígnalos por zona o presupuesto.</div></div>
                     <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Marca de agencia:</strong> Perfil corporativo premium para que tu agencia resalte.</div></div>
                     <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: '#005051' }}></i><div><strong>Visibilidad del equipo:</strong> Consulta el estado, desempeño y actividad de todos los brokers desde tu panel de administración.</div></div>
                   </div>
                   <div className='mt-5 mb-2'>
-                    <PlanButton plan='AGENCIA_GOLD_A' />
+                    <PlanButton plan={extraAgents === 0 ? 'AGENCIA_GOLD_A' : `AGENCIA_GOLD${extraAgents + 5}_A`} />
                   </div>
                 </div>
               </div>
