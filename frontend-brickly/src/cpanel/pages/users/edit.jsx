@@ -70,13 +70,6 @@ const PLANS = [
     { key: 'AGENCIA_GOLD8', label: 'Agencia Gold 8 (8 perfiles)' },
     { key: 'AGENCIA_GOLD9', label: 'Agencia Gold 9 (9 perfiles)' },
     { key: 'AGENCIA_DIAMOND', label: 'Agencia Diamond (10 perfiles)' },
-    { key: 'AGENCIA_SILVER_A', label: 'Agencia Silver Anual (0 perfiles)' },
-    { key: 'AGENCIA_GOLD_A', label: 'Agencia Gold Anual (5 perfiles)' },
-    { key: 'AGENCIA_GOLD6_A', label: 'Agencia Gold 6 Anual (6 perfiles)' },
-    { key: 'AGENCIA_GOLD7_A', label: 'Agencia Gold 7 Anual (7 perfiles)' },
-    { key: 'AGENCIA_GOLD8_A', label: 'Agencia Gold 8 Anual (8 perfiles)' },
-    { key: 'AGENCIA_GOLD9_A', label: 'Agencia Gold 9 Anual (9 perfiles)' },
-    { key: 'AGENCIA_DIAMOND_A', label: 'Agencia Diamond Anual (10 perfiles)' },
     { key: 'AGENCIA_DIAMOND_P', label: '✦ Diamond Personalizado' },
 ];
 
