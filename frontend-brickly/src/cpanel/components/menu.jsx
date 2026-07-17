@@ -102,13 +102,13 @@ function Menu({open}){
                         </div>
                     </Link>
                 )}
-                {user?.roles?.includes("agencia") && profileOk && (
+                {user?.roles?.includes("agencia") && user?.subscriptionPlan !== 'AGENCIA_SILVER' && user?.subscriptionPlan !== 'AGENCIA_SILVER_A' && profileOk && (
                     <Link to="/cpanel/agentes" className="d-flex gap-2 align-items-center text-body">
                         <i className="fa-solid fa-address-card"></i> Agentes
                         {isActive('/cpanel/agentes') && <ActiveIcon />}
                     </Link>
                 )}
-                {user?.roles?.includes("agencia") && profileOk && (
+                {user?.roles?.includes("agencia") && user?.subscriptionPlan !== 'AGENCIA_SILVER' && user?.subscriptionPlan !== 'AGENCIA_SILVER_A' && profileOk && (
                     <Link to="/cpanel/solicitudes" className="d-flex gap-2 align-items-center text-body">
                         <i className="fa-solid fa-user-plus"></i> Solicitudes
                         {isActive('/cpanel/solicitudes') && <ActiveIcon />}
