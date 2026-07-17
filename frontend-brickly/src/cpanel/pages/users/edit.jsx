@@ -61,8 +61,7 @@ const assignPlan = async (id, data) => {
 };
 
 const PLANS = [
-    { key: 'BROKER_MENSUAL', label: 'Broker Mensual (Agente Individual)' },
-    { key: 'BROKER_ANUAL', label: 'Broker Anual (Agente Individual)' },
+    { key: 'BROKER_MENSUAL', label: 'Broker (Agente Individual)' },
     { key: 'AGENCIA_SILVER', label: 'Agencia Silver (0 perfiles)' },
     { key: 'AGENCIA_GOLD', label: 'Agencia Gold (5 perfiles)' },
     { key: 'AGENCIA_GOLD6', label: 'Agencia Gold 6 (6 perfiles)' },
