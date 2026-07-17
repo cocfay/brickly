@@ -20,6 +20,7 @@ function Precios() {
   const [loadingPlan, setLoadingPlan] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [extraAgents, setExtraAgents] = useState(0);
+  const [extraDiamondAgents, setExtraDiamondAgents] = useState(0);
 
   // Plan actualmente activo del usuario (si tiene sesión iniciada y su
   // suscripción está ACTIVE). Se recalcula en cada render porque
@@ -41,6 +42,7 @@ function Precios() {
 
   useEffect(() => {
     setExtraAgents(0);
+    setExtraDiamondAgents(0);
   }, [periodo]);
 
   useEffect(() => {
@@ -186,12 +188,12 @@ function Precios() {
                     </div>
                   </div>
                   <div className="d-flex flex-column gap-3 mt-4 flex-grow-1" style={{ fontSize: '16px' }}>
-                    <div className='border border-1 p-2 text-center' style={{ backgroundColor: '#f8f9fa', fontSize: '14px' }}>
-                      <strong><i className="fa fa-users"/> Incluye 5 agentes</strong>
+                    <div className='border border-1 p-2 text-center' style={{ backgroundColor: '#f1f8f8', color: '#026a66', borderRadius: '5px', fontSize: '14px' }}>
+                      <strong><i className="fa fa-user"/> Incluye 5 agentes</strong>
                     </div>
-                    <div className='p-2 border rounded' style={{ backgroundColor: '#f8f9fa' }}>
+                    <div className='p-2 border rounded' style={{ backgroundColor: '#f1f8f8' }}>
                       <div className='d-flex align-items-center justify-content-between mb-2'>
-                        <span style={{ fontSize: '14px' }}>Agentes extra:</span>
+                        <span style={{ fontSize: '14px' }}>Agentes extras:</span>
                         <div className='d-flex align-items-center gap-2'>
                           <button
                             className='btn btn-outline-secondary btn-sm'
@@ -232,13 +234,50 @@ function Precios() {
                     </div>
                   </div>
                   <div className="d-flex flex-column gap-3 mt-4 flex-grow-1" style={{ fontSize: '16px' }}>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(0 154 241)' }}></i><div><strong>Equipo bajo control:</strong> Incluye 10 perfiles de brokers para que manejes a todo tu equipo.</div></div>
+                    <div className='border border-1 p-2 text-center' style={{ backgroundColor: '#f1f8f8', color: '#026a66', borderRadius: '5px', fontSize: '14px' }}>
+                      <strong><i className="fa fa-user"/> Incluye 10 agentes</strong>
+                    </div>
+                    <div className='p-2 border rounded' style={{ backgroundColor: '#f1f8f8' }}>
+                      <div className='d-flex align-items-center justify-content-between mb-2'>
+                        <span style={{ fontSize: '14px' }}>Agentes extras:</span>
+                        <div className='d-flex align-items-center gap-2'>
+                          <button
+                            className='btn btn-outline-secondary btn-sm'
+                            onClick={() => setExtraDiamondAgents(Math.max(0, extraDiamondAgents - 1))}
+                            disabled={extraDiamondAgents === 0}
+                          >−</button>
+                          <span className='fw-bold'>{extraDiamondAgents}</span>
+                          <button
+                            className='btn btn-outline-secondary btn-sm'
+                            onClick={() => setExtraDiamondAgents(extraDiamondAgents + 1)}
+                          >+</button>
+                        </div>
+                      </div>
+                      <div className='d-flex justify-content-between border-top pt-2' style={{ fontSize: '14px' }}>
+                        <span>Total agentes: {10 + extraDiamondAgents}</span>
+                      </div>
+                    </div>
                     <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(0 154 241)' }}></i><div><strong>Reparto de leads:</strong> Recibe todos los prospectos y asígnalos por zona o presupuesto.</div></div>
                     <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(0 154 241)' }}></i><div><strong>Marca de agencia:</strong> Perfil corporativo premium para que tu agencia resalte.</div></div>
                     <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(0 154 241)' }}></i><div><strong>Visibilidad del equipo:</strong> Consulta el estado, desempeño y actividad de todos los brokers desde tu panel de administración.</div></div>
                   </div>
                   <div className='mt-5 mb-2'>
-                    <PlanButton plan='AGENCIA_DIAMOND' />
+                    {extraDiamondAgents > 0 ? (
+                      <>
+                        <a
+                          href={`https://api.whatsapp.com/send?phone=50237649719&text=${encodeURIComponent('¡Hola! Me interesa contratar el paquete de **AGENCIA DIAMOND** con ' + extraDiamondAgents + ' Agentes extras')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className='btn w-100 py-2 rounded-3 fs-5 d-flex flex-column align-items-center justify-content-center'
+                          style={{ border: '2px solid #25D366', color: '#026a66', backgroundColor: 'transparent' }}
+                        >
+                          <span style={{ fontSize: '15px' }}><i className="fa-brands fa-whatsapp" style={{ color: '#026a66' }}></i> CONTACTAR POR WHATSAPP</span>
+                          <span style={{ fontSize: '11px', color: '#026a66' }}>Te responderemos al instante</span>
+                        </a>
+                      </>
+                    ) : (
+                      <PlanButton plan='AGENCIA_DIAMOND' />
+                    )}
                   </div>
                 </div>
               </div>
@@ -301,12 +340,12 @@ function Precios() {
                     </div>
                   </div>
                   <div className="d-flex flex-column gap-3 mt-4 flex-grow-1" style={{ fontSize: '16px' }}>
-                    <div className='border border-1 p-2 text-center' style={{ backgroundColor: '#f8f9fa', fontSize: '14px' }}>
-                      <strong><i className="fa fa-users"/> Incluye 5 agentes</strong>
+                    <div className='border border-1 p-2 text-center' style={{ backgroundColor: '#f1f8f8', color: '#026a66', borderRadius: '5px', fontSize: '14px' }}>
+                      <strong><i className="fa fa-user"/> Incluye 5 agentes</strong>
                     </div>
-                    <div className='p-2 border rounded' style={{ backgroundColor: '#f8f9fa' }}>
+                    <div className='p-2 border rounded' style={{ backgroundColor: '#f1f8f8' }}>
                       <div className='d-flex align-items-center justify-content-between mb-2'>
-                        <span style={{ fontSize: '14px' }}>Agentes extra:</span>
+                        <span style={{ fontSize: '14px' }}>Agentes extras:</span>
                         <div className='d-flex align-items-center gap-2'>
                           <button
                             className='btn btn-outline-secondary btn-sm'
@@ -347,13 +386,50 @@ function Precios() {
                     </div>
                   </div>
                   <div className="d-flex flex-column gap-3 mt-4 flex-grow-1" style={{ fontSize: '16px' }}>
-                    <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(0 154 241)' }}></i><div><strong>Equipo bajo control:</strong> Incluye 10 perfiles de brokers para que manejes a todo tu equipo.</div></div>
+                    <div className='border border-1 p-2 text-center' style={{ backgroundColor: '#f1f8f8', color: '#026a66', borderRadius: '5px', fontSize: '14px' }}>
+                      <strong><i className="fa fa-user"/> Incluye 10 agentes</strong>
+                    </div>
+                    <div className='p-2 border rounded' style={{ backgroundColor: '#f1f8f8' }}>
+                      <div className='d-flex align-items-center justify-content-between mb-2'>
+                        <span style={{ fontSize: '14px' }}>Agentes extras:</span>
+                        <div className='d-flex align-items-center gap-2'>
+                          <button
+                            className='btn btn-outline-secondary btn-sm'
+                            onClick={() => setExtraDiamondAgents(Math.max(0, extraDiamondAgents - 1))}
+                            disabled={extraDiamondAgents === 0}
+                          >−</button>
+                          <span className='fw-bold'>{extraDiamondAgents}</span>
+                          <button
+                            className='btn btn-outline-secondary btn-sm'
+                            onClick={() => setExtraDiamondAgents(extraDiamondAgents + 1)}
+                          >+</button>
+                        </div>
+                      </div>
+                      <div className='d-flex justify-content-between border-top pt-2' style={{ fontSize: '14px' }}>
+                        <span>Total agentes: {10 + extraDiamondAgents}</span>
+                      </div>
+                    </div>
                     <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(0 154 241)' }}></i><div><strong>Reparto de leads:</strong> Recibe todos los prospectos y asígnalos por zona o presupuesto.</div></div>
                     <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(0 154 241)' }}></i><div><strong>Marca de agencia:</strong> Perfil corporativo premium para que tu agencia resalte.</div></div>
                     <div className='d-flex gap-2 align-items-baseline'><i className="fa-solid fa-check" style={{ color: 'rgb(0 154 241)' }}></i><div><strong>Visibilidad del equipo:</strong> Consulta el estado, desempeño y actividad de todos los brokers desde tu panel de administración.</div></div>
                   </div>
                   <div className='mt-5 mb-2'>
-                    <PlanButton plan='AGENCIA_DIAMOND_A' />
+                    {extraDiamondAgents > 0 ? (
+                      <>
+                        <a
+                          href={`https://api.whatsapp.com/send?phone=50237649719&text=${encodeURIComponent('¡Hola! Me interesa contratar el paquete de **AGENCIA DIAMOND** con ' + extraDiamondAgents + ' Agentes extras')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className='btn w-100 py-2 rounded-3 fs-5 d-flex flex-column align-items-center justify-content-center'
+                          style={{ border: '2px solid #25D366', color: '#25D366', backgroundColor: 'transparent' }}
+                        >
+                          <span style={{ fontSize: '15px' }}><i className="fa-brands fa-whatsapp" style={{ color: '#25D366' }}></i> CONTACTAR POR WHATSAPP</span>
+                          <span style={{ fontSize: '11px', color: '#25D366' }}>Te responderemos al instante</span>
+                        </a>
+                      </>
+                    ) : (
+                      <PlanButton plan='AGENCIA_DIAMOND_A' />
+                    )}
                   </div>
                 </div>
               </div>

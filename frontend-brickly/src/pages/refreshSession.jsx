@@ -30,7 +30,7 @@ function RefreshSession() {
     let attempt = 0;
 
     const finish = () => {
-      if (isMounted) navigate('/', { replace: true });
+      if (isMounted) navigate('/cpanel', { replace: true });
     };
 
     const poll = async () => {
