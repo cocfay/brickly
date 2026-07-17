@@ -261,9 +261,34 @@ function Index() {
                 const nuevoEstado = primero?.isEnabled === false ? true : false;
                 setLoadingMessage(nuevoEstado ? 'Activando agentes...' : 'Desactivando agentes...');
 
-                const results = await Promise.all(
-                    idsSeleccionados.map(id => updateAgente(id, { isEnabled: nuevoEstado }))
-                );
+                // Pre-validar límite del plan antes de enviar solicitudes
+                if (nuevoEstado && isAgencia && limitInfo && limitInfo.max > 0) {
+                    const enabledCount = agentes.filter(a => a.isEnabled !== false).length;
+                    const toActivateCount = idsSeleccionados.filter(id => {
+                        const agent = agentes.find(a => a._id === id);
+                        return agent?.isEnabled === false;
+                    }).length;
+                    const wouldBeEnabled = enabledCount + toActivateCount;
+                    if (wouldBeEnabled > limitInfo.max) {
+                        setAlertVariant('danger');
+                        setAlertMessage(
+                            `No puedes activar ${toActivateCount} agente(s). ` +
+                            `Límite de tu plan: ${limitInfo.max} agente(s) activos. ` +
+                            `Actualmente tienes ${enabledCount} activo(s). ` +
+                            `Desactiva otro agente primero o mejora tu plan.`
+                        );
+                        setShowAlert(true);
+                        setLoading(false);
+                        return;
+                    }
+                }
+
+                // Procesar en serie para evitar race conditions en la validación del backend
+                const results = [];
+                for (const id of idsSeleccionados) {
+                    const result = await updateAgente(id, { isEnabled: nuevoEstado });
+                    results.push(result);
+                }
 
                 const failed = results.filter(r => !r.success);
                 if (failed.length > 0) {

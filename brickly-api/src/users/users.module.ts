@@ -7,11 +7,13 @@ import { Review, ReviewSchema } from '../reviews/schemas/review.schema';
 import { Property, PropertySchema } from '../properties/schemas/property.schema';
 import { Subscription, SubscriptionSchema } from '../subscriptions/schemas/subscription.schema';
 import { ActivityLogsModule } from '../activitylogs/activitylogs.module';
+import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 
 
 @Module({
   imports: [
     ActivityLogsModule,
+    SubscriptionsModule,
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: Review.name, schema: ReviewSchema },

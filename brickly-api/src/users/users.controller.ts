@@ -216,6 +216,16 @@ export class UsersController {
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(Role.ADMIN)
+  @Put(':id/assign-plan')
+  async assignPlan(
+    @Param('id') id: string,
+    @Body() body: { plan: string; confirmCancel: boolean; customMaxProfiles?: number },
+  ) {
+    return this.usersService.assignPlan(id, body);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN)
   @Put('easybroker-adm/apikey')
   async saveEasyBrokerApiKeyaadm(
     @Req() req,

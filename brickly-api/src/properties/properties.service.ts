@@ -1429,6 +1429,43 @@ export class PropertiesService {
         };
       }
 
+  async disablePropertiesByPlan(userId: string) {
+    const mainUserIdObj = new Types.ObjectId(userId);
+    const subUsers = await this.userModel.find(
+      { parentId: mainUserIdObj },
+      { _id: 1 },
+    ).lean();
+    const subUserIds = subUsers.map(u => u._id);
+    const allUserIds = [mainUserIdObj, ...subUserIds];
+
+    await this.propertyModel.updateMany(
+      { userId: { $in: allUserIds }, status: 'published' },
+      { $set: { status: 'disabled', disabledByPlan: true } },
+    );
+  }
+
+  async reactivatePropertiesByPlan(userId: string) {
+    const mainUserIdObj = new Types.ObjectId(userId);
+    const subUsers = await this.userModel.find(
+      { parentId: mainUserIdObj },
+      { _id: 1 },
+    ).lean();
+    const subUserIds = subUsers.map(u => u._id);
+    const allUserIds = [mainUserIdObj, ...subUserIds];
+
+    await this.propertyModel.updateMany(
+      { userId: { $in: allUserIds }, disabledByPlan: true },
+      { $set: { status: 'published', disabledByPlan: false } },
+    );
+  }
+
+  async reactivatePropertiesByPlanForUser(userId: string) {
+    await this.propertyModel.updateMany(
+      { userId: new Types.ObjectId(userId), disabledByPlan: true },
+      { $set: { status: 'published', disabledByPlan: false } },
+    );
+  }
+
   private getPropertySlugSource(property: any) {
     return property?.market?.title || property?.folderId || 'propiedad';
   }

@@ -8,7 +8,8 @@ import { Subscription } from '../subscriptions/schemas/subscription.schema';
 import * as bcrypt from 'bcrypt';
 import { Role } from '../auth/roles.enum';
 import { ActivityLogsService } from '../activitylogs/activitylogs.service';
-import { PlanMaxProfiles } from '../common/enums/plan.enum';
+import { PlanMaxProfiles, PlanRoleMap, computeExpirationDate } from '../common/enums/plan.enum';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 
 @Injectable()
 export class UsersService {
@@ -46,7 +47,7 @@ export class UsersService {
     @InjectModel(Subscription.name) private subscriptionModel: Model<Subscription>,
     @InjectConnection() private connection: Connection,
     private readonly activityLogsService: ActivityLogsService,
-  
+    private readonly subService: SubscriptionsService,
   ) {}
 
   async create(data: any) {
@@ -561,12 +562,41 @@ export class UsersService {
       data.profileSlug = await this.ensureUniqueProfileSlug(data.profileSlug, id);
     }
 
+    // Detectar si isEnabled cambia de false a true para reactivar propiedades y validar límite
+    const previousUser = await this.userModel.findById(id).lean();
+    const wasDisabled = previousUser && previousUser.isEnabled === false;
+    const willEnable = data.isEnabled === true;
+
+    // Validar límite de agentes activos del plan al activar un sub-usuario
+    if (willEnable && previousUser?.parentId) {
+      const parentId = previousUser.parentId.toString();
+      const enabledCount = await this.countEnabledAgentsByParent(parentId);
+      const limitInfo = await this.getAgentLimitInfo(parentId);
+
+      // +1 porque estamos a punto de activar este agente
+      if (limitInfo.max > 0 && (enabledCount + 1) > limitInfo.max) {
+        throw new BadRequestException(
+          `No puedes activar más agentes. Límite de tu plan: ${limitInfo.max} agente(s) activos. ` +
+          `Actualmente tienes ${enabledCount} activo(s). Desactiva otro agente primero o mejora tu plan.`,
+        );
+      }
+    }
+
     const user = await this.userModel.findByIdAndUpdate(id, data, {
       new: true,
       runValidators: true,
     });
 
     if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    // Reactivar propiedades del usuario cuando pasa a estar habilitado
+    if (wasDisabled && willEnable) {
+      await this.propertyModel.updateMany(
+        { userId: new Types.ObjectId(id), disabledByPlan: true },
+        { $set: { status: 'published', disabledByPlan: false } },
+      );
+    }
+
     return this.ensureProfileSlugForUser(user);
   }
 
@@ -588,16 +618,41 @@ export class UsersService {
     const user = await this.userModel.findById(userId);
     if (!user) return null;
 
+    const effectiveMax = await this.getEffectiveMaxProfiles(user);
+
     // Si el usuario era agencia y el nuevo rol no es de agencia,
     // o el plan tiene menos cupos que los agentes actuales, desactivar agentes hijos
     if (user.roles?.includes(Role.AGENCIA)) {
       const currentAgents = await this.countAgentsByParent(userId);
       if (
         data.role !== Role.AGENCIA ||
-        (PlanMaxProfiles[data.plan] ?? 0) < currentAgents
+        effectiveMax < currentAgents
       ) {
         await this.deactivateChildAgents(userId);
+      } else {
+        // Reactivar agentes hijos si el plan tiene suficientes cupos
+        await this.reactivateChildAgents(userId);
       }
+    }
+
+    // Reactivar propiedades del usuario que fueron desactivadas por plan
+    if (data.role === Role.AGENTE || data.role === Role.AGENCIA || data.role === Role.DESARROLLADORA) {
+      const mainUserIdObj = new Types.ObjectId(userId);
+      const subUsers = await this.userModel.find(
+        { parentId: mainUserIdObj },
+        { _id: 1 },
+      ).lean();
+      const subUserIds = subUsers.map(u => u._id);
+      const allUserIds = [mainUserIdObj, ...subUserIds];
+      await this.propertyModel.updateMany(
+        { userId: { $in: allUserIds }, disabledByPlan: true },
+        { $set: { status: 'published', disabledByPlan: false } },
+      );
+    }
+
+    // Limpiar customMaxProfiles si el nuevo plan no es AGENCIA_DIAMOND_P
+    if (data.plan !== 'AGENCIA_DIAMOND_P') {
+      user.customMaxProfiles = undefined;
     }
 
     const preservedRoles = (user.roles || []).filter((r) => r === Role.ADMIN);
@@ -631,6 +686,22 @@ export class UsersService {
       await this.deactivateChildAgents(userId);
     }
 
+    // Desactivar propiedades del usuario y sus sub-usuarios (marcarlas como disabledByPlan)
+    const mainUserIdObj = new Types.ObjectId(userId);
+    const subUsers = await this.userModel.find(
+      { parentId: mainUserIdObj },
+      { _id: 1 },
+    ).lean();
+    const subUserIds = subUsers.map(u => u._id);
+    const allUserIds = [mainUserIdObj, ...subUserIds];
+    await this.propertyModel.updateMany(
+      { userId: { $in: allUserIds }, status: 'published' },
+      { $set: { status: 'disabled', disabledByPlan: true } },
+    );
+
+    // Limpiar customMaxProfiles al degradar
+    user.customMaxProfiles = undefined;
+
     const preservedRoles = (user.roles || []).filter((r) => r === Role.ADMIN);
     user.roles = Array.from(new Set([...preservedRoles, Role.CLIENTE]));
 
@@ -643,14 +714,101 @@ export class UsersService {
     return user;
   }
 
+  /**
+   * Asigna un plan a un usuario de forma manual (admin).
+   * Cancela la suscripción anterior en Recurrente si existe y se solicita.
+   * Guarda customMaxProfiles si se proporciona (para AGENCIA_DIAMOND_P).
+   */
+  async assignPlan(
+    userId: string,
+    data: { plan: string; confirmCancel: boolean; customMaxProfiles?: number },
+  ) {
+    const role = PlanRoleMap[data.plan];
+    if (!role) {
+      throw new BadRequestException(`Plan "${data.plan}" no tiene un rol asociado`);
+    }
+
+    if (data.confirmCancel) {
+      await this.subService.cancelRemotely(userId);
+    }
+
+    // Guardar customMaxProfiles antes de activateSubscription
+    // para que getEffectiveMaxProfiles lo use en la validación
+    if (data.customMaxProfiles != null && data.plan === 'AGENCIA_DIAMOND_P') {
+      await this.userModel.updateOne(
+        { _id: new Types.ObjectId(userId) },
+        { $set: { customMaxProfiles: data.customMaxProfiles } },
+      );
+    } else {
+      await this.userModel.updateOne(
+        { _id: new Types.ObjectId(userId) },
+        { $unset: { customMaxProfiles: '' } },
+      );
+    }
+
+    const expiresAt = computeExpirationDate(data.plan);
+    return this.activateSubscription(userId, { plan: data.plan, role, expiresAt });
+  }
+
   async deactivateChildAgents(agencyId: string) {
-    await this.userModel.updateMany(
+    const subUsers = await this.userModel.find(
       {
         parentId: new Types.ObjectId(agencyId),
         roles: Role.AGENTE,
       },
+      { _id: 1 },
+    ).lean();
+
+    const subUserIds = subUsers.map(u => u._id);
+
+    await this.userModel.updateMany(
+      { _id: { $in: subUserIds } },
       { $set: { isEnabled: false } },
     );
+
+    // Desactivar propiedades publicadas de los sub-usuarios
+    if (subUserIds.length > 0) {
+      await this.propertyModel.updateMany(
+        { userId: { $in: subUserIds }, status: 'published' },
+        { $set: { status: 'disabled', disabledByPlan: true } },
+      );
+    }
+  }
+
+  async reactivateChildAgents(agencyId: string) {
+    const disabledAgents = await this.userModel.find(
+      {
+        parentId: new Types.ObjectId(agencyId),
+        roles: Role.AGENTE,
+        isEnabled: false,
+      },
+      { _id: 1 },
+    ).lean();
+
+    if (disabledAgents.length === 0) return;
+
+    // Respetar el límite del plan: solo activar hasta el máximo permitido
+    const limitInfo = await this.getAgentLimitInfo(agencyId);
+    const enabledCount = await this.countEnabledAgentsByParent(agencyId);
+    const availableSlots = limitInfo.max - enabledCount;
+
+    if (availableSlots <= 0) return;
+
+    const agentsToActivate = disabledAgents.slice(0, availableSlots);
+    const agentIds = agentsToActivate.map(a => a._id.toString());
+
+    await this.userModel.updateMany(
+      { _id: { $in: agentsToActivate.map(a => a._id) } },
+      { $set: { isEnabled: true } },
+    );
+
+    // Reactivar propiedades de cada agente reactivado
+    for (const agentId of agentIds) {
+      await this.propertyModel.updateMany(
+        { userId: new Types.ObjectId(agentId), disabledByPlan: true },
+        { $set: { status: 'published', disabledByPlan: false } },
+      );
+    }
   }
 
   /**
@@ -666,6 +824,17 @@ export class UsersService {
   }
 
   /**
+   * Cuenta solo los agentes ACTIVOS (isEnabled: true) bajo una agencia.
+   */
+  async countEnabledAgentsByParent(parentId: string) {
+    return this.userModel.countDocuments({
+      parentId: new Types.ObjectId(parentId),
+      roles: Role.AGENTE,
+      isEnabled: true,
+    });
+  }
+
+  /**
    * Devuelve la info de límite de agentes para una agencia/desarrolladora,
    * según su plan actualmente activo (PlanMaxProfiles).
    */
@@ -677,17 +846,28 @@ export class UsersService {
       agency.subscriptionStatus === 'ACTIVE' &&
       (!agency.subscription_expire || agency.subscription_expire > new Date());
 
-    const max = isActive ? (PlanMaxProfiles[agency.subscriptionPlan ?? ''] ?? 0) : 0;
+    const effectiveMax = await this.getEffectiveMaxProfiles(agency);
     const current = await this.countAgentsByParent(agencyId);
 
     return {
       plan: agency.subscriptionPlan ?? null,
       subscriptionStatus: agency.subscriptionStatus ?? 'INACTIVE',
-      max,
+      max: effectiveMax,
       current,
-      remaining: Math.max(max - current, 0),
-      canCreate: current < max,
+      remaining: Math.max(effectiveMax - current, 0),
+      canCreate: current < effectiveMax,
     };
+  }
+
+  /**
+   * Devuelve el máximo de perfiles efectivo para un usuario:
+   * prioriza customMaxProfiles si está definido, sino usa PlanMaxProfiles.
+   */
+  async getEffectiveMaxProfiles(user: any): Promise<number> {
+    if (user.customMaxProfiles != null) {
+      return user.customMaxProfiles;
+    }
+    return PlanMaxProfiles[user.subscriptionPlan ?? ''] ?? 0;
   }
 
   async addRole(userId: string, role: Role) {

@@ -63,6 +63,9 @@ export class User {
   @Prop({type: Boolean, default: true})
   isEnabled?: Boolean;
 
+  @Prop({ default: null })
+  customMaxProfiles?: number;
+
   @Prop({ type: mongoose.Types.ObjectId, ref: 'User', default: null })
   parentId!: mongoose.Types.ObjectId;
 

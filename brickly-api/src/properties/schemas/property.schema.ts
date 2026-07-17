@@ -161,6 +161,9 @@ export class Property {
   @Prop({ type: Map, of: Object })
   reasonRejected!: Map<string, any>;
 
+  @Prop({ default: false })
+  disabledByPlan!: boolean;
+
 }
 
 export const PropertySchema = SchemaFactory.createForClass(Property);

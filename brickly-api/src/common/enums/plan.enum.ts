@@ -19,6 +19,7 @@ export enum PlanType {
   AGENCIA_DIAMOND_A = 'prod_ghimrpoz',
   TEST_WEEK = 'prod_k3rysjip',
   TEST_DAILY = 'prod_4yjfzt2g',
+  AGENCIA_DIAMOND_P = 'prod_manual_diamond_p',
 }
 
 /**
@@ -54,6 +55,7 @@ export const PlanRoleMap: Record<string, Role> = {
   AGENCIA_DIAMOND_A: Role.AGENCIA,
   TEST_WEEK: Role.AGENCIA,
   TEST_DAILY: Role.AGENCIA,
+  AGENCIA_DIAMOND_P: Role.AGENCIA,
 };
 
 export const PlanMaxProfiles: Record<string, number> = {
@@ -75,6 +77,7 @@ export const PlanMaxProfiles: Record<string, number> = {
   AGENCIA_DIAMOND_A: 10,
   TEST_WEEK: 5,
   TEST_DAILY: 5,
+  AGENCIA_DIAMOND_P: 0,
 };
 
 /**
@@ -108,6 +111,7 @@ export const PlanRecurrentType: Record<string, RecurrentType> = {
   AGENCIA_DIAMOND_A: RecurrentType.ANUAL,
   TEST_WEEK: RecurrentType.SEMANAL,
   TEST_DAILY: RecurrentType.DIARIO,
+  AGENCIA_DIAMOND_P: RecurrentType.MENSUAL,
 };
 
 /**
