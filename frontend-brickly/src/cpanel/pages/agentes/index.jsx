@@ -27,6 +27,8 @@ function Index() {
     const [alertVariant, setAlertVariant] = useState('success');
     const tableRef = useRef(null);
     const dataTableRef = useRef(null);
+    const limitInfoRef = useRef(null);
+    const agentesRef = useRef([]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -36,6 +38,7 @@ function Index() {
             if (result.success) {
                 const data = Array.isArray(result.data) ? result.data : [];
                 setAgentes(data);
+                agentesRef.current = data;
 
                 // Obtener conteo de propiedades publicadas por agente
                 const countPromises = data.map(async (agent) => {
@@ -68,7 +71,10 @@ function Index() {
     useEffect(() => {
         if (!isAgencia) return;
         getAgentLimit().then(result => {
-            if (result.success) setLimitInfo(result.data);
+            if (result.success) {
+                setLimitInfo(result.data);
+                limitInfoRef.current = result.data;
+            }
         });
     }, [agentes.length, isAgencia]);
 
@@ -262,18 +268,20 @@ function Index() {
                 setLoadingMessage(nuevoEstado ? 'Activando agentes...' : 'Desactivando agentes...');
 
                 // Pre-validar límite del plan antes de enviar solicitudes
-                if (nuevoEstado && isAgencia && limitInfo && limitInfo.max > 0) {
-                    const enabledCount = agentes.filter(a => a.isEnabled !== false).length;
+                const currentLimitInfo = limitInfoRef.current;
+                if (nuevoEstado && isAgencia && currentLimitInfo && currentLimitInfo.max > 0) {
+                    const currentAgentes = agentesRef.current;
+                    const enabledCount = currentAgentes.filter(a => a.isEnabled !== false).length;
                     const toActivateCount = idsSeleccionados.filter(id => {
-                        const agent = agentes.find(a => a._id === id);
+                        const agent = currentAgentes.find(a => a._id === id);
                         return agent?.isEnabled === false;
                     }).length;
                     const wouldBeEnabled = enabledCount + toActivateCount;
-                    if (wouldBeEnabled > limitInfo.max) {
+                    if (wouldBeEnabled > currentLimitInfo.max) {
                         setAlertVariant('danger');
                         setAlertMessage(
                             `No puedes activar ${toActivateCount} agente(s). ` +
-                            `Límite de tu plan: ${limitInfo.max} agente(s) activos. ` +
+                            `Límite de tu plan: ${currentLimitInfo.max} agente(s) activos. ` +
                             `Actualmente tienes ${enabledCount} activo(s). ` +
                             `Desactiva otro agente primero o mejora tu plan.`
                         );
@@ -284,9 +292,30 @@ function Index() {
                 }
 
                 // Procesar en serie para evitar race conditions en la validación del backend
+                // y validar límite antes de cada petición con el estado más reciente
                 const results = [];
                 for (const id of idsSeleccionados) {
+                    // Re-validar antes de cada petición usando agentesRef (estado local actualizado)
+                    if (nuevoEstado && isAgencia && currentLimitInfo && currentLimitInfo.max > 0) {
+                        const currentEnabled = agentesRef.current.filter(a => a.isEnabled !== false).length;
+                        if (currentEnabled >= currentLimitInfo.max) {
+                            setAlertVariant('danger');
+                            setAlertMessage(
+                                `Límite alcanzado: ${currentLimitInfo.max} agente(s) activos. ` +
+                                `No se pueden activar más agentes.`
+                            );
+                            setShowAlert(true);
+                            setLoading(false);
+                            return;
+                        }
+                    }
                     const result = await updateAgente(id, { isEnabled: nuevoEstado });
+                    if (result.success) {
+                        // Reflejar el cambio en agentesRef inmediatamente
+                        agentesRef.current = agentesRef.current.map(a =>
+                            a._id === id ? { ...a, isEnabled: nuevoEstado } : a
+                        );
+                    }
                     results.push(result);
                 }
 
@@ -300,9 +329,11 @@ function Index() {
                     return;
                 }
 
-                setAgentes(prev =>
-                    prev.map(a => idsSeleccionados.includes(a._id) ? { ...a, isEnabled: nuevoEstado } : a)
-                );
+                setAgentes(prev => {
+                    const next = prev.map(a => idsSeleccionados.includes(a._id) ? { ...a, isEnabled: nuevoEstado } : a);
+                    agentesRef.current = next;
+                    return next;
+                });
 
                 setAlertVariant('success');
                 setAlertMessage(`Agente(s) ${nuevoEstado ? 'activado(s)' : 'desactivado(s)'} correctamente.`);
