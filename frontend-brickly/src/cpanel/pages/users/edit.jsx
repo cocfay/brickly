@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Container, Alert, Modal, Button } from 'react-bootstrap';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { API_URL, getToken } from '../../../services/authService';
-import { disableAgencyProperties } from '../../services/propiedades';
 import arrow from '../../../assets/images/iconos/arrow.png';
 
 const getUserById = async (id) => {
@@ -140,23 +139,7 @@ function Edit() {
 
         const result = await updateUser(id, payload);
         if (result.success) {
-            const isAgencia = form.roles === 'agencia';
-            if (isAgencia && originalIsEnabled === true && form.isEnabled === false) {
-                const disableResult = await disableAgencyProperties(id);
-                if (disableResult.success) {
-                    setAlert({ 
-                        variant: 'success', 
-                        message: `Usuario actualizado. ${disableResult.message}` 
-                    });
-                } else {
-                    setAlert({ 
-                        variant: 'warning', 
-                        message: `Usuario actualizado, pero hubo un error al desactivar propiedades: ${disableResult.error}` 
-                    });
-                }
-            } else {
-                setAlert({ variant: 'success', message: 'Usuario actualizado correctamente.' });
-            }
+            setAlert({ variant: 'success', message: 'Usuario actualizado correctamente.' });
             setTimeout(() => navigate('/cpanel/users'), 1500);
         } else {
             setAlert({ variant: 'danger', message: result.error || 'Error al actualizar.' });

@@ -565,7 +565,9 @@ export class UsersService {
     // Detectar si isEnabled cambia de false a true para reactivar propiedades y validar límite
     const previousUser = await this.userModel.findById(id).lean();
     const wasDisabled = previousUser && previousUser.isEnabled === false;
+    const wasEnabled = previousUser && previousUser.isEnabled !== false;
     const willEnable = data.isEnabled === true;
+    const willDisable = data.isEnabled === false;
 
     // Validar límite de agentes activos del plan al activar un sub-usuario
     if (willEnable && previousUser?.parentId) {
@@ -580,6 +582,35 @@ export class UsersService {
           `Actualmente tienes ${enabledCount} activo(s). Desactiva otro agente primero o mejora tu plan.`,
         );
       }
+    }
+
+    // Si se desactiva manualmente una agencia, desactivar también sub-usuarios y sus propiedades
+    if (willDisable && wasEnabled && previousUser?.roles?.includes(Role.AGENCIA)) {
+      const subUsers = await this.userModel.find(
+        { parentId: new Types.ObjectId(id), roles: Role.AGENTE },
+        { _id: 1 },
+      ).lean();
+      const subUserIds = subUsers.map(u => u._id);
+
+      // Desactivar sub-usuarios
+      if (subUserIds.length > 0) {
+        await this.userModel.updateMany(
+          { _id: { $in: subUserIds } },
+          { $set: { isEnabled: false } },
+        );
+
+        // Desactivar propiedades publicadas de los sub-usuarios
+        await this.propertyModel.updateMany(
+          { userId: { $in: subUserIds }, status: 'published' },
+          { $set: { status: 'disabled' } },
+        );
+      }
+
+      // Desactivar propiedades publicadas de la agencia
+      await this.propertyModel.updateMany(
+        { userId: new Types.ObjectId(id), status: 'published' },
+        { $set: { status: 'disabled' } },
+      );
     }
 
     const user = await this.userModel.findByIdAndUpdate(id, data, {
