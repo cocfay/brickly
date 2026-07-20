@@ -23,6 +23,12 @@ export class PaymentsController {
       body.plan,
     );
   }
+
+  @Post('retry-checkout')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  retryCheckout(@Req() req) {
+    return this.paymentsService.createRetryCheckout(req.user.userId);
+  }
   @Post('featured')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   async featured(@Req() req, @Body() body: {type: string, id: string, plan: string }) {

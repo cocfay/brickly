@@ -33,6 +33,9 @@ export class User {
   @Prop()
   subscription_expire?: Date;
 
+  @Prop({ default: false })
+  accessBlocked?: boolean;
+
   @Prop()
   subscriptionPlan?: string; // PlanType adquirido (ej. AGENCIA_GOLD, BROKER_ANUAL, etc.)
 

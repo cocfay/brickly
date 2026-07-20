@@ -201,15 +201,16 @@ export class WebhooksController {
           console.log(`[Webhooks:${eventType}] Cobro fallido/cancelado. isRenewal=${isRenewal} metadata=`, JSON.stringify(meta));
 
           // Si es un fallo de COBRO RECURRENTE de una suscripción ya activa
-          // (sin checkout de por medio), degradamos de inmediato a "cliente".
+          // (sin checkout de por medio): bloqueamos acceso al cpanel pero
+          // conservamos el rol, permitiendo al usuario reintentar el pago.
           // Si es el PRIMER pago (viene de un checkout), el rol nunca se
           // había otorgado, así que no hay nada que revertir.
           if (isRenewal && meta?.type === 'subscription' && meta?.userId) {
             await this.subService.updateStatus(meta.userId, 'PAST_DUE');
             await this.userService.deactivateSubscription(meta.userId, {
               status: 'PAST_DUE',
-            });
-            console.log(`[Webhooks:${eventType}] ✅ Usuario userId=${meta.userId} degradado a rol "cliente" (cobro recurrente no procesado)`);
+            }, true); // keepRole = true: no cambia a CLIENTE, solo bloquea acceso
+            console.log(`[Webhooks:${eventType}] ✅ Usuario userId=${meta.userId} bloqueado por cobro recurrente no procesado (rol conservado)`);
           }
           break;
         }
@@ -256,7 +257,9 @@ export class WebhooksController {
           break;
         }
 
-        // ❌ Suscripción cancelada (se dispara al 3er cobro automático fallido, o cancelación manual)
+        // ❌ Suscripción cancelada definitivamente (se dispara al 3er cobro
+        // automático fallido, o cancelación manual). A diferencia de
+        // past_due, aquí SÍ se degrada a CLIENTE (cancelación definitiva).
         case 'subscription.cancel': {
           const sub = event.subscription;
           const meta = sub?.metadata || {};
@@ -303,12 +306,12 @@ export class WebhooksController {
 
           await this.subService.updateStatus(userId, 'PAST_DUE');
           // Regla de negocio actualizada: un cobro recurrente no procesado
-          // degrada de inmediato al rol "cliente" (ya no se espera al 3er
-          // fallo / subscription.cancel).
+          // bloquea el acceso al cpanel pero conserva el rol, permitiendo
+          // al usuario reintentar el pago desde una pantalla dedicada.
           await this.userService.deactivateSubscription(userId, {
             status: 'PAST_DUE',
-          });
-          console.log(`[Webhooks:subscription.past_due] ✅ Usuario userId=${userId} degradado a rol "cliente" (cobro recurrente no procesado)`);
+          }, true); // keepRole = true: no cambia a CLIENTE, solo bloquea acceso
+          console.log(`[Webhooks:subscription.past_due] ✅ Usuario userId=${userId} bloqueado por cobro recurrente no procesado (rol conservado)`);
           break;
         }
 

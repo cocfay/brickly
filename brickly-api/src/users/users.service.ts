@@ -661,6 +661,7 @@ export class UsersService {
     user.subscriptionPlan = data.plan;
     user.subscription_expire = data.expiresAt;
     user.subscriptionStatus = 'ACTIVE';
+    user.accessBlocked = false;
 
     await user.save();
     return user;
@@ -677,6 +678,7 @@ export class UsersService {
   async deactivateSubscription(
     userId: string,
     data: { status: 'CANCELED' | 'PAST_DUE' },
+    keepRole?: boolean,
   ) {
     const user = await this.userModel.findById(userId);
     if (!user) return null;
@@ -699,15 +701,24 @@ export class UsersService {
       { $set: { status: 'disabled', disabledByPlan: true } },
     );
 
-    // Limpiar customMaxProfiles al degradar
-    user.customMaxProfiles = undefined;
+    if (keepRole) {
+      // Bloquear acceso sin cambiar rol — el usuario podrá reintentar el pago
+      user.accessBlocked = true;
+      user.subscriptionStatus = data.status;
+      // subscription_expire se conserva para referencia
+      // customMaxProfiles se conserva para que al reactivar el plan se respete el límite personalizado
+    } else {
+      // Degradación completa: rol a CLIENTE, limpiar customMaxProfiles
+      user.customMaxProfiles = undefined;
+      user.accessBlocked = false;
 
-    const preservedRoles = (user.roles || []).filter((r) => r === Role.ADMIN);
-    user.roles = Array.from(new Set([...preservedRoles, Role.CLIENTE]));
+      const preservedRoles = (user.roles || []).filter((r) => r === Role.ADMIN);
+      user.roles = Array.from(new Set([...preservedRoles, Role.CLIENTE]));
 
-    user.subscriptionStatus = data.status;
-    if (data.status === 'CANCELED') {
-      user.subscription_expire = undefined;
+      user.subscriptionStatus = data.status;
+      if (data.status === 'CANCELED') {
+        user.subscription_expire = undefined;
+      }
     }
 
     await user.save();

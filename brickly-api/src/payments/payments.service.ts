@@ -30,6 +30,19 @@ export class PaymentsService {
     return PlanType[planKey as keyof typeof PlanType];
   }
 
+  async createRetryCheckout(userId: string) {
+    const user = await this.userService.findById(userId);
+    if (!user) throw new Error('Usuario no encontrado');
+
+    const plan = user.subscriptionPlan as PlanType;
+    if (!plan) {
+      throw new Error('El usuario no tiene un plan asignado para reactivar');
+    }
+
+    // Reusa la lógica de createSubscription simulando el JWT
+    return this.createSubscription({ userId }, plan);
+  }
+
   async createFeaturedCharge(userId: string, thisId: string, amount_cents:number, title:string, type_send: string, plan: string) {
     const response = await axios.post(
       `${this.API_URL}/checkouts`,

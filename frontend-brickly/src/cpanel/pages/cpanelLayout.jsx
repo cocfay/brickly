@@ -123,9 +123,15 @@ function CpanelLayout() {
     // Mientras init no termina, no renderizar nada
     if (!ready || !authed) return null;
 
+    // Guard: si el usuario tiene acceso bloqueado por pago no procesado,
+    // redirigir a la página de reintento (excepto si ya está en ella)
+    const fullUser = getFullUser();
+    if (fullUser?.accessBlocked && location.pathname !== '/cpanel/retry-payment') {
+        return <Navigate to="/cpanel/retry-payment" replace />;
+    }
+
     // Guard: bloquear rutas específicas si perfil incompleto
     const blockedPaths = ['/cpanel/propiedades', '/cpanel/agentes', '/cpanel/proyectos'];
-    const fullUser = getFullUser();
     if (fullUser && requiresExtendedProfile(fullUser) && !isProfileComplete(fullUser)) {
         if (blockedPaths.some(p => location.pathname === p || location.pathname.startsWith(p + '/'))) {
             return <Navigate to="/cpanel/" replace />;
