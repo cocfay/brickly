@@ -93,6 +93,7 @@ function Edit() {
     // Plan assignment state
     const [selectedPlan, setSelectedPlan] = useState('');
     const [customProfiles, setCustomProfiles] = useState('');
+    const [planExpiresAt, setPlanExpiresAt] = useState('');
     const [planLoading, setPlanLoading] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
 
@@ -175,6 +176,9 @@ function Edit() {
         };
         if (selectedPlan === 'AGENCIA_DIAMOND_P' && customProfiles) {
             payload.customMaxProfiles = Number(customProfiles);
+        }
+        if (planExpiresAt) {
+            payload.expiresAt = planExpiresAt;
         }
 
         const result = await assignPlan(id, payload);
@@ -305,6 +309,15 @@ function Edit() {
                                 />
                             </div>
                         )}
+                        <div className="col-md-3">
+                            <label className="form-label">Fecha de expiración <span className="text-muted" style={{fontSize:'12px'}}>(opcional)</span></label>
+                            <input
+                                type="date"
+                                className="form-control rounded-pill"
+                                value={planExpiresAt}
+                                onChange={(e) => setPlanExpiresAt(e.target.value)}
+                            />
+                        </div>
                         <div className="col-md-2">
                             <button
                                 className="btn btn-dark rounded-pill px-4 w-100"
@@ -338,6 +351,9 @@ function Edit() {
                     <p>Se asignará el plan <strong>{selectedPlan}</strong> a este usuario.</p>
                     {selectedPlan === 'AGENCIA_DIAMOND_P' && customProfiles && (
                         <p>Perfiles máximos: <strong>{customProfiles}</strong></p>
+                    )}
+                    {planExpiresAt && (
+                        <p>Fecha de expiración: <strong>{new Date(planExpiresAt).toLocaleDateString()}</strong></p>
                     )}
                     <p className="text-danger mb-0">
                         <i className="fa-solid fa-exclamation-triangle me-1"></i>

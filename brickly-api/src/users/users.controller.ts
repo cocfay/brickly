@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Delete, Body, UseGuards, Put, Param, Req, UploadedFile, UseInterceptors, Query, NotFoundException } from '@nestjs/common';
+import { Controller, Post, Get, Delete, Body, UseGuards, Put, Param, Req, UploadedFile, UseInterceptors, Query, NotFoundException, Headers, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../auth/roles.decorator';
@@ -219,9 +219,18 @@ export class UsersController {
   @Put(':id/assign-plan')
   async assignPlan(
     @Param('id') id: string,
-    @Body() body: { plan: string; confirmCancel: boolean; customMaxProfiles?: number },
+    @Body() body: { plan: string; confirmCancel: boolean; customMaxProfiles?: number; expiresAt?: string },
   ) {
     return this.usersService.assignPlan(id, body);
+  }
+
+  @Post('expire-subscriptions')
+  async expireSubscriptions(@Headers('x-cron-secret') cronSecret: string) {
+    if (cronSecret !== (process.env.CRON_SECRET || 'Br1ckly-auth-code-cron')) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
+    const count = await this.usersService.expireOverdueSubscriptions();
+    return { processed: count, message: `${count} suscripciones vencidas bloqueadas.` };
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)

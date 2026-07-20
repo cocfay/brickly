@@ -732,7 +732,7 @@ export class UsersService {
    */
   async assignPlan(
     userId: string,
-    data: { plan: string; confirmCancel: boolean; customMaxProfiles?: number },
+    data: { plan: string; confirmCancel: boolean; customMaxProfiles?: number; expiresAt?: string },
   ) {
     const role = PlanRoleMap[data.plan];
     if (!role) {
@@ -757,8 +757,37 @@ export class UsersService {
       );
     }
 
-    const expiresAt = computeExpirationDate(data.plan);
+    const expiresAt = data.expiresAt
+      ? new Date(data.expiresAt)
+      : computeExpirationDate(data.plan);
     return this.activateSubscription(userId, { plan: data.plan, role, expiresAt });
+  }
+
+  /**
+   * Busca cuentas con subscriptionStatus === 'ACTIVE' cuya subscription_expire
+   * sea anterior a (now - 1 día) y ejecuta el bloqueo (accessBlocked, desactivación
+   * de agentes y propiedades). Pensado para ejecutarse como tarea periódica (cron)
+   * para cubrir casos donde el webhook de fallo de pago no llegó o el plan expiró
+   * por fecha programada.
+   */
+  async expireOverdueSubscriptions(): Promise<number> {
+    const oneDayAgo = new Date(Date.now() - 86400000);
+    const overdueUsers = await this.userModel.find({
+      subscriptionStatus: 'ACTIVE',
+      subscription_expire: { $lte: oneDayAgo },
+    });
+
+    let count = 0;
+    for (const user of overdueUsers) {
+      try {
+        await this.deactivateSubscription(String(user._id), { status: 'PAST_DUE' }, true);
+        count++;
+      } catch (err) {
+        console.error(`[expireOverdueSubscriptions] Error procesando userId=${user._id}:`, err?.message);
+      }
+    }
+
+    return count;
   }
 
   async deactivateChildAgents(agencyId: string) {
