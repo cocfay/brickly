@@ -100,11 +100,11 @@ function profileAgent() {
                 }
                 const agent = {
                     ...found,
-                    agencia: agencia && agencia.agentInfo ? {
+                    agencia: agencia ? {
                         _id: agencia._id,
                         profileSlug: agencia.profileSlug,
                         name: agencia.name || 'Sin nombre',
-                        avatar: getLogoUrl(agencia.agentInfo.logo)
+                        avatar: getLogoUrl(agencia.agentInfo?.logo) || (agencia.avatar ? API_URL + agencia.avatar.replace('/uploads', '') : null)
                     } : null
                 };
 

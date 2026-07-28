@@ -5,6 +5,8 @@ import { getMetricasAgency, getTotalLeads } from '../services/metricas';
 import { API_URL, getCurrentUser } from '../../services/authService';
 import { getLogoUrl } from '../../services/logoService';
 import diamond from '../../assets/images/iconos/diamond.png';
+import DateRangeFilter from './DateRangeFilter';
+import { exportAgencyToExcelFile, exportAgencyToPDFFile } from '../services/exportService';
 
 // --- COMPONENTE MANUAL PARA ANIMAR LOS NÚMEROS ---
 const AnimatedNumber = ({ value, duration = 1200 }) => {
@@ -97,6 +99,8 @@ export default function MetricasAgency() {
   const [agentLeads, setAgentLeads] = useState({});
   const [propertyViewMode, setPropertyViewMode] = useState('most');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -111,7 +115,8 @@ export default function MetricasAgency() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const result = await getMetricasAgency();
+    const dateOpts = dateFrom || dateTo ? { from: dateFrom, to: dateTo } : {};
+    const result = await getMetricasAgency(dateOpts);
 
       if (result.success) {
         setMetricas(result.data);
@@ -122,7 +127,7 @@ export default function MetricasAgency() {
         const currentUser = getCurrentUser();
         const agencyId = currentUser?._id || currentUser?.id;
         if (agencyId) {
-          const res = await getTotalLeads(agencyId);
+          const res = await getTotalLeads(agencyId, dateOpts);
           if (res.success && res.data) {
             setLeadsData(res.data);
           } else {
@@ -136,7 +141,7 @@ export default function MetricasAgency() {
         const agents = result.data?.topAgents ? Object.values(result.data.topAgents) : [];
         if (agents.length > 0) {
           const leadsPromises = agents.map(async (agent) => {
-            const agentLeadsResult = await getTotalLeads(agent.id);
+            const agentLeadsResult = await getTotalLeads(agent.id, dateOpts);
             return { agentId: agent.id, data: agentLeadsResult.success ? agentLeadsResult.data : null };
           });
           const leadsResults = await Promise.all(leadsPromises);
@@ -154,7 +159,7 @@ export default function MetricasAgency() {
       setLoading(false);
     };
     fetchData();
-  }, []);
+  }, [dateFrom, dateTo]);
 
   const scrollStyle = `
     .scroll-metricas::-webkit-scrollbar {
@@ -230,14 +235,37 @@ export default function MetricasAgency() {
       <div className="px-lg-4" style={{ minHeight: '100vh' }}>
       
       {/* HEADER */}
-      <div className="d-flex justify-content-between align-items-start mb-4">
+      <div className="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-4">
         <div>
           <h1 className="fw-normal m-0" style={{ fontSize: 'clamp(28px, 3vw, 40px)', color: '#1e293b', letterSpacing: '-0.5px' }}>Métricas</h1>
           <p className="m-0 mt-1" style={{ color: GRIS_TEXTO }}>Resumen de resultados de tu agencia.</p>
         </div>
-        {/* <button className="btn bg-white border border-light-subtle rounded-3 text-muted d-flex align-items-center gap-2 shadow-sm" style={{ fontSize: '13px', padding: '8px 14px' }}>
-          <i className="fa-regular fa-calendar"></i> 01 Mayo 2025 - 30 Junio 2025 <i className="fa-solid fa-chevron-down ms-1" style={{ fontSize: '10px' }}></i>
-        </button> */}
+        <div className="d-flex align-items-center gap-2 flex-wrap">
+          <DateRangeFilter
+            from={dateFrom}
+            to={dateTo}
+            onChange={({ from, to }) => { setDateFrom(from); setDateTo(to); }}
+            onReset={() => { setDateFrom(''); setDateTo(''); }}
+          />
+          <div className="d-flex gap-1">
+            <button
+              className="btn btn-sm btn-outline-success border-light-subtle"
+              style={{ fontSize: '11px', borderRadius: '8px' }}
+              onClick={() => exportAgencyToExcelFile(metricas, leadsData, agentLeads)}
+              title="Exportar a Excel"
+            >
+              <i className="fa-regular fa-file-excel me-1"></i>Excel
+            </button>
+            <button
+              className="btn btn-sm btn-outline-danger border-light-subtle"
+              style={{ fontSize: '11px', borderRadius: '8px' }}
+              onClick={() => exportAgencyToPDFFile(metricas, leadsData, agentLeads)}
+              title="Exportar a PDF"
+            >
+              <i className="fa-regular fa-file-pdf me-1"></i>PDF
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* 1. TOP CARDS CON NÚMEROS ANIMADOS */}

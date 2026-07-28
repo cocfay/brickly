@@ -3,6 +3,8 @@ import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { API_URL } from '../../services/authService';
 import { getMetricasAdmin, getNextExpiring, getTopAgencyLeads, getTopAgencyClicksWs, getTotalExclusiveProperties, getTotalLeadsPublic } from '../services/metricas';
 import { getLogoUrl } from '../../services/logoService';
+import DateRangeFilter from './DateRangeFilter';
+import { exportAdminToExcelFile, exportAdminToPDFFile } from '../services/exportService';
 
 // --- COMPONENTE MEJORADO PARA ANIMAR NÚMEROS (SOPORTA DECIMALES Y SUFIJOS) ---
 const AnimatedNumber = ({ value, duration = 1200, decimals = 0, suffix = '' }) => {
@@ -79,17 +81,20 @@ export default function MetricasAdmin() {
   const [clicsOrder, setClicsOrder] = useState('desc');
   const [exclusiveCount, setExclusiveCount] = useState(0);
   const [totalLeadsCount, setTotalLeadsCount] = useState(0);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
-      const [adminResult, expiringResult, leadsResult, clicsResult, exclusiveResult, leadsPublicResult] = await Promise.all([
-        getMetricasAdmin(),
-        getNextExpiring(4),
-        getTopAgencyLeads(),
-        getTopAgencyClicksWs(),
-        getTotalExclusiveProperties(),
-        getTotalLeadsPublic()
-      ]);
+    const dateOpts = dateFrom || dateTo ? { from: dateFrom, to: dateTo } : {};
+    const [adminResult, expiringResult, leadsResult, clicsResult, exclusiveResult, leadsPublicResult] = await Promise.all([
+      getMetricasAdmin(dateOpts),
+      getNextExpiring(4),
+      getTopAgencyLeads(),
+      getTopAgencyClicksWs(),
+      getTotalExclusiveProperties(),
+      getTotalLeadsPublic()
+    ]);
       if (adminResult.success) {
         setAdminData(adminResult.data);
       } else {
@@ -129,7 +134,7 @@ export default function MetricasAdmin() {
       setLoading(false);
     };
     fetchData();
-  }, []);
+  }, [dateFrom, dateTo]);
 
   const propiedadesTipo = useMemo(() => {
     if (!adminData?.propertiesByType || adminData.propertiesByType.length === 0) {
@@ -251,9 +256,37 @@ export default function MetricasAdmin() {
     <div className="px-lg-4" style={{ minHeight: '100vh' }}>
       
       {/* HEADER */}
-      <div className="mb-4">
-        <h1 className="fw-normal m-0" style={{ fontSize: 'clamp(28px, 3vw, 40px)', color: '#1e293b', letterSpacing: '-0.5px' }}>Métricas administrador</h1>
-        <p className="m-0 mt-1" style={{ color: GRIS_TEXTO }}>Resumen general de la plataforma</p>
+      <div className="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-4">
+        <div>
+          <h1 className="fw-normal m-0" style={{ fontSize: 'clamp(28px, 3vw, 40px)', color: '#1e293b', letterSpacing: '-0.5px' }}>Métricas administrador</h1>
+          <p className="m-0 mt-1" style={{ color: GRIS_TEXTO }}>Resumen general de la plataforma</p>
+        </div>
+        <div className="d-flex align-items-center gap-2 flex-wrap">
+          <DateRangeFilter
+            from={dateFrom}
+            to={dateTo}
+            onChange={({ from, to }) => { setDateFrom(from); setDateTo(to); }}
+            onReset={() => { setDateFrom(''); setDateTo(''); }}
+          />
+          <div className="d-flex gap-1">
+            <button
+              className="btn btn-sm btn-outline-success border-light-subtle"
+              style={{ fontSize: '11px', borderRadius: '8px' }}
+              onClick={() => exportAdminToExcelFile(adminData, exclusiveCount, totalLeadsCount, agenciasLeads, agenciasClics)}
+              title="Exportar a Excel"
+            >
+              <i className="fa-regular fa-file-excel me-1"></i>Excel
+            </button>
+            <button
+              className="btn btn-sm btn-outline-danger border-light-subtle"
+              style={{ fontSize: '11px', borderRadius: '8px' }}
+              onClick={() => exportAdminToPDFFile(adminData, exclusiveCount, totalLeadsCount, agenciasLeads, agenciasClics)}
+              title="Exportar a PDF"
+            >
+              <i className="fa-regular fa-file-pdf me-1"></i>PDF
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* FILA 1 DE KPIs */}

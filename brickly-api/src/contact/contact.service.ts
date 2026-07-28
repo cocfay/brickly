@@ -1280,7 +1280,7 @@ export class ContactService {
         }
     }
   }
-  async getTotalLeadsCount(userId: string) {
+  async getTotalLeadsCount(userId: string, from?: string, to?: string) {
 
       const objectId = new Types.ObjectId(userId);
 
@@ -1299,7 +1299,6 @@ export class ContactService {
         ...childAgents.map(agent => agent._id),
       ];
 
-      // fechas
       const now = new Date();
 
       const startCurrentMonth = new Date(
@@ -1314,13 +1313,19 @@ export class ContactService {
         1,
       );
 
-      // total general
+      // total general (filtrado por fechas si se especifica)
+      const leadBaseFilter: any = {
+        agentId: { $in: agentsIds },
+      };
+      if (from || to) {
+        leadBaseFilter.createdAt = {};
+        if (from) leadBaseFilter.createdAt.$gte = new Date(from);
+        if (to) leadBaseFilter.createdAt.$lte = new Date(to);
+      }
       const totalLeads =
-        await this.leadformModel.countDocuments({
-          agentId: { $in: agentsIds },
-        });
+        await this.leadformModel.countDocuments(leadBaseFilter);
 
-      // leads mes actual
+      // leads mes actual (sin filtro de fechas externo)
       const currentMonthLeads =
         await this.leadformModel.countDocuments({
           agentId: { $in: agentsIds },
@@ -1367,6 +1372,24 @@ export class ContactService {
         ),
       };
     }
+
+  async getClickWsCount(userId: string, from?: string, to?: string) {
+    const objectId = new Types.ObjectId(userId);
+
+    const childAgents = await this.userModel.find(
+      { parentId: objectId },
+      { _id: 1, clickCounterWs: 1 },
+    );
+
+    const agency = await this.userModel.findById(objectId, { clickCounterWs: 1 });
+
+    let totalClicksWs = (agency?.clickCounterWs || 0);
+    for (const agent of childAgents) {
+      totalClicksWs += (agent.clickCounterWs || 0);
+    }
+
+    return { totalClicksWs };
+  }
 
   async getTotalContactSiteCount(){
     // fechas

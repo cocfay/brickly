@@ -88,15 +88,15 @@ export class PropertiesController {
 
   @Get('metricas')
   @UseGuards(AuthGuard('jwt'))
-  getMetrics(@Req() req) {
-    return this.propertiesService.getMetrics(req.user.userId);
+  getMetrics(@Req() req, @Query('from') from?: string, @Query('to') to?: string) {
+    return this.propertiesService.getMetrics(req.user.userId, from, to);
   }
 
   @Get('metricas-adm')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(Role.ADMIN)
-  getAdmMetrics() {
-    return this.propertiesService.getMetricsAdm();
+  getAdmMetrics(@Query('from') from?: string, @Query('to') to?: string) {
+    return this.propertiesService.getMetricsAdm(from, to);
   }
 
   @Get('var-ranges')
@@ -284,8 +284,8 @@ export class PropertiesController {
 
   @Get('metricas-agente/:id')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  getAgentMetrics(@Param('id') id: string) {
-    return this.propertiesService.getAgentMetrics(id);
+  getAgentMetrics(@Param('id') id: string, @Query('from') from?: string, @Query('to') to?: string) {
+    return this.propertiesService.getAgentMetrics(id, from, to);
   }
 
   

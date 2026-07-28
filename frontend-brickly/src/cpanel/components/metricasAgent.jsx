@@ -4,6 +4,8 @@ import { API_URL, getCurrentUser } from '../../services/authService';
 import { getReviewsByAgent } from '../../services/reviewService';
 import { getContactLeads } from '../../services/contactService';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell } from 'recharts';
+import DateRangeFilter from './DateRangeFilter';
+import { exportAgentToExcelFile, exportAgentToPDFFile } from '../services/exportService';
 
 // --- COMPONENTE MANUAL PARA ANIMAR LOS NÚMEROS ---
 const AnimatedNumber = ({ value, duration = 1200 }) => {
@@ -55,6 +57,8 @@ export default function MetricasAgent() {
   const [periodo, setPeriodo] = useState('Semanal');
   const [propertyViewMode, setPropertyViewMode] = useState('most');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -70,8 +74,9 @@ export default function MetricasAgent() {
   useEffect(() => {
     const fetchData = async () => {
       const currentUser = getCurrentUser();
+      const dateOpts = dateFrom || dateTo ? { from: dateFrom, to: dateTo } : {};
 
-      const result = await getMetricasAgente(currentUser._id);
+      const result = await getMetricasAgente(currentUser._id, dateOpts);
 
       if (result.success) {
         setMetricas(result.data);
@@ -79,7 +84,7 @@ export default function MetricasAgent() {
 
         // Obtener leads del agente
         if (currentUser?.id) {
-          const leadsResult = await getTotalLeads(currentUser.id);
+          const leadsResult = await getTotalLeads(currentUser.id, dateOpts);
           if (leadsResult.success) {
             setLeadsData(leadsResult.data);
           }
@@ -107,7 +112,7 @@ export default function MetricasAgent() {
       setLoading(false);
     };
     fetchData();
-  }, []);
+  }, [dateFrom, dateTo]);
 
   // Agrupar contactLeads según el período seleccionado
   const leadsChartData = useMemo(() => {
@@ -266,10 +271,36 @@ export default function MetricasAgent() {
   return (
     <div className="px-lg-4" style={{ minHeight: '100vh' }}>
       {/* HEADER */}
-      <div className="d-flex justify-content-between align-items-start mb-4">
+      <div className="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-4">
         <div>
           <h1 className="fw-normal m-0" style={{ fontSize: 'clamp(28px, 3vw, 40px)', color: '#1e293b', letterSpacing: '-0.5px' }}>Métricas</h1>
           <p className="m-0 mt-1" style={{ color: GRIS_TEXTO }}>Resumen de tus resultados como agente.</p>
+        </div>
+        <div className="d-flex align-items-center gap-2 flex-wrap">
+          <DateRangeFilter
+            from={dateFrom}
+            to={dateTo}
+            onChange={({ from, to }) => { setDateFrom(from); setDateTo(to); }}
+            onReset={() => { setDateFrom(''); setDateTo(''); }}
+          />
+          <div className="d-flex gap-1">
+            <button
+              className="btn btn-sm btn-outline-success border-light-subtle"
+              style={{ fontSize: '11px', borderRadius: '8px' }}
+              onClick={() => exportAgentToExcelFile(metricas, leadsData, ratingBreakdown)}
+              title="Exportar a Excel"
+            >
+              <i className="fa-regular fa-file-excel me-1"></i>Excel
+            </button>
+            <button
+              className="btn btn-sm btn-outline-danger border-light-subtle"
+              style={{ fontSize: '11px', borderRadius: '8px' }}
+              onClick={() => exportAgentToPDFFile(metricas, leadsData, ratingBreakdown)}
+              title="Exportar a PDF"
+            >
+              <i className="fa-regular fa-file-pdf me-1"></i>PDF
+            </button>
+          </div>
         </div>
       </div>
 

@@ -121,6 +121,23 @@ export const updateContactSiteFormStatus = async (ids = [], status = 'revisado')
  * @param {string} contactData.info - Información adicional (ej: nombre de la propiedad)
  * @param {string} contactData.type - Tipo de formulario (ej: "Formulario Agente", "Formulario Propiedad")
  */
+/**
+ * Obtener total de clics WhatsApp para un usuario + sus agentes hijos
+ * GET /contact/clickws-count/:id
+ */
+export const getTotalClicksWs = async (userId) => {
+  try {
+    const response = await fetch(`${API_URL}/contact/clickws-count/${userId}`, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) throw new Error(`Error ${response.status}`);
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: error.message, data: { totalClicksWs: 0 } };
+  }
+};
+
 export const sendContactAgente = async (contactData, turnstileToken = null) => {
   try {
     const body = { ...contactData };

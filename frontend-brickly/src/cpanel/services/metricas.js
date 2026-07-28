@@ -1,17 +1,19 @@
 import { API_URL, getToken, handleAuthError } from '../../services/authService';
 
-/**
- * Obtiene el conteo de leads (totales, mensuales, crecimiento) para un usuario (agencia o agente).
- * Endpoint: GET {API_URL}/contact/total-leads-count/{userId}
- * @param {string} userId - ID del usuario (agencia o agente)
- * @returns {Promise<{success: boolean, data?: {totalLeads, currentMonthLeads, previousMonthLeads, growthPercentage}, error?: string}>}
- */
-export const getTotalLeads = async (userId) => {
+const buildUrl = (base, params = {}) => {
+  const query = Object.entries(params)
+    .filter(([, v]) => v != null && v !== '')
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join('&');
+  return query ? `${base}?${query}` : base;
+};
+
+export const getTotalLeads = async (userId, { from, to } = {}) => {
   try {
     const token = getToken();
     if (!token) throw new Error('No hay sesión activa');
-    
-    const response = await fetch(`${API_URL}/contact/total-leads-count/${userId}`, {
+
+    const response = await fetch(buildUrl(`${API_URL}/contact/total-leads-count/${userId}`, { from, to }), {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -96,12 +98,12 @@ export const getTopAgencyClicksWs = async () => {
   }
 };
 
-export const getMetricasAgency = async () => {
+export const getMetricasAgency = async ({ from, to } = {}) => {
   try {
     const token = getToken();
     if (!token) throw new Error('No hay sesión activa');
 
-    const response = await fetch(`${API_URL}/properties/metricas`, {
+    const response = await fetch(buildUrl(`${API_URL}/properties/metricas`, { from, to }), {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -156,12 +158,12 @@ export const getNextExpiring = async (limit = 8) => {
   }
 };
 
-export const getMetricasAdmin = async () => {
+export const getMetricasAdmin = async ({ from, to } = {}) => {
   try {
     const token = getToken();
     if (!token) throw new Error('No hay sesión activa');
 
-    const response = await fetch(`${API_URL}/properties/metricas-adm`, {
+    const response = await fetch(buildUrl(`${API_URL}/properties/metricas-adm`, { from, to }), {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -226,12 +228,12 @@ export const getTotalLeadsPublic = async () => {
   }
 };
 
-export const getMetricasAgente = async (userId) => {
+export const getMetricasAgente = async (userId, { from, to } = {}) => {
   try {
     const token = getToken();
     if (!token) throw new Error('No hay sesión activa');
 
-    const response = await fetch(`${API_URL}/properties/metricas-agente/${userId}`, {
+    const response = await fetch(buildUrl(`${API_URL}/properties/metricas-agente/${userId}`, { from, to }), {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'

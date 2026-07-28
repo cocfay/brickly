@@ -25,7 +25,7 @@ import { useFavorites } from '../../hooks/useFavorites';
 import { useCurrency } from '../../context/CurrencyContext';
 import { getDisplayPrice } from '../../utils/priceUtils';
 import { createReview, getReviewsByAgent, updateReview, deleteReview } from '../../services/reviewService';
-import { getContactLeads } from '../../services/contactService';
+import { getContactLeads, getTotalClicksWs } from '../../services/contactService';
 import { getPublicProfile } from '../../services/profileService';
 import { getAgentProfilePath } from '../../utils/profileRoutes';
 import { getPropertyPath } from '../../utils/propertyRoutes';
@@ -56,6 +56,7 @@ function profileAgency() {
     const [totalAlquiler, setTotalAlquiler] = useState(0)
     const [tiposMap, setTiposMap] = useState({})
     const [extraWSClicks, setExtraWSClicks] = useState(0)
+    const [totalWSClicks, setTotalWSClicks] = useState(0)
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
     const [loading, setLoading] = useState(true)
     const sliderContainerRef = useRef(null)
@@ -156,16 +157,28 @@ function profileAgency() {
         loadAgencyData();
     }, [profileIdentifier])
 
-    // Cargar leads de la agencia
+    // Cargar leads de la agencia (incluye agentes hijos)
     useEffect(() => {
         if (!agencyId) return;
         const loadLeads = async () => {
-            const result = await getContactLeads({ agentId: agencyId });
+            const result = await getContactLeads({ agenciaId: agencyId });
             if (result.success) {
                 setLeadsCount(Array.isArray(result.data) ? result.data.length : 0);
             }
         };
         loadLeads();
+    }, [agencyId]);
+
+    // Cargar WA clicks totales (agencia + agentes hijos)
+    useEffect(() => {
+        if (!agencyId) return;
+        const loadWSClicks = async () => {
+            const result = await getTotalClicksWs(agencyId);
+            if (result.success) {
+                setTotalWSClicks(result.data.totalClicksWs);
+            }
+        };
+        loadWSClicks();
     }, [agencyId]);
 
     // Cargar propiedades de la agencia (3 más recientes + totales por modo + tipos)
@@ -448,7 +461,7 @@ function profileAgency() {
                                     <div className='mt-4 mt-lg-0 gap-2 gap-lg-3' style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
                                         <div className='d-flex align-items-center gap-3'><img src={house_aval} style={{ width: '30px' }} alt="icons" />{total} {t(pluralize(total, 'Propiedad disponible', 'Propiedades disponibles'), pluralize(total, 'Available property', 'Available properties'))}</div>
                                         <div className='d-flex align-items-center gap-3'><img src={expe} style={{ width: '30px' }} alt="icons" />{agente.agentInfo.expe} {t(pluralize(agente.agentInfo.expe, 'Año de experiencia', 'Años de experiencia'), pluralize(agente.agentInfo.expe, 'Year of experience', 'Years of experience'))}</div>
-                                    <div className='d-flex align-items-center gap-3'><img src={leads} style={{ width: '30px' }} alt="icons" />{new Intl.NumberFormat().format(leadsCount + (agente?.clickCounterWs || 0) + extraWSClicks)} {t(pluralize(leadsCount + (agente?.clickCounterWs || 0) + extraWSClicks, 'Prospecto', 'Prospectos'), pluralize(leadsCount + (agente?.clickCounterWs || 0) + extraWSClicks, 'Prospect', 'Prospects'))}</div>
+                                    <div className='d-flex align-items-center gap-3'><img src={leads} style={{ width: '30px' }} alt="icons" />{new Intl.NumberFormat().format(leadsCount + totalWSClicks + extraWSClicks)} {t(pluralize(leadsCount + totalWSClicks + extraWSClicks, 'Prospecto', 'Prospectos'), pluralize(leadsCount + totalWSClicks + extraWSClicks, 'Prospect', 'Prospects'))}</div>
                                         <div className='d-flex align-items-center gap-3'><i className="fa-sharp fa-regular fa-people-group" style={{ width: '30px', height: '25px', fontSize: '24px' }}></i>{agentesDisponibles.length} {t(pluralize(agentesDisponibles.length, 'Agente disponible', 'Agentes disponibles'), pluralize(agentesDisponibles.length, 'Available agent', 'Available agents'))}</div>
                                     </div>
                                 </div>

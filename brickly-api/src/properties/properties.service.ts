@@ -330,7 +330,7 @@ export class PropertiesService {
         return { total, totalPublished }
 
   }
-  async getMetrics(userId: string) {
+  async getMetrics(userId: string, from?: string, to?: string) {
       const now = new Date();
       const startCurrentMonth = new Date(
         now.getFullYear(),
@@ -509,11 +509,11 @@ export class PropertiesService {
           },
         ]);
 
-      const totalVisits = totals[0]?.totalVisits || 0;
+      let totalVisits = totals[0]?.totalVisits || 0;
       const totalClicksAg = totalsAg[0]?.totalClicks || 0;
       const totalClicksWsAg = totalsAg[0]?.totalClicksWs || 0;
-      const totalClicks = Number(clickCounterAgency) + Number(totalClicksAg);
-      const totalClicksWs = Number(clickCounterWsAgency) + Number(totalClicksWsAg);
+      let totalClicks = Number(clickCounterAgency) + Number(totalClicksAg);
+      let totalClicksWs = Number(clickCounterWsAgency) + Number(totalClicksWsAg);
 
       // Obtener IDs de propiedades globalizados (Principal + Subusuarios) para Favoritos
       const propertyIds = await this.propertyModel.find(
@@ -523,6 +523,36 @@ export class PropertiesService {
       const ids = propertyIds.map(
         property => property._id,
       );
+
+      // === SOBREESCRIBIR CONTADORES CON ACTIVITY LOGS SI HAY FILTRO DE FECHAS ===
+      if (from || to) {
+        const createdFrom = from ? new Date(from) : undefined;
+        const createdTo = to ? new Date(to) : undefined;
+
+        totalVisits = await this.activityLogsService.countByDateRange({
+          type: 'property',
+          action: 'visit',
+          userIds: ids,
+          createdFrom,
+          createdTo,
+        });
+
+        totalClicks = await this.activityLogsService.countByDateRange({
+          type: 'user',
+          action: 'click',
+          userIds: allowedUserIds,
+          createdFrom,
+          createdTo,
+        });
+
+        totalClicksWs = await this.activityLogsService.countByDateRange({
+          type: 'user',
+          action: 'click-ws',
+          userIds: allowedUserIds,
+          createdFrom,
+          createdTo,
+        });
+      }
 
       const totalFavorites =
         await this.userModel.countDocuments({
@@ -710,7 +740,7 @@ export class PropertiesService {
       };
     }
 
-  async getAgentMetrics(agentId: string) {
+  async getAgentMetrics(agentId: string, from?: string, to?: string) {
 
         const objectId = agentId;//new Types.ObjectId(agentId);
 
@@ -862,30 +892,48 @@ export class PropertiesService {
         // RESPONSE
         // =========================
 
+        let totalClicks = agent.clickCounter || 0;
+        let totalClicksWs = agent.clickCounterWs || 0;
+
+        // === SOBREESCRIBIR CON ACTIVITY LOGS SI HAY FILTRO DE FECHAS ===
+        if (from || to) {
+          const createdFrom = from ? new Date(from) : undefined;
+          const createdTo = to ? new Date(to) : undefined;
+
+          totalClicks = await this.activityLogsService.countByDateRange({
+            type: 'user',
+            action: 'click',
+            userIds: [new Types.ObjectId(agentId)],
+            createdFrom,
+            createdTo,
+          });
+
+          totalClicksWs = await this.activityLogsService.countByDateRange({
+            type: 'user',
+            action: 'click-ws',
+            userIds: [new Types.ObjectId(agentId)],
+            createdFrom,
+            createdTo,
+          });
+        }
+
         return {
-          totalClicksWs: agent.clickCounterWs || 0,
-
-          totalClicks: agent.clickCounter || 0,
-
+          totalClicksWs,
+          totalClicks,
           rating: {
             average: agent.ratingAverage || 0,
             total: agent.ratingCount || 0,
           },
-
           assignedProperties,
-
           propertiesByType,
-
           propertiesByOperation,
-
           topProperties,
-
           topPropertiesMinus,
         };
       }
 
 
-  async getMetricsAdm(){
+  async getMetricsAdm(from?: string, to?: string){
     // =========================
     // TOTAL AGENCIAS
     // =========================
@@ -1128,9 +1176,6 @@ export class PropertiesService {
           },
         ]);
 
-      const totalVisits =
-        totalspropertyVisit[0]?.totalVisits || 0;
-
       const totalClicksAg =
         totalsClicksUsAg[0]?.totalClicks || 0;
 
@@ -1143,9 +1188,43 @@ export class PropertiesService {
       const totalClicksWsAgt =
       totalsClicksUsAgt[0]?.totalClicksWs || 0;
 
-      const totalClicks = Number(totalClicksAg) + Number(totalClicksAgt);
-      const totalClicksWs = Number(totalClicksWsAg) + Number(totalClicksWsAgt);
+      let totalClicks = Number(totalClicksAg) + Number(totalClicksAgt);
+      let totalClicksWs = Number(totalClicksWsAg) + Number(totalClicksWsAgt);
+      let totalVisits = totalspropertyVisit[0]?.totalVisits || 0;
 
+      // === SOBREESCRIBIR CON ACTIVITY LOGS SI HAY FILTRO DE FECHAS ===
+      if (from || to) {
+        const createdFrom = from ? new Date(from) : undefined;
+        const createdTo = to ? new Date(to) : undefined;
+
+        const allProperties = await this.propertyModel.find(
+          { status: 'published' },
+          { _id: 1 },
+        );
+        const allPropertyObjectIds = allProperties.map(p => p._id);
+
+        totalVisits = await this.activityLogsService.countByDateRange({
+          type: 'property',
+          action: 'visit',
+          userIds: allPropertyObjectIds,
+          createdFrom,
+          createdTo,
+        });
+
+        totalClicks = await this.activityLogsService.countByDateRange({
+          type: 'user',
+          action: 'click',
+          createdFrom,
+          createdTo,
+        });
+
+        totalClicksWs = await this.activityLogsService.countByDateRange({
+          type: 'user',
+          action: 'click-ws',
+          createdFrom,
+          createdTo,
+        });
+      }
 
       // =========================
       // Top 5 Agents

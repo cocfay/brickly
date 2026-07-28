@@ -89,9 +89,19 @@ export class ContactController {
   @Get('total-leads-count/:id')
   getTotalLeadsCount(
     @Param('id') id: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
   ) {
-    return this.contactService.getTotalLeadsCount(id);
+    return this.contactService.getTotalLeadsCount(id, from, to);
   }
 
-  
+  @Get('clickws-count/:id')
+  getClickwsCount(
+    @Param('id') id: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.contactService.getClickWsCount(id, from, to);
+  }
+
 }
