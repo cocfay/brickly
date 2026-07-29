@@ -398,7 +398,7 @@ function profileAgency() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className='py-3 px-auto px-2px-lg-4'>
+                                <div className='py-3 px-auto px-2 px-lg-4'>
                                     <div className='fs-4 mb-2'>{t('Contáctanos', 'Contact')}</div>
                                     <div className="d-flex justify-content-between flex-column flex-xl-row align-items-xl-end gap-4 gap-lg-2">
                                         <div className="d-flex flex-column gap-1">
