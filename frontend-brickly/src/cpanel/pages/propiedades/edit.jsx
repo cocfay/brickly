@@ -183,6 +183,7 @@ const SECCIONES = {
         opcional: true
       },
       maintenanceCost: { type: 'number', label: 'Mantenimiento (USD)', col: 4, opcional: true },
+      maintenanceCostGtq: { type: 'number', label: 'Mantenimiento (GTQ)', col: 4, opcional: true },
       includes: { 
         type: 'multiselect', 
         label: 'Incluye', 
@@ -228,11 +229,11 @@ function getHiddenFields(type) {
         ambiente: ['bedrooms', 'halfBathrooms', 'serviceRoom', 'deck', 'familyroom'],
         gastos: ['stoveType'],
         amenidadesFilter: [
-          'balcn', 'aireacondicionado', 'calentadordeagua', 'cocinaconisla',
+          'balcon', 'aireacondicionado', 'calentadordeagua', 'cocinaconisla',
           'cerradurasinteligentes', 'businesscentercoworking', 'rooftopterraza',
-          'seguridad247cctv', 'parqueodevisitas', 'plantaelctricadeemergencia',
-          'lobbyrecepcin', 'readerecepcindedelivery', 'wifienreascomunes',
-          'elevadoresdealtavelocidad', 'cargadoresparavehculoselctricos'
+          'seguridad247cctv', 'parqueodevisitas', 'plantaelectricadeemergencia',
+          'lobbyrecepcion', 'areaderecepciondedelivery', 'wifienareascomunes',
+          'elevadoresdealtavelocidad', 'cargadoresparavehiculoselectricos'
         ]
       };
     case 'Oficina':
@@ -245,12 +246,12 @@ function getHiddenFields(type) {
         includesHideOptions: ['Áreas verdes', 'Gimnasio'],
         landM2Label: 'Tamaño en mts2',
         amenidadesFilter: [
-          'balcn', 'aireacondicionado', 'calentadordeagua', 'cocinaconisla',
-          'readelavandera', 'cerradurasinteligentes', 'acabadosdelujo',
+          'balcon', 'aireacondicionado', 'calentadordeagua', 'cocinaconisla',
+          'areadelavanderia', 'cerradurasinteligentes', 'acabadosdelujo',
           'sistemadesonidointegrado', 'businesscentercoworking', 'seguridad247cctv',
-          'parqueodevisitas', 'plantaelctricadeemergencia', 'lobbyrecepcin',
-          'readerecepcindedelivery', 'wifienreascomunes', 'elevadoresdealtavelocidad',
-          'cargadoresparavehculoselctricos'
+          'parqueodevisitas', 'plantaelectricadeemergencia', 'lobbyrecepcion',
+          'areaderecepciondedelivery', 'wifienareascomunes', 'elevadoresdealtavelocidad',
+          'cargadoresparavehiculoselectricos'
         ]
       };
     case 'Edificio':
@@ -261,12 +262,12 @@ function getHiddenFields(type) {
         gastos: ['stoveType', 'iusi', 'dayIusi'],
         includesHideOptions: ['Áreas verdes', 'Gimnasio'],
         amenidadesFilter: [
-          'balcn', 'aireacondicionado', 'calentadordeagua', 'cocinaconisla',
-          'readelavandera', 'cerradurasinteligentes', 'acabadosdelujo',
+          'balcon', 'aireacondicionado', 'calentadordeagua', 'cocinaconisla',
+          'areadelavanderia', 'cerradurasinteligentes', 'acabadosdelujo',
           'sistemadesonidointegrado', 'businesscentercoworking', 'seguridad247cctv',
-          'parqueodevisitas', 'plantaelctricadeemergencia', 'lobbyrecepcin',
-          'readerecepcindedelivery', 'wifienreascomunes', 'elevadoresdealtavelocidad',
-          'cargadoresparavehculoselctricos'
+          'parqueodevisitas', 'plantaelectricadeemergencia', 'lobbyrecepcion',
+          'areaderecepciondedelivery', 'wifienareascomunes', 'elevadoresdealtavelocidad',
+          'cargadoresparavehiculoselectricos'
         ]
       };
     case 'Finca':
@@ -277,12 +278,12 @@ function getHiddenFields(type) {
         estruturas: ['constructionYear', 'remodelYear', 'levels', 'ceilingHeight'],
         ambiente: true, // hide entire section
         gastos: ['stoveType'],
-        amenidadesFilter: ['piscinaclimatizada', 'gimnasio',
-          'salnsocial', 'businesscente/co-working', 'canchadepdel', 'canchadetenissquash', 'readefogatasfirepits',
-          'salndejuegosbillarpingpong', 'juegosinfantilesplayground', 'barlounge', 'ludoteca',
-          'parqueparamascotaspetpark', 'estacindelavadoparamascotaspetwash',
-          'senderosparacaminar', 'readepiatas', 'seguridad247cctv', 'parqueodevisitas', 'lobbyorecepción', 'areaderecepciondedelivery',
-          'plantaelctricadeemergencia', 'pozodeaguapropio', 'wifienreascomunes'
+        amenidadesFilter: ['piscina', 'gimnasio',
+          'salonsocial', 'businesscentercoworking', 'canchadepadel', 'canchadetenissquash', 'areadefogatasfirepits',
+          'salondejuegosbillarpingpong', 'juegosinfantilesplayground', 'barlounge', 'ludoteca',
+          'parqueparamascotaspetpark', 'estaciondelavadoparamascotaspetwash',
+          'senderosparacaminar', 'areadepiatas', 'seguridad247cctv', 'parqueodevisitas', 'lobbyrecepcion', 'areaderecepciondedelivery',
+          'plantaelectricadeemergencia', 'pozodeaguapropio', 'wifienareascomunes'
         ]
       };
     default:
@@ -458,8 +459,28 @@ function Edit() {
           // ========== AMENIDADES ==========
           const amenitiesData = propiedad.amenities || propiedad.extraFeatures;
           if (amenitiesData && Object.keys(amenitiesData).length > 0) {
+            // Normalizar claves antiguas (acentos rotos por bug previo) a claves correctas
+            const legacyKeyMap = {
+              'balcn': 'balcon',
+              'readelavandera': 'areadelavanderia',
+              'salnsocial': 'salonsocial',
+              'canchadepdel': 'canchadepadel',
+              'readefogatasfirepits': 'areadefogatasfirepits',
+              'salndejuegosbillarpingpong': 'salondejuegosbillarpingpong',
+              'estacindelavadoparamascotaspetwash': 'estaciondelavadoparamascotaspetwash',
+              'readepiatas': 'areadepiatas',
+              'plantaelctricadeemergencia': 'plantaelectricadeemergencia',
+              'lobbyrecepcin': 'lobbyrecepcion',
+              'readerecepcindedelivery': 'areaderecepciondedelivery',
+              'wifienreascomunes': 'wifienareascomunes',
+              'cargadoresparavehculoselctricos': 'cargadoresparavehiculoselectricos',
+            };
+            const normalized = {};
+            for (const [key, value] of Object.entries(amenitiesData)) {
+              normalized[legacyKeyMap[key] || key] = value;
+            }
             nuevosDatos.amenidades.datos = {
-              amenities: amenitiesData
+              amenities: normalized
             };
             nuevosDatos.amenidades.completada = true;
           }
@@ -471,6 +492,7 @@ function Edit() {
               stoveType: propiedad.expenses.stoveType || '',
               waterService: propiedad.expenses.waterService || '',
               maintenanceCost: propiedad.expenses.maintenanceCost || '',
+              maintenanceCostGtq: propiedad.expenses.maintenanceCostGtq || '',
               includes: propiedad.expenses.includes || '',
               iusi: propiedad.expenses.iusi?.typepay || '',
               dayIusi: boolToSiNo(propiedad.expenses.iusi?.atday),
@@ -845,6 +867,7 @@ function Edit() {
       if (gast.stoveType) propiedadData.expenses.stoveType = gast.stoveType;
       if (gast.waterService) propiedadData.expenses.waterService = gast.waterService;
       if (gast.maintenanceCost) propiedadData.expenses.maintenanceCost = parseFloat(gast.maintenanceCost);
+      if (gast.maintenanceCostGtq) propiedadData.expenses.maintenanceCostGtq = parseFloat(gast.maintenanceCostGtq);
       if (gast.includes) propiedadData.expenses.includes = Array.isArray(gast.includes) ? gast.includes : [gast.includes];
       if (gast.iusi) propiedadData.expenses.iusi = { typepay: gast.iusi, atday: gast.dayIusi === 'Si' };
     }
@@ -953,6 +976,12 @@ function Edit() {
     const num = String(val).replace(/[^0-9]/g, '');
     if (!num) return '';
     return '$ ' + num.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  };
+
+  const formatGTQ = (val) => {
+    const num = String(val).replace(/[^0-9]/g, '');
+    if (!num) return '';
+    return 'Q ' + num.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
 
   const formatNumber = (val) => {
@@ -1085,6 +1114,21 @@ function Edit() {
                 handleChange(seccionId, campoKey, raw);
               }}
               placeholder="$ 0"
+              key={`${campoKey}-${secciones[seccionId].completada}`}
+            />
+          );
+        }
+        if (campoKey === 'maintenanceCostGtq') {
+          return (
+            <Form.Control
+              type="text"
+              defaultValue={value ? formatGTQ(value) : ''}
+              onKeyUp={(e) => {
+                const raw = e.target.value.replace(/[^0-9]/g, '');
+                e.target.value = formatGTQ(raw);
+                handleChange(seccionId, campoKey, raw);
+              }}
+              placeholder="Q 0"
               key={`${campoKey}-${secciones[seccionId].completada}`}
             />
           );

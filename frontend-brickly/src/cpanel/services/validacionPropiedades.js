@@ -9,12 +9,12 @@ function getHiddenFields(type) {
         estruturas: ['constructionYear', 'remodelYear', 'levels', 'ceilingHeight'],
         ambiente: true, // hide entire section
         gastos: ['stoveType'],
-        amenidadesFilter: ['piscinaclimatizada', 'gimnasio',
-          'salnsocial', 'businesscente/co-working', 'canchadepdel', 'canchadetenissquash', 'readefogatasfirepits',
-          'salndejuegosbillarpingpong', 'juegosinfantilesplayground', 'barlounge', 'ludoteca',
-          'parqueparamascotaspetpark', 'estacindelavadoparamascotaspetwash',
-          'senderosparacaminar', 'readepiatas', 'seguridad247cctv', 'parqueodevisitas', 'lobbyorecepción', 'areaderecepciondedelivery',
-          'plantaelctricadeemergencia', 'pozodeaguapropio', 'wifienreascomunes'
+        amenidadesFilter: ['piscina', 'gimnasio',
+          'salonsocial', 'businesscentercoworking', 'canchadepadel', 'canchadetenissquash', 'areadefogatasfirepits',
+          'salondejuegosbillarpingpong', 'juegosinfantilesplayground', 'barlounge', 'ludoteca',
+          'parqueparamascotaspetpark', 'estaciondelavadoparamascotaspetwash',
+          'senderosparacaminar', 'areadepiatas', 'seguridad247cctv', 'parqueodevisitas', 'lobbyrecepcion', 'areaderecepciondedelivery',
+          'plantaelectricadeemergencia', 'pozodeaguapropio', 'wifienareascomunes'
         ]
       };
     case 'Bodega':
@@ -23,11 +23,11 @@ function getHiddenFields(type) {
         ambiente: ['bedrooms', 'halfBathrooms', 'serviceRoom', 'deck', 'familyroom'],
         gastos: ['stoveType'],
         amenidadesFilter: [
-          'balcn', 'aireacondicionado', 'calentadordeagua', 'cocinaconisla',
+          'balcon', 'aireacondicionado', 'calentadordeagua', 'cocinaconisla',
           'cerradurasinteligentes', 'businesscentercoworking', 'rooftopterraza',
-          'seguridad247cctv', 'parqueodevisitas', 'plantaelctricadeemergencia',
-          'lobbyrecepcin', 'readerecepcindedelivery', 'wifienreascomunes',
-          'elevadoresdealtavelocidad', 'cargadoresparavehculoselctricos'
+          'seguridad247cctv', 'parqueodevisitas', 'plantaelectricadeemergencia',
+          'lobbyrecepcion', 'areaderecepciondedelivery', 'wifienareascomunes',
+          'elevadoresdealtavelocidad', 'cargadoresparavehiculoselectricos'
         ]
       };
     case 'Oficina':
@@ -40,12 +40,12 @@ function getHiddenFields(type) {
         includesHideOptions: ['Áreas verdes', 'Gimnasio'],
         landM2Label: 'Tamaño en mts2',
         amenidadesFilter: [
-          'balcn', 'aireacondicionado', 'calentadordeagua', 'cocinaconisla',
-          'readelavandera', 'cerradurasinteligentes', 'acabadosdelujo',
+          'balcon', 'aireacondicionado', 'calentadordeagua', 'cocinaconisla',
+          'areadelavanderia', 'cerradurasinteligentes', 'acabadosdelujo',
           'sistemadesonidointegrado', 'businesscentercoworking', 'seguridad247cctv',
-          'parqueodevisitas', 'plantaelctricadeemergencia', 'lobbyrecepcin',
-          'readerecepcindedelivery', 'wifienreascomunes', 'elevadoresdealtavelocidad',
-          'cargadoresparavehculoselctricos'
+          'parqueodevisitas', 'plantaelectricadeemergencia', 'lobbyrecepcion',
+          'areaderecepciondedelivery', 'wifienareascomunes', 'elevadoresdealtavelocidad',
+          'cargadoresparavehiculoselectricos'
         ]
       };
     case 'Edificio':
@@ -56,12 +56,12 @@ function getHiddenFields(type) {
         gastos: ['stoveType', 'iusi', 'dayIusi'],
         includesHideOptions: ['Áreas verdes', 'Gimnasio'],
         amenidadesFilter: [
-          'balcn', 'aireacondicionado', 'calentadordeagua', 'cocinaconisla',
-          'readelavandera', 'cerradurasinteligentes', 'acabadosdelujo',
+          'balcon', 'aireacondicionado', 'calentadordeagua', 'cocinaconisla',
+          'areadelavanderia', 'cerradurasinteligentes', 'acabadosdelujo',
           'sistemadesonidointegrado', 'businesscentercoworking', 'seguridad247cctv',
-          'parqueodevisitas', 'plantaelctricadeemergencia', 'lobbyrecepcin',
-          'readerecepcindedelivery', 'wifienreascomunes', 'elevadoresdealtavelocidad',
-          'cargadoresparavehculoselctricos'
+          'parqueodevisitas', 'plantaelectricadeemergencia', 'lobbyrecepcion',
+          'areaderecepciondedelivery', 'wifienareascomunes', 'elevadoresdealtavelocidad',
+          'cargadoresparavehiculoselectricos'
         ]
       };
     default:

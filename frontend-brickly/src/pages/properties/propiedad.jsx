@@ -910,7 +910,7 @@ function Propiedad() {
                 
                                 {data?.expenses && (() => {
                                     const exp = data.expenses;
-                                    const hasExpenses = exp.stoveType || exp.waterService || exp.maintenanceCost || (exp.includes && exp.includes.length > 0) || (exp.iusi && exp.iusi.atday !== false);
+                                    const hasExpenses = exp.stoveType || exp.waterService || exp.maintenanceCost || exp.maintenanceCostGtq || (exp.includes && exp.includes.length > 0) || (exp.iusi && exp.iusi.atday !== false);
                                     return hasExpenses ? (
                                         <Row className='align-items-start gy-2' style={{ marginBottom: '3rem' }}>
                                             <Col xs={12} className='fs-3 mb-2'><i className='fa-sharp fa-regular fa-book fs-2 me-3' style={{ width: 'fit-content' }}></i>Gastos fijos</Col>
@@ -943,6 +943,17 @@ function Propiedad() {
                                                         <div className='d-flex align-items-center flex-wrap'>
                                                             <div className='me-2'>Mantenimiento (USD):</div>
                                                             <div>${exp.maintenanceCost.toLocaleString('en-US')}</div>
+                                                        </div>
+                                                    </div>
+                                                </Col>
+                                            }
+                                            {!!exp.maintenanceCostGtq &&
+                                                <Col lg={6}>
+                                                    <div className="d-flex align-items-start">
+                                                        <i className="fa-solid fa-dot fs-1" style={{ width: '20px', height: '23px', display: 'inline-flex',  alignItems: 'center', justifyContent: 'center' }}></i>
+                                                        <div className='d-flex align-items-center flex-wrap'>
+                                                            <div className='me-2'>Mantenimiento (GTQ):</div>
+                                                            <div>Q{exp.maintenanceCostGtq.toLocaleString('en-US')}</div>
                                                         </div>
                                                     </div>
                                                 </Col>

@@ -22,8 +22,11 @@ export class ExpensesDto {
     @IsObject()
     iusi?: Record<string, any>;
 
-    @IsOptional()
+@IsOptional()
     @IsNumber()
     maintenanceCost?: number;
 
+    @IsOptional()
+    @IsNumber()
+    maintenanceCostGtq?: number;
 }

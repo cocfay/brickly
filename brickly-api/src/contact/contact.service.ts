@@ -190,6 +190,14 @@ export class ContactService {
                           .img-full { width: 100% !important; height: auto !important; }
                           .no-border-mobile { border: none !important; }
                       }
+                      @media (prefers-color-scheme: dark) {
+                          .logo-dark { display: none !important; }
+                          .logo-light { display: block !important; }
+                      }
+                      [data-ogsc] .logo-dark { display: none !important; }
+                      [data-ogsc] .logo-light { display: block !important; }
+                      [data-ogsb] .logo-dark { display: none !important; }
+                      [data-ogsb] .logo-light { display: block !important; }
                   </style>
                   </head>
               <body style="margin:0; padding:0; background-color:#ffffff; font-family:'Plus Jakarta Sans', system-ui, Arial, sans-serif; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
@@ -202,7 +210,8 @@ export class ContactService {
                                   <tr>
                                       <td align="left">
                                           <a href="https://www.bricklyhomes.com" target="_blank">
-                                              <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;">
+                                              <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-dark">
+                                              <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_blanco.png" alt="Brickly Homes" width="150" style="display:none; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-light">
                                           </a>
                                       </td>
                                       <td align="right" style="vertical-align: middle;">
@@ -459,6 +468,14 @@ export class ContactService {
                         .img-full { width: 100% !important; height: auto !important; }
                         .table-data-padding { padding-left: 10px !important; padding-right: 10px !important; }
                     }
+                    @media (prefers-color-scheme: dark) {
+                        .logo-dark { display: none !important; }
+                        .logo-light { display: block !important; }
+                    }
+                    [data-ogsc] .logo-dark { display: none !important; }
+                    [data-ogsc] .logo-light { display: block !important; }
+                    [data-ogsb] .logo-dark { display: none !important; }
+                    [data-ogsb] .logo-light { display: block !important; }
                 </style>
             </head>
             <body style="margin:0; padding:0; background-color:#ffffff; font-family:'Plus Jakarta Sans', system-ui, Arial, sans-serif; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
@@ -473,7 +490,8 @@ export class ContactService {
                                 <tr>
                                     <td align="left">
                                         <a href="https://www.bricklyhomes.com" target="_blank">
-                                            <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;">
+                                            <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-dark">
+                                            <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_blanco.png" alt="Brickly Homes" width="150" style="display:none; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-light">
                                         </a>
                                     </td>
                                     <td align="right" style="vertical-align: middle;">
@@ -774,7 +792,6 @@ export class ContactService {
                             .footer-logo {
                                 text-align: center !important;
                             }
-                            /* Ajuste sutil para móviles en las etiquetas fijas si fuera necesario */
                             .lbl-target {
                                 width: 80px !important;
                             }
@@ -782,6 +799,14 @@ export class ContactService {
                                 padding-right: 10px !important;
                             }
                         }
+                        @media (prefers-color-scheme: dark) {
+                            .logo-dark { display: none !important; }
+                            .logo-light { display: block !important; }
+                        }
+                        [data-ogsc] .logo-dark { display: none !important; }
+                        [data-ogsc] .logo-light { display: block !important; }
+                        [data-ogsb] .logo-dark { display: none !important; }
+                        [data-ogsb] .logo-light { display: block !important; }
                     </style>
                 </head>
                 <body>
@@ -799,7 +824,8 @@ export class ContactService {
                                                 <tr>
                                                     <td align="left" valign="middle">
                                                         <a href="https://www.bricklyhomes.com" target="_blank">
-                                                            <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;">
+                                                            <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-dark">
+                                                            <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_blanco.png" alt="Brickly Homes" width="150" style="display:none; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-light">
                                                         </a>
                                                     </td>
                                                     <td align="right" valign="middle">
@@ -1062,7 +1088,6 @@ export class ContactService {
                             .footer-logo {
                                 text-align: center !important;
                             }
-                            /* Ajuste sutil para móviles en las etiquetas fijas si fuera necesario */
                             .lbl-target {
                                 width: 80px !important;
                             }
@@ -1070,6 +1095,14 @@ export class ContactService {
                                 padding-right: 10px !important;
                             }
                         }
+                        @media (prefers-color-scheme: dark) {
+                            .logo-dark { display: none !important; }
+                            .logo-light { display: block !important; }
+                        }
+                        [data-ogsc] .logo-dark { display: none !important; }
+                        [data-ogsc] .logo-light { display: block !important; }
+                        [data-ogsb] .logo-dark { display: none !important; }
+                        [data-ogsb] .logo-light { display: block !important; }
                     </style>
                 </head>
                 <body>
@@ -1087,7 +1120,8 @@ export class ContactService {
                                                 <tr>
                                                     <td align="left" valign="middle">
                                                         <a href="https://www.bricklyhomes.com" target="_blank">
-                                                            <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;">
+                                                            <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-dark">
+                                                            <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_blanco.png" alt="Brickly Homes" width="150" style="display:none; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-light">
                                                         </a>
                                                     </td>
                                                     <td align="right" valign="middle">

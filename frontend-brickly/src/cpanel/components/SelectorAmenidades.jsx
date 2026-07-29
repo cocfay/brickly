@@ -9,11 +9,11 @@ function SelectorAmenidades({ value = {}, onChange, filter = null }) {
   const getKeyFromName = (name) => {
     return name
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '') // Eliminar caracteres especiales
-      .replace(/[áéíóú]/g, (char) => { // Reemplazar vocales acentuadas
+      .replace(/[áéíóú]/g, (char) => {
         const map = { 'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u' };
         return map[char] || char;
-      });
+      })
+      .replace(/[^a-z0-9]+/g, '');
   };
 
   const handleToggle = (amenidadName) => {

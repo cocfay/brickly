@@ -18,6 +18,9 @@ export class Expenses {
 
   @Prop()
   maintenanceCost: number;
+
+  @Prop()
+  maintenanceCostGtq: number;
 }
 
 export const ExpensesSchema = SchemaFactory.createForClass(Expenses);
