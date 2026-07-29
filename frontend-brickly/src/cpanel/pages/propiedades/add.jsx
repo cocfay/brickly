@@ -810,12 +810,6 @@ function Add() {
     return '$ ' + num.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
 
-  const formatGTQ = (val) => {
-    const num = String(val).replace(/[^0-9]/g, '');
-    if (!num) return '';
-    return 'Q ' + num.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  };
-
   const renderCampo = (seccionId, campoKey, campoConfig, hiddenFields) => {
     const value = secciones[seccionId].datos[campoKey] || (campoKey === 'amenities' ? {} : '');
     

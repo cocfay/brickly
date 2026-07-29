@@ -1,6 +1,33 @@
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import { autoTable } from 'jspdf-autotable';
+import logoNegro from '../../assets/images/logos/logo_negro.png';
+
+let logoImg = null;
+
+const getLogoImage = () => {
+  if (logoImg) return Promise.resolve(logoImg);
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      logoImg = img;
+      resolve(img);
+    };
+    img.onerror = () => resolve(null);
+    img.src = logoNegro;
+  });
+};
+
+const addPdfHeader = async (doc, title) => {
+  const img = await getLogoImage();
+  if (img) {
+    doc.addImage(img, 'PNG', 14, 10, 40, 12);
+  }
+  doc.setFontSize(16);
+  doc.text(title, 62, 18);
+  doc.setFontSize(9);
+  doc.text(`Generado: ${new Date().toLocaleDateString('es-ES')}`, 62, 24);
+};
 
 const downloadBlob = (blob, filename) => {
   const url = URL.createObjectURL(blob);
@@ -172,19 +199,16 @@ const addPdfTable = (doc, title, headers, rows, startY) => {
     body: rows,
     theme: 'grid',
     styles: { fontSize: 9, cellPadding: 2 },
-    headStyles: { fillColor: [0, 122, 255], textColor: 255, fontStyle: 'bold' },
+    headStyles: { fillColor: [33, 37, 41], textColor: 255, fontStyle: 'bold' },
   });
   return doc.lastAutoTable.finalY + 8;
 };
 
-const exportAdminToPDF = (adminData, exclusiveCount, totalLeadsCount, agenciasLeads, agenciasClics) => {
+const exportAdminToPDF = async (adminData, exclusiveCount, totalLeadsCount, agenciasLeads, agenciasClics) => {
   const doc = new jsPDF();
-  doc.setFontSize(16);
-  doc.text('Métricas Administrador', 14, 20);
-  doc.setFontSize(9);
-  doc.text(`Generado: ${new Date().toLocaleDateString('es-ES')}`, 14, 27);
+  await addPdfHeader(doc, 'Métricas Administrador');
 
-  let y = 34;
+  let y = 30;
 
   // KPIs
   const kpiHeaders = ['Métrica', 'Valor'];
@@ -238,16 +262,13 @@ const exportAdminToPDF = (adminData, exclusiveCount, totalLeadsCount, agenciasLe
   return doc;
 };
 
-const exportAgencyToPDF = (metricas, leadsData, agentLeads) => {
+const exportAgencyToPDF = async (metricas, leadsData, agentLeads) => {
   const doc = new jsPDF();
-  doc.setFontSize(16);
-  doc.text('Métricas Agencia', 14, 20);
-  doc.setFontSize(9);
-  doc.text(`Generado: ${new Date().toLocaleDateString('es-ES')}`, 14, 27);
+  await addPdfHeader(doc, 'Métricas Agencia');
 
   const agentProfileViews = Object.values(metricas?.topAgents || {}).reduce((t, a) => t + (a.clickCounter || 0), 0);
   const whatsAppClicks = metricas?.totalClicksWs ?? metricas?.totalClicks ?? 0;
-  let y = 34;
+  let y = 30;
 
   y = addPdfTable(doc, 'KPIs', ['Métrica', 'Valor'], [
     ['Propiedades', String(metricas?.totalProperties ?? 0)],
@@ -283,14 +304,11 @@ const exportAgencyToPDF = (metricas, leadsData, agentLeads) => {
   return doc;
 };
 
-const exportAgentToPDF = (metricas, leadsData, ratingBreakdown) => {
+const exportAgentToPDF = async (metricas, leadsData, ratingBreakdown) => {
   const doc = new jsPDF();
-  doc.setFontSize(16);
-  doc.text('Métricas Agente', 14, 20);
-  doc.setFontSize(9);
-  doc.text(`Generado: ${new Date().toLocaleDateString('es-ES')}`, 14, 27);
+  await addPdfHeader(doc, 'Métricas Agente');
 
-  let y = 34;
+  let y = 30;
 
   y = addPdfTable(doc, 'KPIs', ['Métrica', 'Valor'], [
     ['Propiedades activas', String(metricas?.assignedProperties ?? 0)],
@@ -341,17 +359,17 @@ export const exportAgentToExcelFile = (metricas, leadsData, ratingBreakdown) => 
   downloadBlob(blob, `metricas_agente_${new Date().toISOString().slice(0, 10)}.xlsx`);
 };
 
-export const exportAdminToPDFFile = (adminData, exclusiveCount, totalLeadsCount, agenciasLeads, agenciasClics) => {
-  const doc = exportAdminToPDF(adminData, exclusiveCount, totalLeadsCount, agenciasLeads, agenciasClics);
+export const exportAdminToPDFFile = async (adminData, exclusiveCount, totalLeadsCount, agenciasLeads, agenciasClics) => {
+  const doc = await exportAdminToPDF(adminData, exclusiveCount, totalLeadsCount, agenciasLeads, agenciasClics);
   doc.save(`metricas_admin_${new Date().toISOString().slice(0, 10)}.pdf`);
 };
 
-export const exportAgencyToPDFFile = (metricas, leadsData, agentLeads) => {
-  const doc = exportAgencyToPDF(metricas, leadsData, agentLeads);
+export const exportAgencyToPDFFile = async (metricas, leadsData, agentLeads) => {
+  const doc = await exportAgencyToPDF(metricas, leadsData, agentLeads);
   doc.save(`metricas_agencia_${new Date().toISOString().slice(0, 10)}.pdf`);
 };
 
-export const exportAgentToPDFFile = (metricas, leadsData, ratingBreakdown) => {
-  const doc = exportAgentToPDF(metricas, leadsData, ratingBreakdown);
+export const exportAgentToPDFFile = async (metricas, leadsData, ratingBreakdown) => {
+  const doc = await exportAgentToPDF(metricas, leadsData, ratingBreakdown);
   doc.save(`metricas_agente_${new Date().toISOString().slice(0, 10)}.pdf`);
 };

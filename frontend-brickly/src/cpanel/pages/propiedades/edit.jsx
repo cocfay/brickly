@@ -978,12 +978,6 @@ function Edit() {
     return '$ ' + num.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
 
-  const formatGTQ = (val) => {
-    const num = String(val).replace(/[^0-9]/g, '');
-    if (!num) return '';
-    return 'Q ' + num.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  };
-
   const formatNumber = (val) => {
     const num = String(val).replace(/[^0-9]/g, '');
     if (!num) return '';
