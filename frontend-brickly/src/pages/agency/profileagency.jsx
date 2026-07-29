@@ -61,6 +61,7 @@ function profileAgency() {
     const [loading, setLoading] = useState(true)
     const sliderContainerRef = useRef(null)
     const [agencyId, setAgencyId] = useState(null)
+    const reviewsRef = useRef(null)
 
     const syncSliderAccessibility = () => {
         const root = sliderContainerRef.current
@@ -454,7 +455,13 @@ function profileAgency() {
                                     <div className='mt-1'>
                                         <StarRating rating={ratingAverage} size='16px' />
                                     </div>
-                                    <div className='text-decoration-underline'>{ratingCount} {t(pluralize(ratingCount, 'Reseña', 'Reseñas'), pluralize(ratingCount, 'Review', 'Reviews'))}</div>
+                                    <div
+                                        className='text-decoration-underline'
+                                        style={{ cursor: 'pointer' }}
+                                        onClick={() => reviewsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                                    >
+                                        {ratingCount} {t(pluralize(ratingCount, 'Reseña', 'Reseñas'), pluralize(ratingCount, 'Review', 'Reviews'))}
+                                    </div>
                                 </div>
                                 <div style={{ fontSize: 'clamp(16px, 3vw, 18px)' }}>{agente.agentInfo?.description}</div>
                                 <div className="d-flex gap-5 mt-3 flex-column" style={{ fontSize: '16px' }}>
@@ -808,7 +815,7 @@ function profileAgency() {
                         </div>
                     </div>
                     <div style={{ marginTop: '2rem', marginBottom: 'clamp(5rem, 10vw, 9rem)' }}>
-                        <div className='lh-sm mb-3 mb-lg-0' style={{ fontSize: 'clamp(30px, 3vw, 46px)' }}>{t('Reseñas recientes', 'Recent reviews')}</div>
+                        <div ref={reviewsRef} className='lh-sm mb-3 mb-lg-0' style={{ fontSize: 'clamp(30px, 3vw, 46px)' }}>{t('Reseñas recientes', 'Recent reviews')}</div>
                         <div className='mb-5 d-flex align-items-baseline gap-4' style={{ fontSize: '20px' }}>
                             <div className='mt-1'>
                                 <StarRating rating={ratingAverage} size='16px' />
