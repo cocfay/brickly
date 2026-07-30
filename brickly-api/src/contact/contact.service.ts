@@ -1726,6 +1726,57 @@ export class ContactService {
     };
     }
 
+  async getAgenciesProspectos() {
+    const result = await this.userModel.aggregate([
+      { $match: { roles: 'agencia' } },
+
+      { $graphLookup: {
+          from: 'users',
+          startWith: '$_id',
+          connectFromField: '_id',
+          connectToField: 'parentId',
+          as: 'descendants',
+      }},
+
+      { $addFields: {
+          allUserIds: { $concatArrays: [['$_id'], '$descendants._id'] }
+      }},
+
+      { $lookup: {
+          from: 'leadforms',
+          let: { userIds: '$allUserIds' },
+          pipeline: [
+            { $match: { $expr: { $in: ['$agentId', '$$userIds'] } } },
+            { $count: 'total' }
+          ],
+          as: 'leadStats'
+      }},
+
+      { $addFields: {
+          totalLeads: { $ifNull: [{ $arrayElemAt: ['$leadStats.total', 0] }, 0] },
+          totalClicksWs: {
+            $add: [
+              { $ifNull: ['$clickCounterWs', 0] },
+              { $sum: { $map: { input: '$descendants', as: 'd', in: { $ifNull: ['$$d.clickCounterWs', 0] } } } }
+            ]
+          },
+          prospectos: {
+            $add: [
+              { $ifNull: ['$clickCounterWs', 0] },
+              { $sum: { $map: { input: '$descendants', as: 'd', in: { $ifNull: ['$$d.clickCounterWs', 0] } } } },
+              { $ifNull: [{ $arrayElemAt: ['$leadStats.total', 0] }, 0] }
+            ]
+          }
+      }},
+
+      { $project: { _id: 0, id: { $toString: '$_id' }, name: 1, totalLeads: 1, totalClicksWs: 1, prospectos: 1 }},
+
+      { $sort: { prospectos: -1 } },
+    ]);
+
+    return result;
+  }
+
   async getAgencyClicksRanking() {
     const [result] = await this.userModel.aggregate([
         {

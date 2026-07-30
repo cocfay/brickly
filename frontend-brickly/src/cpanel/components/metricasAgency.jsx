@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { getMetricasAgency, getTotalLeads } from '../services/metricas';
+import { getAgentLimit } from '../services/agentes';
 import { API_URL, getCurrentUser } from '../../services/authService';
 import { getLogoUrl } from '../../services/logoService';
 import diamond from '../../assets/images/iconos/diamond.png';
@@ -101,6 +102,7 @@ export default function MetricasAgency() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [limitInfo, setLimitInfo] = useState(null);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -156,6 +158,12 @@ export default function MetricasAgency() {
       } else {
         setError(result.error);
       }
+
+      const limitResult = await getAgentLimit();
+      if (limitResult.success) {
+        setLimitInfo(limitResult.data);
+      }
+
       setLoading(false);
     };
     fetchData();
@@ -745,6 +753,22 @@ export default function MetricasAgency() {
                   <div className="d-flex flex-column align-items-center justify-content-center text-muted" style={{ minHeight: '200px', fontSize: '14px' }}>
                     <i className="fa-regular fa-user mb-2" style={{ fontSize: '24px', opacity: 0.5 }}></i>
                     <span>No tienes agentes</span>
+                    {limitInfo && !limitInfo.canCreate && (
+                      <button
+                        className="btn btn-sm mt-3 d-inline-flex align-items-center gap-2 px-3 py-2"
+                        style={{
+                          backgroundColor: '#007aff',
+                          color: '#fff',
+                          borderRadius: '10px',
+                          fontSize: '13px',
+                          fontWeight: '500',
+                          border: 'none',
+                        }}
+                        onClick={() => navigate('/precios')}
+                      >
+                        <i className="fa-solid fa-arrow-up"></i> UPGRADE
+                      </button>
+                    )}
                   </div>
                 );
               }

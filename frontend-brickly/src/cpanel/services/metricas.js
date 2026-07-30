@@ -208,6 +208,36 @@ export const getTotalExclusiveProperties = async () => {
   }
 };
 
+export const getAgenciesProspectos = async () => {
+  try {
+    const token = getToken();
+    if (!token) throw new Error('No hay sesión activa');
+
+    const response = await fetch(`${API_URL}/contact/agency/prospectos`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        handleAuthError();
+        throw new Error('Sesión expirada');
+      }
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || `Error ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+
+  } catch (error) {
+    console.error('Error obteniendo prospectos:', error);
+    return { success: false, error: error.message };
+  }
+};
+
 export const getTotalLeadsPublic = async () => {
   try {
     const response = await fetch(`${API_URL}/contact/agency/top-leads`, {

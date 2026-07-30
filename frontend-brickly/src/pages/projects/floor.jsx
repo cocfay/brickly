@@ -152,7 +152,7 @@ function Floor() {
             <Row className="g-5">
                 {/* ── Columna izquierda ── */}
                 <Col lg={4}>
-                    {/* Lista de pisos/modelos */}
+                    {/* Lista de pisos/modelos 
                     <div
                         className={isLg ? "scroll-moderno pe-3" : "d-flex gap-3 pb-2 scroll-moderno-horizontal"}
                         style={isLg ? { maxHeight: '550px', overflowY: 'auto' } : { overflowX: 'auto', flexWrap: 'nowrap' }}
@@ -175,10 +175,10 @@ function Floor() {
                                     <div className="text-muted" style={{ fontSize: '14px' }}>{piso.unidad}</div>
                                     <div className="d-flex align-items-center justify-content-between my-3">
                                         <div className="fw-bold mt-1" style={{  }}>{piso.precio}</div>
-                                        {/* <div className="text-muted d-flex align-items-center gap-1 mt-1" style={{ fontSize: '12px' }}>
+                                         <div className="text-muted d-flex align-items-center gap-1 mt-1" style={{ fontSize: '12px' }}>
                                             <i className="fa-duotone fa-solid fa-key me-1"></i>
                                             {piso.disponibles} unidades disponibles
-                                        </div> */}
+                                        </div> 
                                     </div>
                                     <hr />
                                     <div className="d-flex justify-content-around gap-3 mt-2" style={{ fontSize: '14px' }}>
@@ -192,6 +192,7 @@ function Floor() {
                         </Link>
                         ))}
                     </div>
+                    */}
 
                     {/* Desarrollado por */}
                     <div className="p-3 my-5">

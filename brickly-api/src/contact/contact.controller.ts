@@ -52,6 +52,11 @@ export class ContactController {
   getclickwstop() {
     return this.contactService.getAgencyWhatsappClicksRanking();
   }
+  @Get('agency/prospectos')
+  getProspectos() {
+    return this.contactService.getAgenciesProspectos();
+  }
+
   @Get('agency/top-click')
   getclicktop() {
     return this.contactService.getAgencyClicksRanking();

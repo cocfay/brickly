@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { API_URL } from '../../services/authService';
-import { getMetricasAdmin, getNextExpiring, getTopAgencyLeads, getTopAgencyClicksWs, getTotalExclusiveProperties, getTotalLeadsPublic } from '../services/metricas';
+import { getMetricasAdmin, getNextExpiring, getTopAgencyLeads, getTopAgencyClicksWs, getAgenciesProspectos, getTotalExclusiveProperties, getTotalLeadsPublic } from '../services/metricas';
 import { getLogoUrl } from '../../services/logoService';
 import DateRangeFilter from './DateRangeFilter';
 import { exportAdminToExcelFile, exportAdminToPDFFile } from '../services/exportService';
@@ -83,6 +83,19 @@ export default function MetricasAdmin() {
   const [totalLeadsCount, setTotalLeadsCount] = useState(0);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [showProspectos, setShowProspectos] = useState(false);
+  const [prospectosData, setProspectosData] = useState([]);
+  const [loadingProspectos, setLoadingProspectos] = useState(false);
+
+  const loadProspectos = async () => {
+    setLoadingProspectos(true);
+    const res = await getAgenciesProspectos();
+    if (res.success) {
+      setProspectosData(res.data);
+    }
+    setLoadingProspectos(false);
+    setShowProspectos(true);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -284,6 +297,14 @@ export default function MetricasAdmin() {
               title="Exportar a PDF"
             >
               <i className="fa-regular fa-file-pdf me-1"></i>PDF
+            </button>
+            <button
+              className="btn btn-sm btn-outline-dark border-light-subtle"
+              style={{ fontSize: '11px', borderRadius: '8px' }}
+              onClick={loadProspectos}
+              title="Ver prospectos por agencia"
+            >
+              <i className="fa-regular fa-list me-1"></i>Prospectos
             </button>
           </div>
         </div>
@@ -723,6 +744,63 @@ export default function MetricasAdmin() {
       </div>
 
     </div>
+
+      {/* MODAL PROSPECTOS */}
+      {showProspectos && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1050,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }} onClick={() => setShowProspectos(false)}>
+          <div style={{
+            background: '#fff', borderRadius: '16px', padding: '24px',
+            width: '90%', maxWidth: '700px', maxHeight: '80vh', overflow: 'auto',
+          }} onClick={e => e.stopPropagation()}>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h5 className="m-0 fw-bold">Prospectos por agencia</h5>
+              <button className="btn-close" onClick={() => setShowProspectos(false)}></button>
+            </div>
+            {loadingProspectos ? (
+              <div className="text-center py-5">
+                <div className="spinner-border text-dark" role="status"></div>
+                <p className="mt-2 text-muted">Cargando...</p>
+              </div>
+            ) : (
+              <table className="table table-hover table-sm">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Agencia</th>
+                    <th className="text-end">Leads</th>
+                    <th className="text-end">WA Clicks</th>
+                    <th className="text-end">Prospectos</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {prospectosData.map((a, i) => (
+                    <tr key={a.id}>
+                      <td className="text-muted">{i + 1}</td>
+                      <td className="fw-semibold">{a.name}</td>
+                      <td className="text-end">{a.totalLeads}</td>
+                      <td className="text-end">{a.totalClicksWs}</td>
+                      <td className="text-end fw-bold">{a.prospectos}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="fw-bold">
+                    <td></td>
+                    <td>Total</td>
+                    <td className="text-end">{prospectosData.reduce((s, a) => s + a.totalLeads, 0)}</td>
+                    <td className="text-end">{prospectosData.reduce((s, a) => s + a.totalClicksWs, 0)}</td>
+                    <td className="text-end">{prospectosData.reduce((s, a) => s + a.prospectos, 0)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
