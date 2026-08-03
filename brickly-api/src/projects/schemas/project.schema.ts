@@ -1,6 +1,6 @@
 // schemas/project.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export type ProjectDocument = Project & Document;
 
@@ -21,6 +21,54 @@ export class Project {
   @Prop()
   date_project?: Date;
 
+  // URL amigable única para visualización pública
+  @Prop({ type: String, required: false, unique: true, sparse: true })
+  projectSlug?: string;
+
+  // Tipo de proyecto (Casa, Apartamento, Condominio, etc.)
+  @Prop()
+  type?: string;
+
+  // Modalidad (Venta / Alquiler)
+  @Prop()
+  mode?: string;
+
+  // Precio desde en quetzales
+  @Prop()
+  priceFromQ?: number;
+
+  // Tasa dólar
+  @Prop()
+  rate?: number;
+
+  // Precio desde en dólares
+  @Prop()
+  priceFromUSD?: number;
+
+  // Link del tour 360
+  @Prop()
+  tour360?: string;
+
+  // Ubicación y entorno
+  @Prop({ type: Object })
+  location?: Record<string, any>;
+
+  // Áreas y dimensiones
+  @Prop({ type: Object })
+  areas?: Record<string, any>;
+
+  // Estructura
+  @Prop({ type: Object })
+  estructura?: Record<string, any>;
+
+  // Amenidades (objeto de claves)
+  @Prop({ type: Object })
+  amenities?: Record<string, any>;
+
+  // Modelos del proyecto (Apartamento / Bodega, con campos según tipo)
+  @Prop({ type: [{ type: Object }], default: [] })
+  models?: Record<string, any>[];
+
   // imagen principal (opcional)
   @Prop()
   mainImage?: string;
@@ -33,8 +81,8 @@ export class Project {
   images?: string[];
 
   // opcional: para relacionarlo con usuario
-  @Prop({ required: true })
-  userId?: string;
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  userId?: any;
 
   @Prop({ default: 'draft' })
   status!: string;

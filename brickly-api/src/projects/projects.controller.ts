@@ -8,25 +8,30 @@ import {
   Param,
   Delete,
   Req,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Role } from '../auth/roles.enum';
 
 @Controller('projects')
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN, Role.ARQUITECTO, Role.DESARROLLADORA)
   @Post()
   create(@Req() req, @Body() dto: CreateProjectDto) {
     return this.projectsService.create(req.user.userId, dto);
   }
 
   @Get()
-  findAll() {
-    return this.projectsService.findAll();
+  findAll(@Query() query: any) {
+    return this.projectsService.findAll(query);
   }
 
   @Get('user/:userId')
@@ -39,6 +44,8 @@ export class ProjectsController {
     return this.projectsService.findOne(id);
   }
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN, Role.ARQUITECTO, Role.DESARROLLADORA)
   @Patch(':id')
   update(
     @Param('id') id: string,
@@ -47,9 +54,10 @@ export class ProjectsController {
     return this.projectsService.update(id, body);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN, Role.ARQUITECTO, Role.DESARROLLADORA)
   @Delete(':id')
   delete(@Param('id') id: string, @Req() req) {
-    return this.projectsService.delete(id, req.user.userId);
+    return this.projectsService.delete(id, req.user);
   }
 }

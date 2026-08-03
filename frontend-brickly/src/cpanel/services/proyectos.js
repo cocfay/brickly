@@ -82,6 +82,22 @@ export const getProyectos = async (params = {}) => {
 };
 
 /**
+ * Obtener proyectos públicos (publicados) — sin autenticación
+ * GET /projects?status=published
+ */
+export const getProyectosPublicos = async (params = {}) => {
+  try {
+    const query = new URLSearchParams({ status: 'published', ...params }).toString();
+    const response = await fetch(`${API_URL}/projects?${query}`);
+
+    const data = await handleResponse(response);
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
+/**
  * Obtener un proyecto por ID
  * GET /projects/:projectId
  */
@@ -335,6 +351,51 @@ export const uploadProyectosDirect = async ({ userId, projectId, desktopFile, mo
 
     const data = await response.json();
     return { success: true, data };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Subir fotos de un MODELO de proyecto directamente a la carpeta del arquitecto
+ * POST /api/upload-proyectos-direct.php
+ *
+ * @param {string} userId - ID del arquitecto/usuario
+ * @param {string} projectId - ID del proyecto
+ * @param {string} modelId - ID temporal del modelo (para evitar colisiones)
+ * @param {File[]} files - Archivos de imagen del modelo
+ * @returns {Object} { success, paths }
+ */
+export const uploadModeloFotos = async ({ userId, projectId, modelId, files = [] }) => {
+  try {
+    const convertPromises = files.map((file, idx) =>
+      convertImageToWebP(file, `_model_${idx}`)
+    );
+    const converted = await Promise.all(convertPromises);
+
+    const base = import.meta.env.BASE_URL || '/';
+    const cleanBase = base.endsWith('/') ? base.slice(0, -1) : base;
+    const url = `${cleanBase}/api/upload-proyectos-direct.php`;
+
+    const formData = new FormData();
+    formData.append('userId', userId);
+    formData.append('projectId', projectId);
+    formData.append('modelId', modelId);
+    converted.forEach(file => formData.append('fotos[]', file));
+
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `Error ${response.status}`);
+    }
+
+    const data = await response.json();
+    const paths = data?.files?.models?.[modelId] || [];
+    return { success: true, paths };
   } catch (error) {
     return { success: false, error: error.message };
   }

@@ -183,11 +183,9 @@ function CpProyectos() {
                 orderable: false,
                 searchable: false,
                 render: (row) => {
-                    const editBtn = !isAdmin
-                        ? `<a href="#" class="text-body edit-proyecto" data-id="${row._id}">
+                    const editBtn = `<a href="#" class="text-body edit-proyecto" data-id="${row._id}">
                              <i class="fa-solid fa-pen-to-square"></i>
-                           </a>`
-                        : '';
+                           </a>`;
                     return `
                         <div class="d-flex gap-3 justify-content-center">
                             <a href="#" class="text-body view-proyecto" data-id="${row._id}">
@@ -461,8 +459,6 @@ function CpProyectos() {
 
     // Click handlers: Editar / Eliminar individual (fila)
     useEffect(() => {
-        const isAdmin = currentUser?.roles?.includes("admin");
-
         const handleEdit = function(e) {
             e.preventDefault();
             navigate(`/cpanel/proyectos/edit/${this.dataset.id}`);
@@ -480,14 +476,6 @@ function CpProyectos() {
                 showAlertMessage('danger', result.error || 'Error al eliminar.');
             }
         };
-
-        // Admin solo puede eliminar, no editar
-        if (isAdmin) {
-            $(tableRef.current).on('click', '.delete-proyecto', handleDelete);
-            return () => {
-                $(tableRef.current).off('click', '.delete-proyecto', handleDelete);
-            };
-        }
 
         $(tableRef.current).on('click', '.edit-proyecto', handleEdit);
         $(tableRef.current).on('click', '.delete-proyecto', handleDelete);
@@ -514,12 +502,10 @@ function CpProyectos() {
     return (
         <Container>
             <div className='fs-1'>{isAdmin ? 'Proyectos' : 'Mis Proyectos'}</div>
-            {!isAdmin && (
-                <Link to="/cpanel/proyectos/add" className='mt-4 d-flex gap-1 align-items-center text-body mb-5'>
-                    <i className="fa-solid fa-plus bg-black rounded-circle text-white" style={{ fontSize: '10px', width: '20px', height: '20px', display: 'grid', placeItems: 'center', paddingRight: '1px' }}></i>
-                    <span>Crear proyecto</span>
-                </Link>
-            )}
+            <Link to="/cpanel/proyectos/add" className='mt-4 d-flex gap-1 align-items-center text-body mb-5'>
+                <i className="fa-solid fa-plus bg-black rounded-circle text-white" style={{ fontSize: '10px', width: '20px', height: '20px', display: 'grid', placeItems: 'center', paddingRight: '1px' }}></i>
+                <span>Crear proyecto</span>
+            </Link>
 
             {showAlert && (
                 <Alert variant={alertVariant} onClose={() => setShowAlert(false)} dismissible className="position-fixed bottom-0 end-0 m-3 shadow-sm" style={{ zIndex: 9999 }}>

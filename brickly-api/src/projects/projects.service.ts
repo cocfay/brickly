@@ -1,5 +1,8 @@
 // projects.service.ts
-import { Injectable, NotFoundException  } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Project, ProjectDocument } from './schemas/project.schema';
@@ -13,16 +16,28 @@ export class ProjectsService {
   ) {}
 
   async create(userId: string, dto: CreateProjectDto) {
+    const models = this.assignModelSlugs(dto.models);
     const project = new this.projectModel({
       ...dto,
+      models,
       userId,
     });
+
+    project.projectSlug = await this.ensureUniqueProjectSlug(
+      dto.projectSlug || this.getProjectSlugSource(project),
+    );
 
     return project.save();
   }
 
-  async findAll() {
-    return this.projectModel.find().sort({ createdAt: -1 });
+  async findAll(query: any = {}) {
+    const filters: any = {};
+
+    if (query?.status && query.status !== 'all') {
+      filters.status = query.status;
+    }
+
+    return this.projectModel.find(filters).sort({ createdAt: -1 });
   }
 
   async findByUser(userId: string) {
@@ -30,20 +45,73 @@ export class ProjectsService {
   }
 
   async findOne(id: string) {
-    return this.projectModel.findById(id);
+    let project = await this.projectModel.findOne({
+      projectSlug: this.normalizeProjectSlug(id),
+    });
+
+    if (!project && this.isObjectId(id)) {
+      project = await this.projectModel.findById(id);
+    }
+
+    if (!project) {
+      throw new NotFoundException('Proyecto no encontrado');
+    }
+
+    return project;
   }
 
-  async delete(id: string, userId: string) {
-    return this.projectModel.findOneAndDelete({
-      _id: id,
-      userId,
-    });
+  async delete(id: string, user?: any) {
+    const isAdmin = user?.roles?.includes('admin');
+
+    const project = isAdmin
+      ? await this.projectModel.findOneAndDelete({ _id: id })
+      : await this.projectModel.findOneAndDelete({
+          _id: id,
+          userId: user?.userId,
+        });
+
+    if (!project) {
+      throw new NotFoundException('Proyecto no encontrado');
+    }
+
+    return project;
   }
+
   async update(id: string, data: any) {
+    const currentProject = await this.projectModel.findById(id);
+    if (!currentProject) {
+      throw new NotFoundException('Proyecto no encontrado');
+    }
+
+    const updateData: any = { ...data };
+
+    if (Array.isArray(data.models)) {
+      updateData.models = this.assignModelSlugs(data.models);
+    }
+
+    const incomingTitle = data.title;
+    const currentTitle = currentProject.title;
+    if (data.projectSlug) {
+      updateData.projectSlug = await this.ensureUniqueProjectSlug(
+        data.projectSlug,
+        id,
+      );
+    } else if (incomingTitle && incomingTitle !== currentTitle) {
+      updateData.projectSlug = await this.ensureUniqueProjectSlug(
+        incomingTitle,
+        id,
+      );
+    } else if (!currentProject.projectSlug) {
+      updateData.projectSlug = await this.ensureUniqueProjectSlug(
+        this.getProjectSlugSource(currentProject),
+        id,
+      );
+    }
+
     const project = await this.projectModel.findByIdAndUpdate(
       id,
       {
-        $set: data,
+        $set: updateData,
       },
       {
         new: true,
@@ -55,5 +123,111 @@ export class ProjectsService {
     }
 
     return project;
+  }
+
+  // ─── Slug helpers ──────────────────────────────────────────────────────────
+
+  private getProjectSlugSource(project: any) {
+    return project?.title || project?.address || 'proyecto';
+  }
+
+  private normalizeProjectSlug(value: string) {
+    const base = String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .replace(/-{2,}/g, '-')
+      .slice(0, 100)
+      .replace(/-+$/g, '');
+
+    const slug = base || 'proyecto';
+    return this.reservedProjectSlugs.has(slug) ? `${slug}-proyecto` : slug;
+  }
+
+  private reservedProjectSlugs = new Set([
+    'add',
+    'edit',
+    'view',
+    'favoritos',
+    'proyecto',
+    'proyectos',
+    'api',
+  ]);
+
+  private isObjectId(value: string) {
+    return /^[a-f\d]{24}$/i.test(value);
+  }
+
+  private async ensureUniqueProjectSlug(value: string, projectId?: string) {
+    const baseSlug = this.normalizeProjectSlug(value);
+    let candidate = baseSlug;
+    let suffix = 2;
+
+    while (
+      await this.projectModel.exists({
+        projectSlug: candidate,
+        ...(projectId ? { _id: { $ne: projectId } } : {}),
+      })
+    ) {
+      candidate = `${baseSlug}-${suffix}`;
+      suffix += 1;
+    }
+
+    return candidate;
+  }
+
+  // ─── Model slug helpers ────────────────────────────────────────────────
+
+  /**
+   * Asigna modelSlug a cada modelo que no lo tenga, garantizando unicidad
+   * dentro del arreglo de modelos del proyecto.
+   */
+  private assignModelSlugs(models?: any[]) {
+    const list = models || [];
+    return list.map((m, index) => {
+      const source = m?.modelSlug || m?.nombre || `modelo-${index + 1}`;
+      const modelSlug = this.ensureUniqueModelSlug(list, source, index);
+      return { ...(m || {}), modelSlug };
+    });
+  }
+
+  private normalizeModelSlug(value: string) {
+    const base = String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .replace(/-{2,}/g, '-')
+      .slice(0, 100)
+      .replace(/-+$/g, '');
+
+    return base || 'modelo';
+  }
+
+  private ensureUniqueModelSlug(
+    models: any[],
+    value: string,
+    excludeIndex = -1,
+  ) {
+    const baseSlug = this.normalizeModelSlug(value);
+    let candidate = baseSlug;
+    let suffix = 2;
+    const taken = new Set<string>();
+
+    (models || []).forEach((m, i) => {
+      if (i !== excludeIndex && m?.modelSlug) {
+        taken.add(m.modelSlug);
+      }
+    });
+
+    while (taken.has(candidate)) {
+      candidate = `${baseSlug}-${suffix}`;
+      suffix += 1;
+    }
+
+    return candidate;
   }
 }

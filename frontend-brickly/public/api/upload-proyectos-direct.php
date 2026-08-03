@@ -13,8 +13,10 @@
  *   - desktop: File (opcional)
  *   - mobile: File (opcional)
  *   - gallery[]: File[] (opcional, múltiples)
+ *   - modelId: string (opcional, para fotos de un modelo)
+ *   - fotos[]: File[] (opcional, fotos del modelo indicado en modelId)
  *
- * Respuesta: JSON { success: true, files: { mainImage: "...", mobileImage: "...", images: [...] } }
+ * Respuesta: JSON { success: true, files: { mainImage: "...", mobileImage: "...", images: [...], models: { [modelId]: [...] } } }
  */
 
 header('Content-Type: application/json');
@@ -73,7 +75,8 @@ try {
     $finalFiles = [
         'mainImage' => null,
         'mobileImage' => null,
-        'images' => []
+        'images' => [],
+        'models' => []
     ];
     
     // --- PROCESAR IMAGEN PRINCIPAL (desktop) ---
@@ -143,8 +146,44 @@ try {
         }
     }
     
+    // --- PROCESAR FOTOS DE MODELO (fotos[] + modelId) ---
+    $modelId = $_POST['modelId'] ?? null;
+    if ($modelId && isset($_FILES['fotos'])) {
+        $fotosFiles = $_FILES['fotos'];
+
+        if (!is_array($fotosFiles['name'])) {
+            $fotosFiles = [
+                'name' => [$fotosFiles['name']],
+                'type' => [$fotosFiles['type']],
+                'tmp_name' => [$fotosFiles['tmp_name']],
+                'error' => [$fotosFiles['error']],
+                'size' => [$fotosFiles['size']]
+            ];
+        }
+
+        $finalFiles['models'][$modelId] = [];
+        $imgIndex = 0;
+        foreach ($fotosFiles['name'] as $index => $name) {
+            if ($fotosFiles['error'][$index] !== UPLOAD_ERR_OK) continue;
+
+            $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+            $allowedExts = ['webp'];
+            if (!in_array($ext, $allowedExts)) continue;
+
+            $destFileName = $filePrefix . '_' . $modelId . '_' . $imgIndex . '.webp';
+            $destPath = $destDir . '/' . $destFileName;
+
+            if (move_uploaded_file($fotosFiles['tmp_name'][$index], $destPath)) {
+                $finalFiles['models'][$modelId][] = '/uploads/proye_arqui/' . $userId . '/' . $destFileName;
+                $imgIndex++;
+            }
+        }
+    }
+
     // Validar que al menos se haya subido una imagen
-    if (!$finalFiles['mainImage'] && !$finalFiles['mobileImage'] && empty($finalFiles['images'])) {
+    $hasProjectImages = $finalFiles['mainImage'] || $finalFiles['mobileImage'] || !empty($finalFiles['images']);
+    $hasModelPhotos = !empty($finalFiles['models']);
+    if (!$hasProjectImages && !$hasModelPhotos) {
         throw new Exception('No se subió ninguna imagen válida');
     }
     

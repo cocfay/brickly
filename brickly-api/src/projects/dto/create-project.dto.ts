@@ -1,5 +1,12 @@
 // dto/create-project.dto.ts
-import { IsString, IsOptional, IsArray, IsDate } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsArray,
+  IsDate,
+  IsNumber,
+  IsObject,
+} from 'class-validator';
 
 export class CreateProjectDto {
   @IsString()
@@ -19,6 +26,54 @@ export class CreateProjectDto {
   @IsOptional()
   @IsDate()
   date_project?: Date;
+
+  @IsOptional()
+  @IsString()
+  projectSlug?: string;
+
+  @IsOptional()
+  @IsString()
+  type?: string;
+
+  @IsOptional()
+  @IsString()
+  mode?: string;
+
+  @IsOptional()
+  @IsNumber()
+  priceFromQ?: number;
+
+  @IsOptional()
+  @IsNumber()
+  rate?: number;
+
+  @IsOptional()
+  @IsNumber()
+  priceFromUSD?: number;
+
+  @IsOptional()
+  @IsString()
+  tour360?: string;
+
+  @IsOptional()
+  @IsObject()
+  location?: Record<string, any>;
+
+  @IsOptional()
+  @IsObject()
+  areas?: Record<string, any>;
+
+  @IsOptional()
+  @IsObject()
+  estructura?: Record<string, any>;
+
+  @IsOptional()
+  @IsObject()
+  amenities?: Record<string, any>;
+
+  @IsOptional()
+  @IsArray()
+  models?: any[];
 
   @IsOptional()
   @IsString()

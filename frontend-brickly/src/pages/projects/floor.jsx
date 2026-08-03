@@ -1,103 +1,37 @@
 import { useState, useEffect } from "react";
 import { Container, Row, Col, Breadcrumb, Button, Form } from "react-bootstrap";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { FormattedMessage } from "react-intl";
 import GLightbox from 'glightbox';
 import 'glightbox/dist/css/glightbox.min.css';
 
-import img0  from '../../assets/images/proyecto/edificio.png';
-import M2  from '../../assets/images/proyecto/m1.png';
-import M3  from '../../assets/images/proyecto/m2.png';
-import M4  from '../../assets/images/proyecto/m3.png';
-import M5  from '../../assets/images/proyecto/m4.png';
-import img9  from '../../assets/images/imagenes_de_casas/img9.webp';
-import Casa1 from '../../assets/images/proyecto/T3.png';
-import m1  from '../../assets/images/proyecto/Modelo1.png';
-import m2 from '../../assets/images/proyecto/Modelo2.png';
-import m3  from '../../assets/images/proyecto/Modelo3.png';
-
 import tour    from '../../assets/images/iconos/IconoTour.png';
 import arrow   from '../../assets/images/iconos/arrow.png';
-import company from '../../assets/images/proyecto/logo.png';
 import { useT } from '../../hooks/useT';
+import { getProyectoById } from '../../cpanel/services/proyectos';
+import { enriquecerProyecto, MODELO_FALLBACK_IMG } from '../../utils/proyectosUtils';
+import { getModelPath } from '../../utils/projectRoutes';
 
-// ── Datos hardcodeados ──────────────────────────────────────────
-const MODELO = {
-    nombre: 'Modelo Horizonte',
-    piso: 'Piso 0',
-    descripcion: 'El Modelo Horizonte redefine el concepto de habitar Guatemala. Con 210 metros cuadrados cuidadosamente diseñados, este apartamento de tres recámaras con habitación de servicio no es solo un espacio: es una experiencia sensorial que equilibra la calma del altiplano con la energía vibrante de la Zona Viva. La sala principal se integra al comedor mediante una pared de espejos biselados que duplica la sensación de amplitud y multiplica las vistas. El piso es de porcelanato rectificado en tono humo que imita la piedra volcánica, mientras que el plafón incorpora iluminación LED regulable con escenas preprogramadas: Amanecer, Cocktail y Noche estrellada. La cocina, abierta pero discreta, está equipada con isla central de cuarzo blanco, grifería negra mate, electrodomésticos integrados Bosch y una despensa oculta con sistema de organización vertical. Una barra desayunadora con asientos de cuero respira hacia el área social, permitiendo conversar mientras se cocina con vista a los volcanes.',
-    camas: 4,
-    banos: 5,
-    parqueo: 3,
-    area: '890 m²',
-    distribucion: {
-        totalAmbientes: 5,
-        parqueo: 2,
-        areaLavanderia: 'Al aire libre',
-        salaTaller: 'Sala de Principal',
-        habitacionServicio: 'Con baño propio',
-        numeroPisos: 6,
-        estudiosOPPA: 51,
-    },
-    dimensiones: {
-        areaConstruccion: '475',
-        capacidadAlmacenamiento: '5',
-    },
-    precio: '$1,350,000',
-    unidad: 'Torre 1 (Descripción)',
-};
-
-const PISOS = [
-    {
-        piso: 'Piso 2',
-        nombre: 'Modelo Horizonte',
-        unidad: 'Torre 1 - Apartamento B3039',
-        precio: '$1,350,000',
-        disponibles: 14,
-        area: '460 m²',
-        camas: 3,
-        banos: 2,
-        img: m1,
-    },
-    {
-        piso: 'Piso 4',
-        nombre: 'Modelo Horizonte',
-        unidad: 'Torre 3 - Apartamento 1001A',
-        precio: '$1,450,000',
-        disponibles: 8,
-        area: '460 m²',
-        camas: 3,
-        banos: 2,
-        img: m2,
-    },
-    {
-        piso: 'Piso 6',
-        nombre: 'Modelo Horizonte',
-        unidad: 'Torre 4 - Apartamento C4837',
-        precio: '$1,550,000',
-        disponibles: 5,
-        area: '460 m²',
-        camas: 6,
-        banos: 4,
-        img: m3,
-    },
-];
-
-const MAS_MODELOS = [
-    { nombre: 'Modelo Horizonte', precio: '$1,350,000', area: '480 m²', camas: 3, banos: 2, img: m1 },
-    { nombre: 'Modelo Ópalo',     precio: '$1,445,000', area: '495 m²', camas: 3, banos: 2, img: m2 },
-    { nombre: 'Modelo Horizonte', precio: '$1,350,000', area: '480 m²', camas: 3, banos: 2, img: m3 },
-];
-
-// Galería principal
-const GALERIA = [m1, M2, M3, M4, M5];
+// Fila tipo "label: valor" para las secciones de datos
+function BulletRow({ label, value }) {
+    return (
+        <Col md={6}>
+            <div className="d-flex align-items-center gap-1">
+                <span className="fs-2 lh-1">•</span>
+                <span><strong>{label}:</strong> {value || '—'}</span>
+            </div>
+        </Col>
+    );
+}
 
 function Floor() {
-    const [mainImg, setMainImg] = useState(GALERIA[0]);
-    const [isLg, setIsLg] = useState(window.innerWidth >= 992);
     const t = useT();
-    const location = useLocation();
-    const apartamentoId = location.state?.apartamentoId ?? 'torre-platino';
+    const { id, modelSlug } = useParams();
+    const [project, setProject] = useState(null);
+    const [modelo, setModelo] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [mainImg, setMainImg] = useState(MODELO_FALLBACK_IMG);
+    const [isLg, setIsLg] = useState(window.innerWidth >= 992);
 
     useEffect(() => {
         const handleResize = () => setIsLg(window.innerWidth >= 992);
@@ -105,9 +39,71 @@ function Floor() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    useEffect(() => {
+        if (!id || !modelSlug) return;
+        let active = true;
+        setLoading(true);
+        getProyectoById(id)
+            .then(({ success, data }) => {
+                if (!active) return;
+                if (success && data) {
+                    const enriched = enriquecerProyecto(data);
+                    const found = (enriched.modelos || []).find(
+                        m => m.modelSlug === modelSlug
+                    ) || null;
+                    setProject(enriched);
+                    setModelo(found);
+                }
+            })
+            .finally(() => { if (active) setLoading(false); });
+        return () => { active = false; };
+    }, [id, modelSlug]);
+
+    useEffect(() => {
+        if (modelo) {
+            const primera = (Array.isArray(modelo.fotosUrls) && modelo.fotosUrls.length)
+                ? modelo.fotosUrls[0]
+                : (modelo.img || MODELO_FALLBACK_IMG);
+            setMainImg(primera);
+        }
+    }, [modelo]);
+
+    if (loading) {
+        return (
+            <Container style={{ marginTop: 'clamp(1.5rem, 3vw, 3rem)', marginBottom: 'clamp(3rem, 6vw, 6rem)' }}>
+                <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}>
+                    <div className="spinner-border" role="status">
+                        <span className="visually-hidden">Cargando...</span>
+                    </div>
+                </div>
+            </Container>
+        );
+    }
+
+    if (!modelo || !project) {
+        return (
+            <Container style={{ marginTop: 'clamp(1.5rem, 3vw, 3rem)', marginBottom: 'clamp(3rem, 6vw, 6rem)' }}>
+                <div className="text-center" style={{ marginTop: '8rem', marginBottom: '8rem' }}>
+                    <div className="fs-2 text-muted">{t('Modelo no encontrado', 'Model not found')}</div>
+                    <Link to="/proyectos" className="btn btn-outline-dark mt-4">{t('Volver a proyectos', 'Back to projects')}</Link>
+                </div>
+            </Container>
+        );
+    }
+
+    const titulo = project.titulo;
+    const ubicacion = project.ubicacion;
+    const desarrolladora = project.desarrolladora;
+    const apartamentoId = id;
+
+    // Galería dinámica: fotos del modelo o imagen de respaldo
+    const galeria = Array.isArray(modelo.fotosUrls) && modelo.fotosUrls.length
+        ? modelo.fotosUrls
+        : [modelo.img || MODELO_FALLBACK_IMG];
+
     const openLightbox = (startImg) => {
-        const elements = GALERIA.map(img => ({ href: img, type: 'image' }));
-        const startAt = GALERIA.indexOf(startImg);
+        const elements = galeria.map(img => ({ href: img, type: 'image' }));
+        const startAt = galeria.indexOf(startImg);
         const lb = GLightbox({
             elements,
             startAt: startAt >= 0 ? startAt : 0,
@@ -119,6 +115,9 @@ function Floor() {
         lb.open();
     };
 
+    const esBodega = modelo.tipo === 'Bodega';
+    const otrosModelos = (project.modelos || []).filter(m => m.modelSlug !== modelSlug);
+
     return (
         <Container style={{ marginTop: 'clamp(1.5rem, 3vw, 3rem)', marginBottom: 'clamp(3rem, 6vw, 6rem)' }}>
 
@@ -126,8 +125,8 @@ function Floor() {
             <Breadcrumb className='px-3 py-1 rounder-1' style={{ "--bs-breadcrumb-divider": "'>'", fontSize: '14px', width: 'fit-content', background: '#f0f0f0' }} >
                 <Breadcrumb.Item linkAs={Link} linkProps={{ to: '/' }}>Inicio</Breadcrumb.Item>
                 <Breadcrumb.Item linkAs={Link} linkProps={{ to: '/proyectos' }}>Proyectos</Breadcrumb.Item>
-                <Breadcrumb.Item linkAs={Link} linkProps={{ to: '/proyectos' }}>Torre Platino</Breadcrumb.Item>
-                <Breadcrumb.Item active>Modelo Horizonte</Breadcrumb.Item>
+                <Breadcrumb.Item linkAs={Link} linkProps={{ to: `/proyectos/apartamento/${apartamentoId}` }}>{titulo}</Breadcrumb.Item>
+                <Breadcrumb.Item active>{modelo.nombre}</Breadcrumb.Item>
             </Breadcrumb>
 
             {/* Botón atrás */}
@@ -141,66 +140,24 @@ function Floor() {
             {/* Info proyecto */}
             <div className="mb-4">
                 <div style={{ fontSize: 'clamp(28px, 4vw, 50px)', fontFamily: 'AppleGaramond', lineHeight: 1.1 }}>
-                    Torre Platino
+                    {titulo}
                 </div>
                 <div className="d-flex align-items-center gap-1 mt-1" style={{ fontSize: '20px' }}>
                     <i className="fa-solid fa-location-dot me-1"></i>
-                    Guatemala, Guatemala, Zona 10
+                    {ubicacion}
                 </div>
-                <div style={{ fontSize: '20px' }}>Tipo: Apartamento</div>
+                <div style={{ fontSize: '20px' }}>Tipo: {esBodega ? 'Bodega' : 'Apartamento'}</div>
             </div>
             <Row className="g-5">
                 {/* ── Columna izquierda ── */}
                 <Col lg={4}>
-                    {/* Lista de pisos/modelos 
-                    <div
-                        className={isLg ? "scroll-moderno pe-3" : "d-flex gap-3 pb-2 scroll-moderno-horizontal"}
-                        style={isLg ? { maxHeight: '550px', overflowY: 'auto' } : { overflowX: 'auto', flexWrap: 'nowrap' }}
-                    >
-                        {PISOS.map((piso, i) => (
-                        <Link
-                            to="/proyectos/apartament/floor"
-                            className="text-body card-floor"
-                            style={!isLg ? { flex: '0 0 100%', minWidth: '100%' } : {}}
-                        >
-                             <div className="position-relative mt-5">
-                                <div className="position-absolute start-0" style={{ top: '-24px' }}>
-                                    <div className="label text-white px-4 pt-0 pb-4 rounded-2">{piso.piso}</div>
-                                </div>
-                                <div
-                                    key={i}
-                                    className="border rounded-4 p-3 mb-3 position-relative"
-                                    style={{ cursor: 'pointer', backgroundColor: '#fff', zIndex: '2' }} >
-                                    <div className="fw-bold text-truncate" style={{ fontSize: '20px' }}>{piso.nombre}</div>
-                                    <div className="text-muted" style={{ fontSize: '14px' }}>{piso.unidad}</div>
-                                    <div className="d-flex align-items-center justify-content-between my-3">
-                                        <div className="fw-bold mt-1" style={{  }}>{piso.precio}</div>
-                                         <div className="text-muted d-flex align-items-center gap-1 mt-1" style={{ fontSize: '12px' }}>
-                                            <i className="fa-duotone fa-solid fa-key me-1"></i>
-                                            {piso.disponibles} unidades disponibles
-                                        </div> 
-                                    </div>
-                                    <hr />
-                                    <div className="d-flex justify-content-around gap-3 mt-2" style={{ fontSize: '14px' }}>
-                                        <span><i className="fa-solid fa-crop-simple me-1"></i>{piso.area}</span>
-                                        <span><i className="fa-solid fa-bed me-1"></i>{piso.camas} Habitaciones</span>
-                                        <span><i className="fa-solid fa-bath me-1"></i>{piso.banos} Baños</span>
-                                    </div>
-                                    <hr />
-                                </div>
-                            </div>
-                        </Link>
-                        ))}
-                    </div>
-                    */}
-
                     {/* Desarrollado por */}
                     <div className="p-3 my-5">
-                        <div className="mb-3 fs-3">Desarrollado por</div>
+                        <div className="mb-3 fs-3">{t('Desarrollado por', 'Developed by')}</div>
                         <div className="d-flex align-items-center gap-3">
-                            <img src={company} alt="company" className="object-fit-conver rounded-circle" style={{ width: '60px', height: '60px' }} />
+                            <img src={desarrolladora.logo} alt="company" className="object-fit-conver rounded-circle" style={{ width: '60px', height: '60px' }} />
                             <div className="d-flex flex-column align-items-start gap-2">
-                                <span>Desarrolladora Inmobiliarias <br /> Alta Vista</span>
+                                <span>{desarrolladora.nombre}</span>
                                 <button className="btn btn-dark btn-sm rounded-1 px-3">
                                     <i className="fa-brands fa-whatsapp me-2"></i>Contactar
                                 </button>
@@ -210,7 +167,7 @@ function Floor() {
 
                     {/* Solicitar información */}
                     <div>
-                        <div className="mb-3 fs-3" >Solicitar información</div>
+                        <div className="mb-3 fs-3" >{t('Solicitar información', 'Request information')}</div>
                         <div className="d-flex flex-column gap-2">
                             <Form.Control placeholder="Nombre" style={{ fontSize: '14px', borderRadius: '4px' }} />
                             <Form.Control placeholder="Correo electrónico" style={{ fontSize: '14px', borderRadius: '4px' }} />
@@ -218,7 +175,7 @@ function Floor() {
                             <Form.Control
                                 as="textarea"
                                 rows={4}
-                                defaultValue={`Estoy interesado en la propiedad: Torre Platino, Modelo Horizonte`}
+                                defaultValue={`Estoy interesado en la propiedad: Torre Platino, ${modelo.nombre}`}
                                 style={{ fontSize: '14px', borderRadius: '4px' }}
                             />
                             <button className="btn btn-dark w-100 rounded-1 py-2 mt-1">ENVIAR</button>
@@ -231,11 +188,11 @@ function Floor() {
                     {/* Título + tour virtual */}
                     <div className="d-flex justify-content-between align-items-center mb-3">
                         <div className="lh-1" style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontFamily: 'AppleGaramond' }}>
-                            {MODELO.nombre}
+                            {modelo.nombre}
                         </div>
-                        <a href="#" className="d-flex align-items-center gap-2 text-body text-decoration-none" style={{ fontSize: '18px' }}>
+                        <a href={modelo.tour360} className="d-flex align-items-center gap-2 text-body text-decoration-none" style={{ fontSize: '18px' }}>
                             <img src={tour} alt="tour" style={{ width: '30px' }} />
-                            Tour virtual
+                            Tour 360
                         </a>
                     </div>
 
@@ -244,7 +201,7 @@ function Floor() {
                     <div className="d-flex gap-2 mb-4" style={{ height: 'clamp(320px, 45vw, 520px)' }}>
                         {/* Thumbnails izquierda */}
                         <div className="d-flex flex-column gap-2" style={{ width: '28%', flexShrink: 0 }}>
-                            {GALERIA.slice(1, 4).map((img, i) => (
+                            {galeria.slice(1, 4).map((img, i) => (
                                 <div
                                     key={i}
                                     onClick={() => { setMainImg(img); openLightbox(img); }}
@@ -271,10 +228,10 @@ function Floor() {
                         <div
                             className="flex-grow-1 position-relative"
                             style={{ borderRadius: '14px', overflow: 'hidden', cursor: 'zoom-in' }}
-                            onClick={() => openLightbox(m1)}
+                            onClick={() => openLightbox(mainImg)}
                         >
                             <img
-                                src={m1}
+                                src={mainImg}
                                 alt="Principal"
                                 className="w-100 h-100 object-fit-cover"
                                 style={{ display: 'block' }}
@@ -291,10 +248,10 @@ function Floor() {
                                     fontWeight: 500,
                                     cursor: 'pointer',
                                 }}
-                                onClick={e => { e.stopPropagation(); openLightbox(m1); }}
+                                onClick={e => { e.stopPropagation(); openLightbox(mainImg); }}
                             >
                                 <i className="fa-regular fa-image"></i>
-                                +{GALERIA.length - 1} Fotos
+                                +{galeria.length - 1} Fotos
                             </div>
                             {/* Favorito */}
                             <div
@@ -312,10 +269,10 @@ function Floor() {
                         <div
                             className="position-relative w-100"
                             style={{ borderRadius: '14px', overflow: 'hidden', cursor: 'zoom-in', aspectRatio: '16/9' }}
-                            onClick={() => openLightbox(m1)}
+                            onClick={() => openLightbox(mainImg)}
                         >
                             <img
-                                src={m1}
+                                src={mainImg}
                                 alt="Principal"
                                 className="w-100 h-100 object-fit-cover"
                                 style={{ display: 'block' }}
@@ -332,10 +289,10 @@ function Floor() {
                                     fontWeight: 500,
                                     cursor: 'pointer',
                                 }}
-                                onClick={e => { e.stopPropagation(); openLightbox(m1); }}
+                                onClick={e => { e.stopPropagation(); openLightbox(mainImg); }}
                             >
                                 <i className="fa-regular fa-image"></i>
-                                +{GALERIA.length - 1} Fotos
+                                +{galeria.length - 1} Fotos
                             </div>
                             {/* Favorito */}
                             <div
@@ -348,7 +305,7 @@ function Floor() {
                         </div>
                         {/* Thumbnails debajo */}
                         <div className="d-flex gap-2">
-                            {GALERIA.slice(1, 4).map((img, i) => (
+                            {galeria.slice(1, 4).map((img, i) => (
                                 <div
                                     key={i}
                                     onClick={() => { setMainImg(img); openLightbox(img); }}
@@ -373,81 +330,144 @@ function Floor() {
                     </div>
                     )}
 
-                    {/* Descripción */}
+                    {/* Datos del modelo */}
+                    <div className="mb-4">
+                        <div className="d-flex align-items-center gap-2 mb-3 fs-3">
+                            <i className="fa-sharp fa-regular fa-file-lines"></i> {t('Datos del modelo', 'Model data')}
+                        </div>
+                        <Row className="gy-1">
+                            <BulletRow label={t('Nombre del modelo', 'Model name')} value={modelo.nombre} />
+                            <BulletRow label={t('Precio desde (Q)', 'Starting price (Q)')} value={modelo.precioDesdeQ} />
+                            <BulletRow label={t('Tasa ($)', 'Rate ($)')} value={modelo.tasaUSD} />
+                            <BulletRow label={t('Precio desde ($)', 'Starting price ($)')} value={modelo.precioDesdeUSD} />
+                        </Row>
+                    </div>
+
+                    {/* Descripción del modelo */}
                     <div className="mb-4">
                         <div className="d-flex align-items-center gap-2 mb-2 fs-3">
-                            <i className="fa-sharp fa-regular fa-building"></i> Descripción
+                            <i className="fa-sharp fa-regular fa-building"></i> {t('Descripción del modelo', 'Model description')}
                         </div>
-                        <p style={{lineHeight: 1.7 }}>{MODELO.descripcion}</p>
+                        <div style={{ lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: modelo.descripcion || '' }} />
                     </div>
 
                     {/* Iconos principales */}
                     <div className="d-flex mb-4 py-3 border-top border-bottom justify-content-center" style={{ gap: 'clamp(45px, 8vw, 100px)' }}>
                         <div className="text-center">
                             <i className="fa-solid fa-bed d-block mb-1" style={{ fontSize: '22px' }}></i>
-                            <span style={{ fontSize: '20px', fontWeight: 600 }}>{MODELO.camas}</span>
+                            <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.camas}</span>
                         </div>
                         <div className="text-center">
                             <i className="fa-solid fa-bath d-block mb-1" style={{ fontSize: '22px' }}></i>
-                            <span style={{ fontSize: '20px', fontWeight: 600 }}>{MODELO.banos}</span>
+                            <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.banos}</span>
                         </div>
                         <div className="text-center">
                             <i className="fa-solid fa-car-side d-block mb-1" style={{ fontSize: '22px' }}></i>
-                            <span style={{ fontSize: '20px', fontWeight: 600 }}>{MODELO.parqueo}</span>
+                            <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.parqueo}</span>
                         </div>
                         <div className="text-center">
                             <i className="fa-solid fa-crop-simple d-block mb-1" style={{ fontSize: '22px' }}></i>
-                            <span style={{ fontSize: '20px', fontWeight: 600 }}>{MODELO.area}</span>
+                            <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.area}</span>
                         </div>
+                    </div>
+
+                    {/* Áreas y dimensiones */}
+                    <div className="mb-4">
+                        <div className="d-flex align-items-center gap-2 mb-3 fs-3" >
+                            <i className="fa-sharp fa-regular fa-chart-area"></i> {t('Áreas y dimensiones', 'Areas and dimensions')}
+                        </div>
+                        <Row className="gy-1">
+                            <BulletRow label="Área de construcción (m²)" value={modelo.areas.areaConstruccionM2} />
+                            <BulletRow label={t('Espacio de almacenamiento', 'Storage space')} value={modelo.areas.espacioAlmacenamiento} />
+                        </Row>
+                    </div>
+
+                    {/* Estructura y obra gris */}
+                    <div className="mb-4">
+                        <div className="d-flex align-items-center gap-2 mb-3 fs-3">
+                            <i className="fa-sharp fa-regular fa-trowel-bricks"></i> {t('Estructura y obra gris', 'Structure and gray work')}
+                        </div>
+                        <Row className="gy-1">
+                            <BulletRow label={t('Altura del cielo', 'Ceiling height')} value={modelo.estructura.alturaCielo} />
+                        </Row>
                     </div>
 
                     {/* Distribución de ambientes */}
                     <div className="mb-4">
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
-                            <i className="fa-sharp fa-regular fa-tree-city"></i> Distribución de ambientes
+                            <i className="fa-sharp fa-regular fa-tree-city"></i> {t('Distribución de ambientes', 'Room distribution')}
                         </div>
-                        <Row className="gy-2">
-                            <Col md={6} className="d-flex flex-column gap-2">
-                                <div className="d-flex align-items-center gap-1"><span className="fs-2 lh-1">•</span> Total de Ambientes: {MODELO.distribucion.totalAmbientes}</div>
-                                <div className="d-flex align-items-center gap-1"><span className="fs-2 lh-1">•</span> Área de lavandería: {MODELO.distribucion.areaLavanderia}</div>
-                                <div className="d-flex align-items-center gap-1"><span className="fs-2 lh-1">•</span> Sala taller: {MODELO.distribucion.salaTaller}</div>
-                            </Col>
-                            <Col md={6} className="d-flex flex-column gap-2">
-                                <div className="d-flex align-items-center gap-1"><span className="fs-2 lh-1">•</span> Habitación de servicio: {MODELO.distribucion.habitacionServicio}</div>
-                                <div className="d-flex align-items-center gap-1"><span className="fs-2 lh-1">•</span> Número de pisos: {MODELO.distribucion.numeroPisos}</div>
-                                <div className="d-flex align-items-center gap-1"><span className="fs-2 lh-1">•</span> Estudios/OPPA: {MODELO.distribucion.estudiosOPPA}</div>
-                            </Col>
+                        <Row className="gy-1">
+                            <BulletRow label={t('Total de ambientes', 'Total rooms')} value={modelo.distribucion.totalAmbientes} />
+                            {esBodega ? (
+                                <>
+                                    <BulletRow label={t('Oficina', 'Office')} value={modelo.distribucion.oficina} />
+                                    <BulletRow label={t('Baños completos', 'Full bathrooms')} value={modelo.distribucion.banosCompletos} />
+                                    <BulletRow label={t('Medios baños', 'Half bathrooms')} value={modelo.distribucion.mediosBanos} />
+                                    <BulletRow label={t('Habitación de servicio', 'Service room')} value={modelo.distribucion.habitacionServicio} />
+                                    <BulletRow label={t('Área de descarga', 'Loading area')} value={modelo.distribucion.areaDescarga} />
+                                    <BulletRow label={t('Helipuerto', 'Helipad')} value={modelo.distribucion.helipuerto} />
+                                    <BulletRow label={t('Mezzanine', 'Mezzanine')} value={modelo.distribucion.mezzanine} />
+                                </>
+                            ) : (
+                                <>
+                                    <BulletRow label={t('Dormitorios', 'Bedrooms')} value={modelo.distribucion.dormitorios} />
+                                    <BulletRow label={t('Baños completos', 'Full bathrooms')} value={modelo.distribucion.banosCompletos} />
+                                    <BulletRow label={t('Medios baños', 'Half bathrooms')} value={modelo.distribucion.mediosBanos} />
+                                    <BulletRow label={t('Habitación de servicio', 'Service room')} value={modelo.distribucion.habitacionServicio} />
+                                    <BulletRow label={t('Pérgola/Deck social', 'Social pergola/deck')} value={modelo.distribucion.pergolaDeck} />
+                                    <BulletRow label={t('Parqueo/Driveway', 'Parking/Driveway')} value={modelo.distribucion.parqueo} />
+                                    <BulletRow label={t('Amueblado/No amueblado', 'Furnished/Unfurnished')} value={modelo.distribucion.amueblado} />
+                                    <BulletRow label={t('Área de lavandería', 'Laundry area')} value={modelo.distribucion.areaLavanderia} />
+                                    <BulletRow label={t('Estudio/Oficina', 'Study/Office')} value={modelo.distribucion.estudioOficina} />
+                                    <BulletRow label={t('Sala familiar', 'Family room')} value={modelo.distribucion.salaFamiliar} />
+                                </>
+                            )}
                         </Row>
                     </div>
 
-                    {/* Dimensiones y áreas */}
+                    {/* Gastos fijos */}
                     <div className="mb-4">
-                        <div className="d-flex align-items-center gap-2 mb-3 fs-3" >
-                            <i className="fa-sharp fa-regular fa-chart-area"></i> Dimensiones y áreas
+                        <div className="d-flex align-items-center gap-2 mb-3 fs-3">
+                            <i className="fa-sharp fa-regular fa-sack-dollar"></i> {t('Gastos fijos', 'Fixed expenses')}
                         </div>
-                        <div className="d-flex flex-column gap-3">
-                            <div className="d-flex align-items-center gap-1"><span className="fs-2 lh-1">•</span> Área de construcción (m²): {MODELO.dimensiones.areaConstruccion}</div>
-                            <div className="d-flex align-items-center gap-1"><span className="fs-2 lh-1">•</span> Capacidad de almacenamiento (m²): {MODELO.dimensiones.capacidadAlmacenamiento}</div>
-                        </div>
+                        <Row className="gy-1">
+                            <BulletRow label={t('Tipo de estufa', 'Stove type')} value={modelo.gastosFijos.tipoEstufa} />
+                            <BulletRow label={t('Servicio de agua', 'Water service')} value={modelo.gastosFijos.servicioAgua} />
+                            <BulletRow label={t('Mantenimiento ($)', 'Maintenance ($)')} value={modelo.gastosFijos.mantenimientoUSD} />
+                            <BulletRow label={t('Mantenimiento (Q)', 'Maintenance (Q)')} value={modelo.gastosFijos.mantenimientoQ} />
+                        </Row>
                     </div>
+
+                    {/* Incluye */}
+                    <div className="mb-4">
+                        <div className="d-flex align-items-center gap-2 mb-3 fs-3">
+                            <i className="fa-sharp fa-regular fa-circle-check"></i> {t('Incluye', 'Includes')}
+                        </div>
+                        <Row className="gy-1">
+                            <BulletRow label="IUSI" value={modelo.incluye.iusi} />
+                        </Row>
+                    </div>
+
                 </Col>
             </Row>
 
             {/* ── Explora más modelos ── */}
+            {otrosModelos.length > 0 && (
             <div style={{ marginTop: 'clamp(2rem, 10vw, 6rem)', marginBottom: 'clamp(2rem, 10vw, 6rem)' }}>
                 <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-5 gap-3 gap-lg-0">
                     <div style={{ fontSize: 'clamp(36px, 5vw, 64px)', fontFamily: 'AppleGaramond' }}>
-                        Explora más modelos
+                        {t('Explora más modelos', 'Explore more models')}
                     </div>
-                    <Link to="/proyectos" className="link-more-black d-flex align-items-center gap-2">
-                        Ver todos <i className="fa-solid fa-angle-right"></i>
+                    <Link to={getModelPath(apartamentoId, otrosModelos[0])} className="link-more-black d-flex align-items-center gap-2">
+                        {t('Ver todos', 'View all')} <i className="fa-solid fa-angle-right"></i>
                     </Link>
                 </div>
 
                 <div className="row gy-5 align-items-start">
-                    {MAS_MODELOS.map((m, i) => (
+                    {otrosModelos.map((m, i) => (
                         <div key={i} className="col-md-6 col-xl-4">
-                            <Link to="/proyectos/apartament" className="d-block text-body border rounded-3">
+                            <Link to={getModelPath(apartamentoId, m)} className="d-block text-body border rounded-3">
                                 <div className="position-relative d-block propiedades-zoom">
                                     <img
                                         src={m.img}
@@ -455,30 +475,22 @@ function Floor() {
                                         alt={m.nombre}
                                         style={{ aspectRatio: '4 / 4' }}
                                     />
-                                   {/*  <div style={{ padding: '5%' }} className="position-absolute top-0 w-100 h-100 d-flex flex-column justify-content-between">
-                                        <div></div>
-                                        <div className="d-flex justify-content-end align-items-center gap-2">
-                                            <div className="favorite-icon unlike" style={{ cursor: 'pointer' }}>
-                                                <i className="fa-solid fa-heart"></i>
-                                            </div>
-                                        </div>
-                                    </div> */}
                                 </div>
                                 <div className="mt-3 px-4 pb-4">
                                     <div className="text-truncate" style={{ fontSize: 'clamp(34px, 6vw, 46px)', fontFamily: 'AppleGaramond' }}>
                                         {m.nombre}
                                     </div>
-                                    <div className="text-muted" style={{ fontSize: '14px' }}>Desde</div>
-                                    <div className="mt-2 fw-bold fs-4 text-dark">{m.precio}</div>
+                                    <div className="text-muted" style={{ fontSize: '14px' }}>{t('Desde', 'From')}</div>
+                                    <div className="mt-2 fw-bold fs-4 text-dark">{m.precioDesdeUSD}</div>
                                     <hr />
                                     <div className="d-flex justify-content-around icons-small-description gap-4 mt-2">
                                         <div><i className="fa-solid fa-crop-simple me-2"></i>{m.area}</div>
-                                        <div><i className="fa-solid fa-bed me-2"></i>{m.camas} Habitaciones</div>
-                                        <div><i className="fa-solid fa-bath me-2"></i>{m.banos} Baños</div>
+                                        <div><i className="fa-solid fa-bed me-2"></i>{m.camas} {t('Habitaciones', 'Bedrooms')}</div>
+                                        <div><i className="fa-solid fa-bath me-2"></i>{m.banos} {t('Baños', 'Baths')}</div>
                                     </div>
                                     <hr />
                                     <div className="d-flex justify-content-center align-items-center gap-1 mt-3 text-body">
-                                        Ver disponibilidad <i className="fa-solid fa-angle-right ms-1"></i>
+                                        {t('Ver disponibilidad', 'Check availability')} <i className="fa-solid fa-angle-right ms-1"></i>
                                     </div>
                                 </div>
                             </Link>
@@ -486,6 +498,7 @@ function Floor() {
                     ))}
                 </div>
             </div>
+            )}
 
         </Container>
     );

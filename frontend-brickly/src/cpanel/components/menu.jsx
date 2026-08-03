@@ -126,13 +126,13 @@ function Menu({open}){
                         {isActive('/cpanel/leads') && <ActiveIcon />}
                     </Link>
                 )}
-                {/* {(user?.roles?.includes("arquitecto") || user?.roles?.includes("admin")) && profileOk && (
+                {(user?.roles?.includes("arquitecto") || user?.roles?.includes("admin")) && profileOk && (
                     <Link to="/cpanel/proyectos" className="d-flex gap-2 align-items-center text-body">
                         <i className="fa-solid fa-pen-ruler"></i> Proyectos
                         {user?.roles?.includes("admin") && prePublishedCount.proyectos > 0 && <span style={{ fontSize: '12px', color: '#000', marginRight: '6px' }}> (+{prePublishedCount.proyectos})</span>}
                         {isActive('/cpanel/proyectos') && <ActiveIcon />}
                     </Link>
-                )} */}
+                )}
 
                 {user?.roles?.includes("admin") &&
                     <Link to="/cpanel/users" className="d-flex gap-2 align-items-center text-body">

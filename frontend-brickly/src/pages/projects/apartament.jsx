@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect, useRef } from "react";
-import { Container, Row, Col, Breadcrumb, Form, Badge } from "react-bootstrap";
+import { Container, Row, Col, Breadcrumb, Form, Button } from "react-bootstrap";
 import { Link, useParams } from "react-router-dom";
 import { FormattedMessage } from "react-intl";
 import GLightbox from 'glightbox';
@@ -7,193 +7,78 @@ import 'glightbox/dist/css/glightbox.min.css';
 
 import '../../assets/css/proyectos.css'
 
-import img1  from '../../assets/images/proyecto/edificio.png';
-import img2  from '../../assets/images/proyecto/Modelo1.png';
-import img3  from '../../assets/images/proyecto/Modelo2.png';
-import img5 from '../../assets/images/proyecto/Modelo3.png';
-
-import i1  from '../../assets/images/proyecto/T1.png';
-import i2  from '../../assets/images/proyecto/T2.png';
-import i3  from '../../assets/images/proyecto/T3.png';
-import i4  from '../../assets/images/proyecto/T4.png';
-import i5  from '../../assets/images/proyecto/A1.png';
-import i6  from '../../assets/images/proyecto/A2.png';
-import i7  from '../../assets/images/proyecto/A3.png';
-import i8  from '../../assets/images/proyecto/R1.png';
-import i9  from '../../assets/images/proyecto/R2.png';
-import i10  from '../../assets/images/proyecto/R3.png';
-
-import a2  from '../../assets/images/proyecto/RP.png';
-import a3  from '../../assets/images/proyecto/AP.png';
-
-
 import diamond from '../../assets/images/iconos/diamond.png';
 import venta   from '../../assets/images/iconos/venta.png';
-import company from '../../assets/images/proyecto/logo.png';
 import arrow   from '../../assets/images/iconos/arrow.png';
+import tour    from '../../assets/images/iconos/IconoTour.png';
 import { useT } from '../../hooks/useT';
+import { getProyectoById, getProyectosPublicos } from '../../cpanel/services/proyectos';
+import { enriquecerProyecto, MODELO_FALLBACK_IMG } from '../../utils/proyectosUtils';
+import { getModelPath } from '../../utils/projectRoutes';
 
-// ── Datos de proyectos base ─────────────────────────────────────
-// Cada proyecto puede definir sus propios campos opcionales:
-//   descripcion       → texto libre para la sección "Descripción"
-//   imagenPrincipal   → imagen principal de la galería (import o URL)
-//   imagenesThumbs    → array de imágenes para los thumbnails laterales
-//   imagenesGaleria   → array completo de imágenes para el lightbox
-//   ubicacionEntorno  → array de strings para "Ubicación y entorno"
-//   estructuras       → array de strings para "Estructuras y áreas"
-// Si alguno de estos campos no se define, se usará el valor generado automáticamente.
-const BASE_PROJECTS = [
-    {
-        id: 'torre-platino',
-        titulo: 'Torre Platino',
-        ubicacion: 'Guatemala, Santa Catarina Pínula, Zona 10',
-        tipo: 'Casa',
-        precio: '$3,301.28',
-        modo: 'Venta',
-        camas: 4, banos: 5, parqueo: 2, area: '260m²',
-        visitas: 7,
-        // ── Contenido personalizado ──────────────────────────────
-        descripcion: 'Enclavada entre la elegancia de la Zona Viva y la imponente presencia de los volcanes, se alza la Torre Platino. Con 16 niveles de altura, su fachada de cristal reflectante y acero pulido evoca su nombre: un monolito contemporáneo que captura la luz del altiplano y la convierte en un símbolo de prestigio.Rodeada de los epicentros del poder y el ocio, la torre se encuentra a pasos de centros comerciales como Centro Comercial Las Majadas y Zona Viva, donde los restaurantes de alta cocina, los bares más exclusivos y las galerías de arte marcan el pulso cosmopolita. A unos minutos, el Hotel Real Intercontinental y la Torre Los Proceres refuerzan el carácter corporativo y distinguido del área, mientras que el Edificio Europlaza y la Zona de Bancos aseguran que todo, desde una reunión de negocios hasta un brunch de domingo, ocurra a la distancia de un ascensor.Amenidades como un gimnasio de última generación con vista al sur, una piscina climatizada en la azotea (la única en su tipo en la zona), sala de coworking con café de especialidad, sky lounge para eventos y un servicio de conserjería las 24 horas completan una propuesta que no solo es un hogar, sino una declaración de estatus', // ej: 'Torre Platino es una residencia exclusiva...'
-        imagenPrincipal: img1,       // ej: img1
-        imagenesThumbs: [i2, i3],        // ej: [img2, img3]
-        imagenesGaleria: [img1, i1, i2, i3, i4],       // ej: [img1, img2, img3]
-        ubicacionEntorno: undefined,      // ej: ['Zona Viva', 'Vista a los volcanes']
-        estructuras: undefined,           // ej: ['Altura de techo: 3.20m', 'Pisos: 12']
-    },
-    {
-        id: 'altura-verde',
-        titulo: 'Altura Verde',
-        ubicacion: 'Guatemala, Guatemala, Zona 10',
-        tipo: 'Apartamento',
-        precio: '$243,135.38',
-        modo: 'Venta',
-        camas: 5, banos: 4, parqueo: 1, area: '480m²',
-        visitas: 2,
-        // ── Contenido personalizado ──────────────────────────────
-        descripcion: undefined,
-        imagenPrincipal: a3,
-        imagenesThumbs: [i5, i6],
-        imagenesGaleria: [a3, i5, i6, i7],
-        ubicacionEntorno: undefined,
-        estructuras: undefined,
-    },
-    {
-        id: 'residencia-alma',
-        titulo: 'Residencia Alma',
-        ubicacion: 'Guatemala, Guatemala, Zona 15',
-        tipo: 'Apartamento',
-        precio: '$1,200.00',
-        modo: 'Venta',
-        camas: 3, banos: 2, parqueo: 2, area: '125m²',
-        visitas: 9,
-        // ── Contenido personalizado ──────────────────────────────
-        descripcion: undefined,
-        imagenPrincipal: a2,
-        imagenesThumbs: [i8, i9],
-        imagenesGaleria: [a2, i8, i9, i10],
-        ubicacionEntorno: undefined,
-        estructuras: undefined,
-    },
+// ── Amenidades del edificio ─────────────────────────────────────
+// edificio: true  → aplica SOLO al edificio (se marca con * en la UI)
+// edificio: false → es amenidad de los apartamentos
+const AMENIDADES_ALL = [
+    { key: 'balcon',             nombre: 'Balcón',                                 edificio: false },
+    { key: 'aire',               nombre: 'Aire acondicionado',                     edificio: false },
+    { key: 'airbnb',             nombre: 'AIRBNB friendly',                        edificio: false },
+    { key: 'calentador',         nombre: 'Calentador de agua',                     edificio: false },
+    { key: 'cocinaIsla',         nombre: 'Cocina con isla',                        edificio: false },
+    { key: 'despensa',           nombre: 'Despensa (Pantry)',                      edificio: false },
+    { key: 'lavanderia',         nombre: 'Área de lavandería',                     edificio: false },
+    { key: 'cuartoServicio',     nombre: 'Cuarto de servicio',                     edificio: false },
+    { key: 'ventanales',         nombre: 'Ventanales de piso a techo',             edificio: false },
+    { key: 'cerraduras',         nombre: 'Cerraduras inteligentes',                edificio: false },
+    { key: 'sueloRadiante',      nombre: 'Suelo radiante',                         edificio: false },
+    { key: 'bodegaPrivada',      nombre: 'Bodega privada',                         edificio: false },
+    { key: 'acabadosLujo',       nombre: 'Acabados de lujo',                       edificio: true },
+    { key: 'sonido',             nombre: 'Sistema de sonido integrado',            edificio: false },
+    { key: 'ductoBasura',        nombre: 'Ducto de basura',                        edificio: false },
+    { key: 'piscina',            nombre: 'Piscina',                                edificio: true },
+    { key: 'jacuzzi',            nombre: 'Jacuzzi / Spa',                          edificio: true },
+    { key: 'gimnasio',           nombre: 'Gimnasio',                               edificio: true },
+    { key: 'salonSocial',        nombre: 'Salón social',                           edificio: true },
+    { key: 'businessCenter',     nombre: 'Business Center / Co-working',           edificio: true },
+    { key: 'rooftop',            nombre: 'Roof top / Terraza',                     edificio: true },
+    { key: 'padel',              nombre: 'Cancha de pádel',                        edificio: true },
+    { key: 'tenis',              nombre: 'Cancha de tenis / Squash',               edificio: true },
+    { key: 'fogatas',            nombre: 'Área de fogatas (Fire pits)',            edificio: true },
+    { key: 'cinePrivado',        nombre: 'Cine privado',                           edificio: false },
+    { key: 'salonJuegos',        nombre: 'Salón de juegos (Billar/Ping pong)',     edificio: true },
+    { key: 'bar',                nombre: 'Bar / Lounge',                           edificio: true },
+    { key: 'juegosInfantiles',   nombre: 'Juegos infantiles (Playground)',         edificio: true },
+    { key: 'ludoteca',           nombre: 'Ludoteca',                               edificio: false },
+    { key: 'petPark',            nombre: 'Parque para mascotas (Pet park)',        edificio: true },
+    { key: 'petWash',            nombre: 'Estación de lavado para mascotas (Pet wash)', edificio: true },
+    { key: 'senderos',           nombre: 'Senderos para caminar',                  edificio: true },
+    { key: 'pinatas',            nombre: 'Área de piñatas',                        edificio: false },
+    { key: 'seguridad',          nombre: 'Seguridad 24/7 (CCTV)',                  edificio: true },
+    { key: 'parqueoVisitas',     nombre: 'Parqueo de visitas',                     edificio: true },
+    { key: 'planta',             nombre: 'Planta eléctrica de emergencia',         edificio: true },
+    { key: 'pozo',               nombre: 'Pozo de agua propio',                    edificio: true },
+    { key: 'lobby',              nombre: 'Lobby / Recepción',                      edificio: false },
+    { key: 'delivery',           nombre: 'Área de recepción de delivery',          edificio: false },
+    { key: 'wifi',               nombre: 'Wi-Fi en áreas comunes',                 edificio: false },
+    { key: 'elevadores',         nombre: 'Elevadores de alta velocidad',           edificio: false },
+    { key: 'cargadores',         nombre: 'Cargadores para vehículos eléctricos',   edificio: false },
+    { key: 'paneles',            nombre: 'Paneles solares',                        edificio: false },
+    { key: 'herramientas',       nombre: 'Cuarto de herramientas',                 edificio: false },
+    { key: 'helipuerto',         nombre: 'Helipuerto',                             edificio: false },
+    { key: 'muelle',             nombre: 'Frente al muelle',                       edificio: false },
 ];
 
-// ── Funciones de generación de datos ───────────────────────────
-const getProjectById = (id) => {
-    return BASE_PROJECTS.find(project => project.id === id);
-};
-
-const generateDescription = (project) => {
-    if (project.tipo === 'Casa') {
-        return `${project.titulo} es una residencia exclusiva ubicada en ${project.ubicacion}. Esta ${project.tipo.toLowerCase()} cuenta con ${project.camas} habitaciones, ${project.banos} baños y ${project.parqueo} espacios de parqueo en un área de ${project.area}. Diseñada con los más altos estándares de calidad y confort, ofrece un estilo de vida premium en una ubicación privilegiada.`;
-    } else {
-        return `${project.titulo} se ubica en ${project.ubicacion} como un desarrollo de vanguardia. Sus apartamentos cuentan con ventanales de piso a techo, terrazas privadas y acabados de lujo. Cada unidad ofrece ${project.camas} habitaciones, ${project.banos} baños y ${project.parqueo} espacios de parqueo en un área de ${project.area}. Un vestíbulo de recepción y seguridad 24/7 garantizan privacidad y tranquilidad.`;
-    }
-};
-
-const generateModels = (project) => {
-    const baseModels = [
-        { nombre: 'Modelo Horizonte', precio: '$1,350,000', area: '480 m²', camas: 3, banos: 2, img: img2 },
-        { nombre: 'Modelo Ópalo', precio: '$1,445,000', area: '495 m²', camas: 3, banos: 2, img: img3 },
-        { nombre: 'Modelo Otagon', precio: '$1,285,000', area: '585 m²', camas: 4, banos: 5, img: img3 },
-    ];
-    
-    // Personalizar modelos según el proyecto
-    return baseModels.map((model, index) => ({
-        ...model,
-        nombre: `Modelo ${model.nombre.split(' ')[1]}`,
-        precio: `$${(parseFloat(project.precio.replace(/[^0-9.]/g, '')) * (0.8 + index * 0.2)).toFixed(2)}`,
-        area: `${parseInt(project.area) + (index * 50)} m²`,
-        camas: project.camas + index,
-        banos: project.banos + index,
-    }));
-};
-
-const generateLocationFeatures = (ubicacion) => {
-    const features = [];
-    if (ubicacion.includes('Zona 10')) {
-        features.push('Zona Viva', 'Plaza Fontabella', 'Tipo de calle: Adoquinada', 'Vista: A los volcanes');
-    } else if (ubicacion.includes('Zona 15')) {
-        features.push('Área residencial exclusiva', 'Parques cercanos', 'Tipo de calle: Asfaltada', 'Vista: Panorámica');
-    } else {
-        features.push('Entorno tranquilo', 'Acceso a servicios', 'Tipo de calle: Mixta', 'Vista: Natural');
-    }
-    return features;
-};
-
-const generateStructures = (area, camas) => {
-    return [
-        `Altura de techo (m): ${parseInt(area) > 300 ? '3.20' : '2.80'}`,
-        'Muro perimetral: Sí',
-        `Número de pisos: ${camas > 4 ? '16' : '12'}`,
-        `Capacidad de almacenamiento (m²): ${parseInt(area) / 100}`,
-    ];
-};
-
-const generateAmenities = (tipo) => {
-    const baseAmenities = [
-        'Gimnasio equipado', 'Piscina infinity', 'Seguridad 24/7', 'Acabados de lujo',
-        'Elevadores de alta velocidad', 'Lobby / Recepción', 'Roof top / Terraza',
-    ];
-    
-    if (tipo === 'Casa') {
-        return [...baseAmenities, 'Jardín privado', 'Terraza propia', 'Cocina integral'];
-    } else {
-        return [...baseAmenities, 'Business Center / Co-working', 'Parqueo de visitas', 'Sala de eventos'];
-    }
-};
-
-const generateOtherProperties = (currentProjectId) => {
-    return BASE_PROJECTS
-        .filter(project => project.id !== currentProjectId)
-        .map(project => ({
-            id: project.id,
-            titulo: project.titulo,
-            ubicacion: project.ubicacion,
-            tipo: project.tipo,
-            precio: project.precio,
-            modo: project.modo,
-            visitas: project.visitas,
-            img: project.imagenPrincipal,
-        }));
-};
-
-const generateProjectData = (baseProject) => {
-    return {
-        ...baseProject,
-        // Usa el valor personalizado si está definido, si no genera uno automático
-        descripcion:      baseProject.descripcion      ?? generateDescription(baseProject),
-        ubicacionEntorno: baseProject.ubicacionEntorno ?? generateLocationFeatures(baseProject.ubicacion),
-        estructuras:      baseProject.estructuras      ?? generateStructures(baseProject.area, baseProject.camas),
-        // Imágenes: usa las del proyecto o las globales por defecto
-        imagenPrincipal:  baseProject.imagenPrincipal  ?? img1,
-        imagenesThumbs:   baseProject.imagenesThumbs   ?? [i2, i3],
-        imagenesGaleria:  baseProject.imagenesGaleria  ?? [i2, i3, i4],
-        // Campos siempre generados
-        entrega: `$${(parseFloat(baseProject.precio.replace(/[^0-9.]/g, '')) * 0.05).toFixed(2)}`,
-        modelos: generateModels(baseProject),
-        amenidades: generateAmenities(baseProject.tipo),
-        otrosPropiedades: generateOtherProperties(baseProject.id),
-    };
-};
+// Fila tipo "label: valor" para las secciones de datos
+function BulletRow({ label, value }) {
+    return (
+        <Col md={6}>
+            <div className="d-flex align-items-center gap-1">
+                <span className="fs-2 lh-1">•</span>
+                <span><strong>{label}:</strong> {value || '—'}</span>
+            </div>
+        </Col>
+    );
+}
 
 function Apartament() {
     const { id } = useParams();
@@ -241,12 +126,20 @@ function Apartament() {
 
     useEffect(() => {
         if (id) {
-            const baseProject = getProjectById(id);
-            if (baseProject) {
-                const enrichedProject = generateProjectData(baseProject);
-                setProject(enrichedProject);
-                setMainImg(enrichedProject.imagenPrincipal);
-            }
+            let active = true;
+            Promise.all([
+                getProyectoById(id),
+                getProyectosPublicos(),
+            ]).then(([detailRes, listRes]) => {
+                if (!active) return;
+                if (detailRes.success && detailRes.data) {
+                    const otros = listRes.success && Array.isArray(listRes.data) ? listRes.data : [];
+                    const enrichedProject = enriquecerProyecto(detailRes.data, { otros });
+                    setProject(enrichedProject);
+                    setMainImg(enrichedProject.imagenPrincipal);
+                }
+            });
+            return () => { active = false; };
         }
     }, [id]);
 
@@ -277,6 +170,8 @@ function Apartament() {
         );
     }
 
+    const amenidades = (project.amenidadKeys || []).map(key => AMENIDADES_ALL.find(a => a.key === key)).filter(Boolean);
+
     return (
         <>
         <Container style={{ marginTop: 'clamp(1.5rem, 3vw, 3rem)', marginBottom: 'clamp(3rem, 6vw, 6rem)' }}>
@@ -297,7 +192,7 @@ function Apartament() {
 
             {/* Header */}
             <div className="mb-4">
-                
+
                 {/* Precio + badges */}
                 <div className="d-flex justify-content-between align-items-lg-end flex-column flex-lg-row">
                     <div className="d-flex flex-wrap flex-column align-items-start gap-2 mt-3">
@@ -308,48 +203,53 @@ function Apartament() {
                             <i className="fa-solid fa-location-dot me-1"></i>{project.ubicacion}
                         </div>
                         <div style={{ fontSize: '20px' }}>Tipo: {project.tipo}</div>
-                        <div className="d-flex align-items-center gap-3">
-                            <span className="fw-bold" style={{ fontSize: 'clamp(22px, 3vw, 30px)' }}>{project.precio}</span>
+                        <div className="d-flex align-items-center gap-3 flex-wrap">
+                            <span className="fw-bold" style={{ fontSize: 'clamp(22px, 3vw, 30px)' }}>{project.precioDesdeUSD}</span>
                             <div className='d-flex align-items-center gap-2'><img src={venta} alt="icons" style={{ width: '20px' }} /> <div className= "bg-dark rounded-1 px-4 py-0 text-white fw-lighter" style={{ fontSize: '16px' }}>{project.modo}</div></div>
+                        </div>
+                        {/* Precio desde Q + Tasa */}
+                        <div className="d-flex align-items-center gap-3 flex-wrap mt-1">
+                            <span style={{ fontSize: '16px' }}><strong>{t('Precio desde', 'Starting from')} (Q):</strong> {project.precioDesdeQ}</span>
+                            <span style={{ width: '1px', height: '18px', backgroundColor: '#ccc' }}></span>
+                            <span style={{ fontSize: '16px' }}><strong>Tasa ($):</strong> {project.tasaUSD}</span>
                         </div>
                     </div>
                     <div className="d-flex flex-column align-items-center gap-4 me-lg-5 mt-5">
                         <div style={{ border: '1px solid black' }} className="py-2 px-4 rounded-4">APARTAMENTOS EN PREVENTA</div>
                         {/* Desktop: 3 items en fila */}
                         <div className="d-none d-lg-flex align-items-center justify-content-center gap-5">
-                            <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>14 Niveles</div>
-                            <div style={{ width: '1px', height: '24px', backgroundColor: '#ccc' }}></div>
-                            <div className="d-flex align-items-center gap-2"><i className="fa-sharp fa-light fa-block"></i>105 Unidades</div>
-                            <div style={{ width: '1px', height: '24px', backgroundColor: '#ccc' }}></div>
-                            <div className="d-flex align-items-center gap-2"><i className="fa-regular fa-calendar"></i>Entrega: 12/2027</div>
+                            <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>{project.areas.numeroPisos} Niveles</div>
+                            {project.unidades ? (<>
+                                <div style={{ width: '1px', height: '24px', backgroundColor: '#ccc' }}></div>
+                                <div className="d-flex align-items-center gap-2"><i className="fa-sharp fa-light fa-block"></i>{project.unidades} Unidades</div>
+                            </>) : null}
+                            {project.fechaEntrega ? (<>
+                                <div style={{ width: '1px', height: '24px', backgroundColor: '#ccc' }}></div>
+                                <div className="d-flex align-items-center gap-2"><i className="fa-regular fa-calendar"></i>Entrega: {project.fechaEntrega}</div>
+                            </>) : null}
                         </div>
                         {/* Móvil/tablet: 2 columnas */}
                         <div className="d-lg-none w-100">
                             <div className="d-flex align-items-center justify-content-center gap-4 mb-3">
-                                <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>14 Niveles</div>
-                                <div style={{ width: '1px', height: '24px', backgroundColor: '#ccc' }}></div>
-                                <div className="d-flex align-items-center gap-2"><i className="fa-sharp fa-light fa-block"></i>105 Unidades</div>
+                                <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>{project.areas.numeroPisos} Niveles</div>
+                                {project.unidades ? (<>
+                                    <div style={{ width: '1px', height: '24px', backgroundColor: '#ccc' }}></div>
+                                    <div className="d-flex align-items-center gap-2"><i className="fa-sharp fa-light fa-block"></i>{project.unidades} Unidades</div>
+                                </>) : null}
                             </div>
-                            <div className="d-flex justify-content-center">
-                                <div className="d-flex align-items-center gap-2"><i className="fa-regular fa-calendar"></i>Entrega: 12/2027</div>
-                            </div>
+                            {project.fechaEntrega ? (
+                                <div className="d-flex justify-content-center">
+                                    <div className="d-flex align-items-center gap-2"><i className="fa-regular fa-calendar"></i>Entrega: {project.fechaEntrega}</div>
+                                </div>
+                            ) : null}
                         </div>
+                        {/* Tour 360 */}
+                        <a href={project.tour360} className="d-flex align-items-center gap-2 text-body text-decoration-none" style={{ fontSize: '16px', border: '1px solid black', borderRadius: '999px', padding: '8px 20px' }}>
+                            <img src={tour} alt="tour" style={{ width: '24px' }} />
+                            Tour 360
+                        </a>
                     </div>
                 </div>
-                {/* <div className="d-flex flex-wrap align-items-center gap-3 mt-3">
-                    <span className="fw-bold" style={{ fontSize: 'clamp(22px, 3vw, 30px)' }}>{PROYECTO.precio}</span>
-                    <div className='d-flex align-items-center gap-2'><img src={venta} alt="icons" style={{ width: '20px' }} /> <div className= "bg-dark rounded-1 px-4 py-0 text-white fw-lighter" style={{ fontSize: '16px' }}>Venta</div></div>
-                    <span className="badge bg-dark rounded-1 px-3 py-2" style={{ fontSize: '13px' }}>
-                        <i className="fa-solid fa-building me-1"></i> Apartamentos disponibles: 14
-                    </span>
-                    <span className="badge bg-secondary rounded-1 px-3 py-2" style={{ fontSize: '13px' }}>
-                        <i className="fa-solid fa-info-circle me-1"></i> Información
-                    </span>
-                    <span className="badge rounded-1 px-3 py-2" style={{ fontSize: '13px', backgroundColor: '#005051' }}>
-                        <i className="fa-solid fa-key me-1"></i> Al día de entrega
-                    </span>
-                    <span className="fw-bold" style={{ fontSize: '16px' }}>Entrega {PROYECTO.entrega}</span>
-                </div> */}
             </div>
 
             {/* ── Galería ── */}
@@ -440,12 +340,12 @@ function Apartament() {
                 {/* Columna izquierda */}
                 <Col lg={7}>
 
-                    {/* Descripción */}
+                    {/* Descripción del edificio */}
                     <div className="mb-5">
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
-                            <i className="fa-sharp fa-regular fa-building fs-2"></i> Descripción
+                            <i className="fa-sharp fa-regular fa-building fs-2"></i> {t('Descripción del edificio', 'Building description')}
                         </div>
-                        <p style={{ lineHeight: 1.8 }}>{project.descripcion}</p>
+                        <div style={{ lineHeight: 1.8 }} dangerouslySetInnerHTML={{ __html: project.descripcion || '' }} />
 
                         {/* Iconos principales */}
                         <div className="d-flex mb-4 py-3 border-top border-bottom justify-content-center align-items-center" style={{ gap: 'clamp(25px, 8vw, 70px)' }}>
@@ -469,10 +369,67 @@ function Apartament() {
                         </div>
                     </div>
 
+                    {/* Datos del proyecto */}
+                    <div className="mb-5">
+                        <div className="d-flex align-items-center gap-2 mb-3 fs-3">
+                            <i className="fa-sharp fa-regular fa-file-lines"></i> {t('Datos del proyecto', 'Project data')}
+                        </div>
+                        <Row className="gy-1">
+                            <BulletRow label={t('Tipo', 'Type')} value={project.tipo} />
+                            <BulletRow label={t('Nombre de la propiedad', 'Property name')} value={project.titulo} />
+                            <BulletRow label={t('Precio desde (Q)', 'Starting price (Q)')} value={project.precioDesdeQ} />
+                            <BulletRow label={t('Tasa ($)', 'Rate ($)')} value={project.tasaUSD} />
+                            <BulletRow label={t('Precio desde ($)', 'Starting price ($)')} value={project.precioDesdeUSD} />
+                        </Row>
+                    </div>
+
+                    {/* Ubicación y entorno */}
+                    <div className="mb-5">
+                        <div className="d-flex align-items-center gap-2 mb-3 fs-3">
+                            <i className="fa-sharp fa-regular fa-location-dot"></i> {t('Ubicación y entorno', 'Location and surroundings')}
+                        </div>
+                        <Row className="gy-1">
+                            <BulletRow label="Departamento" value={project.location.departamento} />
+                            <BulletRow label="Municipio" value={project.location.municipio} />
+                            <BulletRow label="Zona" value={project.location.zona} />
+                            <BulletRow label={t('Condominio', 'Condominium')} value={project.location.condominio} />
+                            <BulletRow label={t('Dirección exacta', 'Exact address')} value={project.location.direccionExacta} />
+                            <BulletRow label="Coordenadas GPS" value={project.location.gps} />
+                            <BulletRow label={t('Relación con el agua', 'Water supply')} value={project.location.relacionAgua} />
+                            <BulletRow label={t('Vista', 'View')} value={project.location.vista} />
+                            <BulletRow label={t('Tipo de calle', 'Street type')} value={project.location.tipoCalle} />
+                        </Row>
+                    </div>
+
+                    {/* Áreas y dimensiones */}
+                    <div className="mb-5">
+                        <div className="d-flex align-items-center gap-2 mb-3 fs-3">
+                            <i className="fa-sharp fa-regular fa-chart-area"></i> {t('Áreas y dimensiones', 'Areas and dimensions')}
+                        </div>
+                        <Row className="gy-1">
+                            <BulletRow label="Área de terreno (m²)" value={project.areas.terrenoM2} />
+                            <BulletRow label="Área de terreno (v²)" value={project.areas.terrenoV2} />
+                            <BulletRow label="Área de construcción (m²)" value={project.areas.construccionM2} />
+                            <BulletRow label={t('Número de pisos', 'Number of floors')} value={project.areas.numeroPisos} />
+                        </Row>
+                    </div>
+
+                    {/* Estructura y obra gris */}
+                    <div className="mb-5">
+                        <div className="d-flex align-items-center gap-2 mb-3 fs-3">
+                            <i className="fa-sharp fa-regular fa-trowel-bricks"></i> {t('Estructura y obra gris', 'Structure and gray work')}
+                        </div>
+                        <Row className="gy-1">
+                            <BulletRow label={t('Año de construcción', 'Year built')} value={project.estructura.anioConstruccion} />
+                            <BulletRow label={t('Niveles del edificio', 'Building levels')} value={project.estructura.niveles} />
+                            <BulletRow label={t('Muro perimetral', 'Perimeter wall')} value={project.estructura.muroPerimetral} />
+                        </Row>
+                    </div>
+
                     {/* Modelos disponibles */}
                     <div className="mb-5">
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
-                            <i className="fa-thin fa-diagram-lean-canvas"></i> Modelos disponibles
+                            <i className="fa-thin fa-diagram-lean-canvas"></i> {t('Modelos disponibles', 'Available models')}
                         </div>
                         <div
                             className="scroll-moderno-horizontal"
@@ -487,8 +444,7 @@ function Apartament() {
                             {project.modelos.map((m, i) => (
                                 <div key={i} style={{ flex: isLg ? '0 0 calc(50% - 0.5rem)' : '0 0 100%', width: isLg ? 'calc(50% - 0.5rem)' : '100%' }}>
                                     <Link
-                                        to="/proyectos/apartamento/piso"
-                                        state={{ apartamentoId: id }}
+                                        to={getModelPath(id, m)}
                                         className="d-flex justify-content-center align-items-center gap-1 mt-2 text-body text-decoration-none"
                                         onClick={e => { if (dragState.current.dragged) { e.preventDefault(); dragState.current.dragged = false; } }}
                                     >
@@ -498,8 +454,9 @@ function Apartament() {
                                             </div>
                                             <div className="p-3">
                                                 <div className="fw-bold" style={{ fontSize: '24px' }}>{m.nombre}</div>
-                                                <div className="text-muted" style={{ fontSize: '12px' }}>Desde</div>
-                                                <div className="fw-bold">{m.precio}</div>
+                                                <div className="text-muted" style={{ fontSize: '12px' }}>{t('Desde', 'From')}</div>
+                                                <div className="fw-bold">{m.precioDesdeUSD}</div>
+                                                <div className="text-muted" style={{ fontSize: '12px' }}>(Q {m.precioDesdeQ.replace('Q ', '')})</div>
                                                 <hr />
                                                 <div className="d-flex justify-content-around align-items-center gap-2 mt-2 text-muted" style={{ fontSize: '12px' }}>
                                                     <span><i className="fa-solid fa-crop-simple me-1"></i>{m.area}</span>
@@ -508,7 +465,7 @@ function Apartament() {
                                                 </div>
                                                 <hr />
                                                 <div className="d-flex justify-content-center align-items-center gap-1 mt-2 text-body text-decoration-none">
-                                                    Ver disponibilidad <i className="fa-solid fa-angle-right ms-1"></i>
+                                                    {t('Ver disponibilidad', 'Check availability')} <i className="fa-solid fa-angle-right ms-1"></i>
                                                 </div>
                                             </div>
                                         </div>
@@ -518,41 +475,20 @@ function Apartament() {
                         </div>
                     </div>
 
-                    {/* Ubicación y entorno */}
+                    {/* Amenidades del edificio */}
                     <div className="mb-5">
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
-                            <i className="fa-sharp fa-regular fa-location-dot"></i> Ubicación y entorno
-                        </div>
-                        <Row className="gy-1">
-                            {project.ubicacionEntorno.map((item, i) => (
-                                <Col md={6} key={i}><div className="d-flex align-items-center gap-1"><span className="fs-2 lh-1">•</span> {item}</div></Col>
-                            ))}
-                        </Row>
-                    </div>
-
-                    {/* Estructuras y áreas */}
-                    <div className="mb-5">
-                        <div className="d-flex align-items-center gap-2 mb-3 fs-3">
-                            <i className="fa-sharp fa-regular fa-trowel-bricks"></i> Estructuras y áreas
-                        </div>
-                        <Row className="gy-1">
-                            {project.estructuras.map((item, i) => (
-                                <Col md={6} key={i}><div className="d-flex align-items-center gap-1"><span className="fs-2 lh-1">•</span> {item}</div></Col>
-                            ))}
-                        </Row>
-                    </div>
-
-                    {/* Amenidades */}
-                    <div className="mb-5">
-                        <div className="d-flex align-items-center gap-2 mb-3 fs-3">
-                            <i className="fa-sharp fa-regular fa-umbrella-beach"></i> Amenidades
+                            <i className="fa-sharp fa-regular fa-umbrella-beach"></i> {t('Amenidades del edificio', 'Building amenities')}
                         </div>
                         <div className="d-flex flex-wrap gap-2">
-                            {project.amenidades.map((a, i) => (
-                                <span key={i} className="border border-black rounded-pill px-3 py-2" style={{color: '#333', fontWeight: 400 }}>
-                                    {a}
+                            {amenidades.map((a, i) => (
+                                <span key={i} className="border border-black rounded-pill px-3 py-2" style={{ color: '#333', fontWeight: 400 }}>
+                                    {a.nombre}{a.edificio ? ' *' : ''}
                                 </span>
                             ))}
+                        </div>
+                        <div className="small text-muted mt-3" style={{ fontSize: '13px' }}>
+                            * = {t('Amenidad exclusiva del edificio. El resto corresponden a los apartamentos.', 'Building-only amenity. The rest belong to the apartments.')}
                         </div>
                     </div>
 
@@ -564,41 +500,28 @@ function Apartament() {
 
                         {/* Desarrollado por */}
                         <div className="p-3 my-5">
-                            <div className="mb-3 fs-3">Desarrollado por</div>
+                            <div className="mb-3 fs-3">{t('Desarrollado por', 'Developed by')}</div>
                             <div className="d-flex align-items-start justify-content-between align-items-lg-center flex-column flex-md-row gap-4">
                                 <Link to="" className='text-body' aria-label="Ver desarrolladora del proyecto">
                                     <div className="d-flex align-items-center gap-2">
-                                        <div className='rounded-circle' style={{ width: '60px', height: '60px' }}><img src={company} alt="Avatar" style={{ width: '60px', height: '60px' }} className='rounded-circle object-fit-cover' /></div>
+                                        <div className='rounded-circle' style={{ width: '60px', height: '60px' }}><img src={project.desarrolladora.logo} alt="Avatar" style={{ width: '60px', height: '60px' }} className='rounded-circle object-fit-cover' /></div>
                                         <div>
-                                            <div className='lh-sm'>Desarrollos Inmobiliarios  <br /> <span>Alta Vista</span></div>
+                                            <div className='lh-sm'>{project.desarrolladora.nombre}</div>
                                             <div style={{ fontSize: '12px' }}>
-                                                {/* <StarRating rating={items.ratingAverage} size='11px' /> */}
                                             </div>
                                         </div>
                                     </div>
                                 </Link>
                                 <div className="d-flex justify-content-md-end flex-column">
-                                    <div className='mb-2 lh-1' style={{fontSize: '20px'}}><FormattedMessage id="home.text12" /></div>
+                                    <div className='mb-2 lh-1' style={{ fontSize: '20px' }}><FormattedMessage id="home.text12" /></div>
                                     <a href="" target='_blank' className="rounded-1 text-center border-0 py-1" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box', padding: '2px 8px' }} rel="noreferrer" aria-label="Contactar por WhatsApp a la desarrolladora"><i className="fa-brands fa-whatsapp me-2" aria-hidden="true"></i> <FormattedMessage id="home.text13" /></a>
                                 </div>
                             </div>
                         </div>
-                        {/* <div className="p-3 my-5">
-                            <div className="mb-3" style={{ fontSize: '20px' }}>Desarrollado por</div>
-                            <div className="d-flex align-items-center gap-3">
-                                <img src={company} alt="company" className="object-fit-conver rounded-circle" style={{ width: '60px', height: '60px' }} />
-                                <div className="d-flex flex-column align-items-start gap-2">
-                                    <span>Desarrolladora Inmobiliaria Alta Vista</span>
-                                    <button className="btn btn-dark btn-sm rounded-1 px-3">
-                                        <i className="fa-brands fa-whatsapp me-2"></i>Contactar
-                                    </button>
-                                </div>
-                            </div>
-                        </div> */}
 
                         {/* Solicitar información */}
                         <div className="mb-4">
-                            <div className="mb-3 fs-3">Solicitar información</div>
+                            <div className="mb-3 fs-3">{t('Solicitar información', 'Request information')}</div>
                             <div className="d-flex flex-column gap-2">
                                 <label htmlFor={requestFieldIds.name} className="visually-hidden">Nombre</label>
                                 <Form.Control id={requestFieldIds.name} placeholder="Nombre" aria-label="Nombre" style={{ fontSize: '14px', borderRadius: '4px' }} />
@@ -622,7 +545,7 @@ function Apartament() {
                         {/* Ubicación geográfica — mapa placeholder */}
                         <div className="mt-5">
                             <div className="mb-3 fs-3">
-                                <i className="fa-regular fa-earth-africa me-2"></i>Ubicación geográfica
+                                <i className="fa-regular fa-earth-africa me-2"></i>{t('Ubicación geográfica', 'Geographic location')}
                             </div>
                             <div
                                 className="rounded-1 overflow-hidden d-flex align-items-center justify-content-center bg-light"
@@ -648,7 +571,7 @@ function Apartament() {
             <div style={{ marginTop: 'clamp(2rem, 10vw, 6rem)', marginBottom: 'clamp(2rem, 10vw, 6rem)' }}>
                 <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-5 gap-3 gap-lg-0">
                     <div style={{ fontSize: 'clamp(36px, 5vw, 64px)', fontFamily: 'AppleGaramond' }}>
-                        Otras propiedades
+                        {t('Otras propiedades', 'Other properties')}
                     </div>
                     <Link to="/proyectos" className="link-more-black d-flex align-items-center gap-2">
                         {t('Ver más', 'See more')} <i className="fa-solid fa-angle-right"></i>
@@ -668,12 +591,9 @@ function Apartament() {
                                     />
                                     <div style={{ padding: '5%' }} className="position-absolute top-0 w-100 h-100 d-flex flex-column justify-content-between">
                                         <div className="d-flex gap-2 align-items-center" style={{ backgroundColor: '#000000c7', color: 'white', width: 'fit-content', padding: '3px 10px', fontSize: '14px' }}>
-                                            <img src={diamond} style={{ width: '14px' }} alt="" /> Destacado
+                                            <img src={diamond} style={{ width: '14px' }} alt="" /> {t('Destacado', 'Featured')}
                                         </div>
                                         <div className="d-flex justify-content-end align-items-center gap-2">
-                                            <div style={{ backgroundColor: '#000000c7', color: 'white', padding: '3px 10px', fontSize: '12px' }}>
-                                                Visualizaciones: {item.visitas}
-                                            </div>
                                             <div className="favorite-icon unlike" style={{ cursor: 'pointer' }}>
                                                 <i className="fa-solid fa-heart"></i>
                                             </div>
@@ -688,12 +608,12 @@ function Apartament() {
                                     </div>
                                     <div>{item.ubicacion}</div>
                                     <div>Tipo: {item.tipo}</div>
-                                    <div className="my-2" style={{ fontSize: '14px' }}>A partir de:</div>
+                                    <div className="my-2" style={{ fontSize: '14px' }}>{t('A partir de:', 'Starting from:')}</div>
                                     <div className="d-flex icons-small-description gap-4">
-                                        <div><i className="fa-solid fa-bed me-2"></i>3</div>
-                                        <div><i className="fa-solid fa-bath me-2"></i>4</div>
-                                        <div><i className="fa-solid fa-car-side me-2"></i>2</div>
-                                        <div><i className="fa-solid fa-crop-simple me-2"></i>480m²</div>
+                                        <div><i className="fa-solid fa-bed me-2"></i>{item.camas}</div>
+                                        <div><i className="fa-solid fa-bath me-2"></i>{item.banos}</div>
+                                        <div><i className="fa-solid fa-car-side me-2"></i>{item.parqueo}</div>
+                                        <div><i className="fa-solid fa-crop-simple me-2"></i>{item.area}</div>
                                     </div>
                                     <div className="mt-2 fw-bold fs-4 text-dark d-flex align-items-center gap-4">
                                         {item.precio}
