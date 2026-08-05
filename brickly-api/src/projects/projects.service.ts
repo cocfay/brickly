@@ -6,6 +6,14 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Project, ProjectDocument } from './schemas/project.schema';
+import {
+  ProjectLead,
+  ProjectLeadDocument,
+} from './schemas/project-lead.schema';
+import {
+  ProjectCitaClick,
+  ProjectCitaClickDocument,
+} from './schemas/project-cita-click.schema';
 import { CreateProjectDto } from './dto/create-project.dto';
 
 @Injectable()
@@ -13,6 +21,10 @@ export class ProjectsService {
   constructor(
     @InjectModel(Project.name)
     private projectModel: Model<ProjectDocument>,
+    @InjectModel(ProjectLead.name)
+    private projectLeadModel: Model<ProjectLeadDocument>,
+    @InjectModel(ProjectCitaClick.name)
+    private projectCitaClickModel: Model<ProjectCitaClickDocument>,
   ) {}
 
   async create(userId: string, dto: CreateProjectDto) {
@@ -123,6 +135,118 @@ export class ProjectsService {
     }
 
     return project;
+  }
+
+  // ─── Leads de proyectos ("Solicitar información") ─────────────────────────
+
+  async createLead(dto: any) {
+    const { projectId, ...rest } = dto;
+    const ref = await this.resolveProjectRef(dto.projectSlug, projectId);
+    const lead = new this.projectLeadModel({ ...rest, ...ref });
+    return lead.save();
+  }
+
+  async findLeads(query: any = {}) {
+    const filters: any = {};
+
+    if (query?.projectSlug) filters.projectSlug = query.projectSlug;
+    if (query?.type) filters.type = query.type;
+    if (query?.status) filters.status = query.status;
+    if (query?.dateFrom || query?.dateTo) {
+      filters.createdAt = {};
+      if (query?.dateFrom) filters.createdAt.$gte = new Date(query.dateFrom);
+      if (query?.dateTo) filters.createdAt.$lte = new Date(query.dateTo);
+    }
+
+    const limit = Number(query?.limit) || 200;
+    return this.projectLeadModel
+      .find(filters)
+      .sort({ createdAt: -1 })
+      .limit(limit);
+  }
+
+  async updateLeadStatus(ids: string[], status = 'revisado') {
+    await this.projectLeadModel.updateMany(
+      { _id: { $in: ids } },
+      { $set: { status } },
+    );
+    return { success: true, updated: ids.length };
+  }
+
+  // ─── Clics "agendar cita" ─────────────────────────────────────────────────
+
+  async createCitaClick(dto: any) {
+    const { projectId, ...rest } = dto;
+    const ref = await this.resolveProjectRef(dto.projectSlug, projectId);
+    const click = new this.projectCitaClickModel({ ...rest, ...ref });
+    return click.save();
+  }
+
+  async findCitaClicks(query: any = {}) {
+    const filters: any = {};
+
+    if (query?.projectSlug) filters.projectSlug = query.projectSlug;
+    if (query?.modelSlug) filters.modelSlug = query.modelSlug;
+    if (query?.dateFrom || query?.dateTo) {
+      filters.clickedAt = {};
+      if (query?.dateFrom) filters.clickedAt.$gte = new Date(query.dateFrom);
+      if (query?.dateTo) filters.clickedAt.$lte = new Date(query.dateTo);
+    }
+
+    const limit = Number(query?.limit) || 500;
+    return this.projectCitaClickModel
+      .find(filters)
+      .sort({ clickedAt: -1 })
+      .limit(limit);
+  }
+
+  async getCitaClicksDaily(query: any = {}) {
+    const filters: any = {};
+
+    if (query?.projectSlug) filters.projectSlug = query.projectSlug;
+    if (query?.modelSlug) filters.modelSlug = query.modelSlug;
+    if (query?.dateFrom || query?.dateTo) {
+      filters.clickedAt = {};
+      if (query?.dateFrom) filters.clickedAt.$gte = new Date(query.dateFrom);
+      if (query?.dateTo) filters.clickedAt.$lte = new Date(query.dateTo);
+    }
+
+    const agg = await this.projectCitaClickModel.aggregate([
+      { $match: filters },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$clickedAt' },
+            month: { $month: '$clickedAt' },
+            day: { $dayOfMonth: '$clickedAt' },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } },
+    ]);
+
+    return agg.map((item) => ({
+      date: `${item._id.year}-${String(item._id.month).padStart(2, '0')}-${String(
+        item._id.day,
+      ).padStart(2, '0')}`,
+      count: item.count,
+    }));
+  }
+
+  private async resolveProjectRef(projectSlug?: string, projectId?: string) {
+    if (projectId) return { projectId };
+    if (projectSlug && this.isObjectId(projectSlug)) {
+      return { projectId: projectSlug };
+    }
+    if (projectSlug) {
+      const project = await this.projectModel
+        .findOne({ projectSlug })
+        .select('_id')
+        .lean();
+      return project ? { projectId: project._id } : {};
+    }
+    return {};
   }
 
   // ─── Slug helpers ──────────────────────────────────────────────────────────

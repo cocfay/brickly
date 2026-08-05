@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Row, Col, Form, Button } from 'react-bootstrap';
 import { getLogoUrl } from '../../services/logoService';
 
@@ -29,7 +29,7 @@ const genId = () => `gal-${Date.now()}-${++idCounter}`;
 // ============================================================================
 // SUB-COMPONENTE: SortableImage (Miniatura arrastrable)
 // ============================================================================
-const SortableImage = ({ img, onRemove }) => {
+const SortableImage = ({ img, onRemove, isPrincipal }) => {
   const [imgError, setImgError] = useState(false);
   const {
     attributes,
@@ -89,6 +89,18 @@ const SortableImage = ({ img, onRemove }) => {
         >
           <i className="fa-solid fa-times"></i>
         </Button>
+
+        {/* Etiqueta de imagen principal en la primera imagen */}
+        {isPrincipal && (
+          <div
+            className="position-absolute bottom-0 start-0 w-100 text-center py-1"
+            style={{ backgroundColor: 'rgba(0,0,0,0.75)', zIndex: 10 }}
+          >
+            <span className="text-white" style={{ fontSize: '12px', fontWeight: 700 }}>
+              <i className="fa-solid fa-star me-1"></i>Imagen principal
+            </span>
+          </div>
+        )}
       </div>
     </Col>
   );
@@ -321,11 +333,12 @@ function SelectorGaleriaProyectos({ value = [], onChange }) {
           >
             <SortableContext items={imagenes} strategy={rectSortingStrategy}>
               <Row className="g-2 ms-0 me-0">
-                {imagenes.map(img => (
+                {imagenes.map((img, idx) => (
                   <SortableImage 
                     key={img.id} 
                     img={img} 
                     onRemove={handleRemove}
+                    isPrincipal={idx === 0}
                   />
                 ))}
               </Row>

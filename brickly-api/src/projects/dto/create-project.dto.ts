@@ -40,6 +40,14 @@ export class CreateProjectDto {
   mode?: string;
 
   @IsOptional()
+  @IsString()
+  situacional?: string;
+
+  @IsOptional()
+  @IsNumber()
+  unidades?: number;
+
+  @IsOptional()
   @IsNumber()
   priceFromQ?: number;
 
@@ -74,6 +82,10 @@ export class CreateProjectDto {
   @IsOptional()
   @IsArray()
   models?: any[];
+
+  @IsOptional()
+  @IsObject()
+  desarrolladora?: Record<string, any>;
 
   @IsOptional()
   @IsString()

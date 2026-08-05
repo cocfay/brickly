@@ -75,6 +75,7 @@ try {
     $finalFiles = [
         'mainImage' => null,
         'mobileImage' => null,
+        'logo' => null,
         'images' => [],
         'models' => []
     ];
@@ -111,6 +112,19 @@ try {
         }
         
         $finalFiles['mobileImage'] = '/uploads/proye_arqui/' . $userId . '/' . $destFileName;
+    }
+    
+    // --- PROCESAR LOGOTIPO DE LA EMPRESA ---
+    if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
+        $ext = strtolower(pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION));
+        $allowedExts = ['webp'];
+        if (in_array($ext, $allowedExts)) {
+            $destFileName = $filePrefix . '_logo.webp';
+            $destPath = $destDir . '/' . $destFileName;
+            if (move_uploaded_file($_FILES['logo']['tmp_name'], $destPath)) {
+                $finalFiles['logo'] = '/uploads/proye_arqui/' . $userId . '/' . $destFileName;
+            }
+        }
     }
     
     // --- PROCESAR GALERÍA ---
@@ -181,7 +195,7 @@ try {
     }
 
     // Validar que al menos se haya subido una imagen
-    $hasProjectImages = $finalFiles['mainImage'] || $finalFiles['mobileImage'] || !empty($finalFiles['images']);
+    $hasProjectImages = $finalFiles['mainImage'] || $finalFiles['mobileImage'] || !empty($finalFiles['images']) || $finalFiles['logo'];
     $hasModelPhotos = !empty($finalFiles['models']);
     if (!$hasProjectImages && !$hasModelPhotos) {
         throw new Exception('No se subió ninguna imagen válida');

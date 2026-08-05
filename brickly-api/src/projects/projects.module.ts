@@ -4,11 +4,18 @@ import { ProjectsService } from './projects.service';
 import { ProjectsController } from './projects.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Project, ProjectSchema } from './schemas/project.schema';
+import { ProjectLead, ProjectLeadSchema } from './schemas/project-lead.schema';
+import {
+  ProjectCitaClick,
+  ProjectCitaClickSchema,
+} from './schemas/project-cita-click.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Project.name, schema: ProjectSchema },
+      { name: ProjectLead.name, schema: ProjectLeadSchema },
+      { name: ProjectCitaClick.name, schema: ProjectCitaClickSchema },
     ]),
   ],
   controllers: [ProjectsController],

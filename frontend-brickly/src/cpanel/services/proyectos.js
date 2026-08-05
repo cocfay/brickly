@@ -292,7 +292,7 @@ export const moveProyectoImages = async (paths, userId) => {
  * @param {File[]} galleryFiles - Array de archivos para la galería
  * @returns {Object} { success, data: { files: { mainImage, mobileImage, images } } }
  */
-export const uploadProyectosDirect = async ({ userId, projectId, desktopFile, mobileFile, galleryFiles = [] }) => {
+export const uploadProyectosDirect = async ({ userId, projectId, desktopFile, mobileFile, galleryFiles = [], logoFile }) => {
   try {
     // Convertir todos los archivos a WebP primero
     const convertPromises = [];
@@ -307,6 +307,12 @@ export const uploadProyectosDirect = async ({ userId, projectId, desktopFile, mo
       convertPromises.push(
         convertImageToWebP(mobileFile, '_mobile')
           .then(file => ({ type: 'mobile', file }))
+      );
+    }
+    if (logoFile) {
+      convertPromises.push(
+        convertImageToWebP(logoFile, '_logo')
+          .then(file => ({ type: 'logo', file }))
       );
     }
     galleryFiles.forEach((file, idx) => {
@@ -334,6 +340,8 @@ export const uploadProyectosDirect = async ({ userId, projectId, desktopFile, mo
         formData.append('desktop', file);
       } else if (type === 'mobile') {
         formData.append('mobile', file);
+      } else if (type === 'logo') {
+        formData.append('logo', file);
       } else if (type === 'gallery') {
         formData.append('gallery[]', file);
       }
@@ -416,5 +424,125 @@ export const deleteProyecto = async (projectId) => {
     return { success: true, message: 'Proyecto eliminado correctamente' };
   } catch (error) {
     return { success: false, error: error.message };
+  }
+};
+
+// ========== LEADS Y CLICS DE PROYECTOS ==========
+
+/**
+ * Enviar solicitud de información de un proyecto o modelo
+ * POST /projects/lead
+ * @param {Object} data - { projectSlug, modelSlug?, modelName?, name, lastname?, phone, email, message, type: 'proyecto'|'modelo' }
+ */
+export const sendProyectoLead = async (data) => {
+  try {
+    const response = await fetch(`${API_URL}/projects/lead`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    const res = await handleResponse(response);
+    return { success: true, data: res };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Registrar clic en "agendar cita" de un proyecto o modelo
+ * POST /projects/cita-click
+ * @param {Object} data - { projectSlug, modelSlug? }
+ */
+export const registerProyectoCitaClick = async (data) => {
+  try {
+    const response = await fetch(`${API_URL}/projects/cita-click`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    const res = await handleResponse(response);
+    return { success: true, data: res };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Obtener leads de proyectos (protegido)
+ * GET /projects/leads
+ */
+export const getProyectoLeads = async (params = {}) => {
+  try {
+    const queryString = new URLSearchParams(params).toString();
+    const response = await fetch(
+      `${API_URL}/projects/leads${queryString ? `?${queryString}` : ''}`,
+      { headers: getAuthHeaders() }
+    );
+
+    const data = await handleResponse(response);
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: error.message, data: [] };
+  }
+};
+
+/**
+ * Actualizar status de leads de proyectos
+ * PUT /projects/leads/status
+ * @param {string[]} ids
+ * @param {'pendiente'|'revisado'} status
+ */
+export const updateProyectoLeadStatus = async (ids = [], status = 'revisado') => {
+  try {
+    const response = await fetch(`${API_URL}/projects/leads/status`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ ids, status })
+    });
+
+    const data = await handleResponse(response);
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Obtener clics "agendar cita" de proyectos (protegido)
+ * GET /projects/cita-clicks
+ */
+export const getProyectoCitaClicks = async (params = {}) => {
+  try {
+    const queryString = new URLSearchParams(params).toString();
+    const response = await fetch(
+      `${API_URL}/projects/cita-clicks${queryString ? `?${queryString}` : ''}`,
+      { headers: getAuthHeaders() }
+    );
+
+    const data = await handleResponse(response);
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: error.message, data: [] };
+  }
+};
+
+/**
+ * Obtener clics diarios "agendar cita" de proyectos (protegido)
+ * GET /projects/cita-clicks/daily
+ */
+export const getProyectoCitaClicksDaily = async (params = {}) => {
+  try {
+    const queryString = new URLSearchParams(params).toString();
+    const response = await fetch(
+      `${API_URL}/projects/cita-clicks/daily${queryString ? `?${queryString}` : ''}`,
+      { headers: getAuthHeaders() }
+    );
+
+    const data = await handleResponse(response);
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: error.message, data: [] };
   }
 };

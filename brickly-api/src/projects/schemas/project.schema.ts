@@ -33,6 +33,14 @@ export class Project {
   @Prop()
   mode?: string;
 
+  // Estado situacional del proyecto (EN VENTA / PREVENTA)
+  @Prop()
+  situacional?: string;
+
+  // Cantidad de unidades del proyecto
+  @Prop()
+  unidades?: number;
+
   // Precio desde en quetzales
   @Prop()
   priceFromQ?: number;
@@ -68,6 +76,10 @@ export class Project {
   // Modelos del proyecto (Apartamento / Bodega, con campos según tipo)
   @Prop({ type: [{ type: Object }], default: [] })
   models?: Record<string, any>[];
+
+  // Empresa desarrolladora "Desarrollado por"
+  @Prop({ type: Object })
+  desarrolladora?: Record<string, any>;
 
   // imagen principal (opcional)
   @Prop()

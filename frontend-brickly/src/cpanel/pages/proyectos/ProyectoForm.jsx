@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Container, Accordion, Row, Col, Form, Button, Alert, Badge, Spinner } from 'react-bootstrap';
+import { useState, useEffect, useRef } from 'react';
+import { Container, Accordion, Row, Col, Form, Button, Alert, Badge } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import SelectoresUbicacion from '../../components/SelectoresUbicacion';
 import SelectorMapaDropdown from '../../components/SelectorMapaDropdown';
@@ -30,7 +30,7 @@ const SECCIONES = {
         type: 'select',
         label: 'Tipo de proyecto *',
         col: 2,
-        options: ['Casa', 'Apartamento', 'Condominio', 'Edificio', 'Residencial', 'Comercial']
+        options: ['Edificio', 'Bodegas']
       },
       mode: {
         type: 'select',
@@ -41,7 +41,12 @@ const SECCIONES = {
       priceFromQ: { type: 'priceQ', label: 'Precio desde (Q) *', col: 3 },
       rate: { type: 'number', label: 'Tasa dólar *', col: 2 },
       priceFromUSD: { type: 'priceUSD', label: 'Precio desde ($) *', col: 3 },
-      description: { type: 'textarea', label: 'Descripción del proyecto *', col: 12, opcional: false }
+      description: { type: 'textarea', label: 'Descripción del proyecto *', col: 12, opcional: false },
+      devNombre: { type: 'text', label: 'Nombre de la empresa *', col: 4, opcional: false },
+      devTelefono: { type: 'text', label: 'Teléfono de la empresa', col: 4, opcional: true },
+      devLogo: { type: 'logo', label: 'Logotipo de la empresa', col: 4, opcional: true },
+      situacional: { type: 'select', label: 'Estado situacional *', col: 4, opcional: false, options: ['EN VENTA', 'PREVENTA'] },
+      unidades: { type: 'number', label: 'Cantidad de unidades', col: 4, opcional: true }
     }
   },
   ubicacion: {
@@ -75,8 +80,7 @@ const SECCIONES = {
     campos: {
       terrenoM2: { type: 'number', label: 'Área de terreno (m²)', col: 4, opcional: true },
       terrenoV2: { type: 'number', label: 'Área de terreno (v²)', col: 4, opcional: true },
-      construccionM2: { type: 'number', label: 'Área de construcción (m²)', col: 4, opcional: true },
-      numeroPisos: { type: 'number', label: 'Número de pisos', col: 4, opcional: true }
+      construccionM2: { type: 'number', label: 'Área de construcción (m²)', col: 4, opcional: true }
     }
   },
   estructura: {
@@ -148,19 +152,13 @@ function ProyectoForm({ projectId }) {
   const [alert, setAlert] = useState({ show: false, variant: '', message: '' });
   const [originalStatus, setOriginalStatus] = useState(null);
 
-  // Estados de imágenes principales
-  const [desktopImage, setDesktopImage] = useState(null);
-  const [mobileImage, setMobileImage] = useState(null);
-  const desktopInputRef = useRef(null);
-  const mobileInputRef = useRef(null);
-  const [desktopDragOver, setDesktopDragOver] = useState(false);
-  const [mobileDragOver, setMobileDragOver] = useState(false);
-
   // tour 360
   const [tour360, setTour360] = useState('');
 
   // refs para precios formateados
   const priceInputRefs = useRef({});
+
+  const logoInputRef = useRef(null);
 
   const [galeria, setGaleria] = useState([]);
   const [modelos, setModelos] = useState([]);
@@ -239,13 +237,6 @@ function ProyectoForm({ projectId }) {
         }));
         setModelos(modelosCargados);
 
-        if (data.mainImage) {
-          setDesktopImage({ preview: getLogoUrl(data.mainImage), path: data.mainImage, uploading: false });
-        }
-        if (data.mainImageAlter) {
-          setMobileImage({ preview: getLogoUrl(data.mainImageAlter), path: data.mainImageAlter, uploading: false });
-        }
-
         setSecciones(prev => {
           const next = { ...prev };
 
@@ -265,6 +256,7 @@ function ProyectoForm({ projectId }) {
           };
 
           if (data.type || data.mode || data.priceFromQ || data.priceFromUSD || data.rate || data.title || data.description) {
+            const dev = data.desarrolladora || {};
             next.datosProyecto = {
               completada: true,
               datos: {
@@ -274,7 +266,14 @@ function ProyectoForm({ projectId }) {
                 priceFromQ: data.priceFromQ ?? '',
                 rate: data.rate ?? '7.8',
                 priceFromUSD: data.priceFromUSD ?? '',
-                description: data.description || ''
+                description: data.description || '',
+                devNombre: dev.nombre || '',
+                devTelefono: dev.telefono || '',
+                devLogo: dev.logo
+                  ? { file: null, path: dev.logo, preview: getLogoUrl(dev.logo) }
+                  : '',
+                situacional: data.situacional || '',
+                unidades: data.unidades ?? ''
               }
             };
           }
@@ -485,6 +484,50 @@ function ProyectoForm({ projectId }) {
             />
           );
         }
+      case 'logo':
+        {
+          const logo = value && typeof value === 'object' ? value : null;
+          return (
+            <div>
+              {logo && logo.preview && (
+                <div className="position-relative mb-2" style={{ width: '90px', height: '90px' }}>
+                  <img
+                    src={logo.preview}
+                    alt="Logotipo de la empresa"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 rounded-circle d-flex align-items-center justify-content-center"
+                    style={{ width: '24px', height: '24px', padding: 0 }}
+                    onClick={(e) => { e.preventDefault(); handleChange(seccionId, campoKey, ''); }}
+                  >
+                    <i className="fa-solid fa-times" style={{ fontSize: '11px' }}></i>
+                  </button>
+                </div>
+              )}
+              <div
+                className="border rounded-3 d-flex flex-column align-items-center justify-content-center p-3"
+                style={{ cursor: 'pointer', borderStyle: 'dashed', borderColor: '#adb5bd', minHeight: '90px' }}
+                onClick={() => logoInputRef.current?.click()}
+              >
+                <i className="fa-solid fa-image text-secondary fs-3 mb-1"></i>
+                <span className="text-muted small">{logo ? 'Cambiar logotipo' : 'Subir logotipo'}</span>
+              </div>
+              <input
+                type="file"
+                ref={logoInputRef}
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleChange(seccionId, campoKey, { file, preview: URL.createObjectURL(file), path: null });
+                  e.target.value = '';
+                }}
+              />
+            </div>
+          );
+        }
       default:
         return (
           <Form.Control
@@ -496,54 +539,6 @@ function ProyectoForm({ projectId }) {
             onWheel={(e) => campoConfig.type === 'number' && e.target.blur()}
           />
         );
-    }
-  };
-
-  const processFile = useCallback((file, type) => {
-    if (!file) return;
-    const preview = URL.createObjectURL(file);
-    const imageData = { file, preview, path: null, uploading: true };
-
-    if (type === 'desktop') setDesktopImage(imageData);
-    else setMobileImage(imageData);
-  }, []);
-
-  const handleImageSelect = (e, type) => {
-    const file = e.target.files?.[0];
-    processFile(file, type);
-    e.target.value = '';
-  };
-
-  const handleImageDrop = (e, type) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (type === 'desktop') setDesktopDragOver(false);
-    else setMobileDragOver(false);
-    const file = e.dataTransfer.files?.[0];
-    processFile(file, type);
-  };
-
-  const handleDragOver = (e, type) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (type === 'desktop') setDesktopDragOver(true);
-    else setMobileDragOver(true);
-  };
-
-  const handleDragLeave = (e, type) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (type === 'desktop') setDesktopDragOver(false);
-    else setMobileDragOver(false);
-  };
-
-  const handleRemoveImage = (type) => {
-    if (type === 'desktop') {
-      if (desktopImage?.preview?.startsWith('blob:')) URL.revokeObjectURL(desktopImage.preview);
-      setDesktopImage(null);
-    } else {
-      if (mobileImage?.preview?.startsWith('blob:')) URL.revokeObjectURL(mobileImage.preview);
-      setMobileImage(null);
     }
   };
 
@@ -561,7 +556,9 @@ function ProyectoForm({ projectId }) {
       rate: datos.rate ? parseFloat(datos.rate) : undefined,
       priceFromUSD: datos.priceFromUSD ? parseFloat(datos.priceFromUSD) : undefined,
       description: datos.description,
-      tour360: tour360 || ''
+      tour360: tour360 || '',
+      situacional: datos.situacional || '',
+      unidades: datos.unidades ? parseFloat(datos.unidades) : undefined
     };
 
     if (secciones.ubicacion.completada) {
@@ -585,12 +582,11 @@ function ProyectoForm({ projectId }) {
       }
     }
 
-    if (secciones.areas.completada && (areas.terrenoM2 || areas.terrenoV2 || areas.construccionM2 || areas.numeroPisos)) {
+    if (secciones.areas.completada && (areas.terrenoM2 || areas.terrenoV2 || areas.construccionM2)) {
       data.areas = {};
       if (areas.terrenoM2) data.areas.terrenoM2 = parseFloat(areas.terrenoM2);
       if (areas.terrenoV2) data.areas.terrenoV2 = parseFloat(areas.terrenoV2);
       if (areas.construccionM2) data.areas.construccionM2 = parseFloat(areas.construccionM2);
-      if (areas.numeroPisos) data.areas.numeroPisos = parseFloat(areas.numeroPisos);
     }
 
     if (secciones.estructura.completada && (est.anioConstruccion || est.niveles || est.muroPerimetral)) {
@@ -610,6 +606,14 @@ function ProyectoForm({ projectId }) {
       }
     }
 
+    if (datos.devNombre || datos.devTelefono || (datos.devLogo?.path)) {
+      const desarrolladora = {};
+      if (datos.devNombre) desarrolladora.nombre = datos.devNombre;
+      if (datos.devTelefono) desarrolladora.telefono = datos.devTelefono;
+      if (datos.devLogo?.path) desarrolladora.logo = datos.devLogo.path;
+      data.desarrolladora = desarrolladora;
+    }
+
     return data;
   };
 
@@ -618,15 +622,25 @@ function ProyectoForm({ projectId }) {
       .map(img => img.file)
       .filter(Boolean);
 
-    const pathsViejos = (galeria || [])
-      .filter(img => !img?.file && img?.path)
-      .map(img => img.path);
+    return { galleryFiles };
+  };
 
-    return { galleryFiles, pathsViejos };
+  // Reconstruye la galería en orden (paths existentes + paths nuevos subidos),
+  // tomando la primera imagen como principal.
+  const ordenarImagenesFinales = (nuevasRutas = []) => {
+    let idx = 0;
+    return (galeria || [])
+      .map(img => {
+        if (img.path) return img.path;
+        if (img.file) return nuevasRutas[idx++];
+        return null;
+      })
+      .filter(Boolean);
   };
 
   const subirFotosModelos = async (userId, projectId) => {
     const modelosPayload = [];
+    const tipoModelo = secciones.datosProyecto.datos.type === 'Bodegas' ? 'Bodega' : 'Apartamento';
 
     for (const m of modelos) {
       const pathsExistentes = (m.fotos || [])
@@ -646,7 +660,7 @@ function ProyectoForm({ projectId }) {
       }
 
       modelosPayload.push({
-        tipo: m.tipo,
+        tipo: tipoModelo,
         nombre: m.nombre,
         precioDesdeQ: m.precioDesdeQ ? parseFloat(m.precioDesdeQ) : undefined,
         tasa: m.tasa ? parseFloat(m.tasa) : undefined,
@@ -678,7 +692,9 @@ function ProyectoForm({ projectId }) {
     try {
       const userId = currentUser?._id || currentUser?.id || currentUser?.sub || 'unknown';
       const data = construirDataFinal();
-      const { galleryFiles, pathsViejos } = extraerImagenes();
+      const { galleryFiles } = extraerImagenes();
+      const devLogo = secciones.datosProyecto.datos.devLogo;
+      const logoFile = devLogo?.file || null;
 
       if (!isEdit) {
         // PASO 1: Crear el proyecto primero (sin imágenes) para obtener el ID
@@ -698,21 +714,16 @@ function ProyectoForm({ projectId }) {
 
         const newId = createResult.data?._id || createResult.data?.id;
 
-        // PASO 2: Subir imágenes con el projectId
-        const hasNewDesktop = desktopImage?.file != null;
-        const hasNewMobile = mobileImage?.file != null;
-
-        let finalMainImage = '';
-        let finalMobileImage = '';
+        // PASO 2: Subir la galería y el logotipo (la primera imagen es la principal)
         let finalImages = [];
+        let finalLogo = devLogo?.path || '';
 
-        if (hasNewDesktop || hasNewMobile || galleryFiles.length > 0) {
+        if (galleryFiles.length > 0 || logoFile) {
           const uploadResult = await uploadProyectosDirect({
             userId,
             projectId: newId,
-            desktopFile: hasNewDesktop ? desktopImage.file : null,
-            mobileFile: hasNewMobile ? mobileImage.file : null,
-            galleryFiles
+            galleryFiles,
+            logoFile
           });
 
           if (!uploadResult.success) {
@@ -725,11 +736,14 @@ function ProyectoForm({ projectId }) {
             throw new Error(uploadResult.error || 'Error al subir imágenes');
           }
 
-          const movedFiles = uploadResult.data.files;
-          finalMainImage = movedFiles.mainImage || '';
-          finalMobileImage = movedFiles.mobileImage || '';
-          finalImages = movedFiles.images || [];
+          finalImages = ordenarImagenesFinales(uploadResult.data.files.images || []);
+          finalLogo = uploadResult.data.files.logo || devLogo?.path || '';
         }
+
+        const finalMainImage = finalImages[0] || '';
+        const finalMobileImage = finalImages[1] || '';
+
+        if (finalLogo) data.desarrolladora = { ...(data.desarrolladora || {}), logo: finalLogo };
 
         // PASO 3: Fotos de modelos y payload final
         const modelosPayload = await subirFotosModelos(userId, newId);
@@ -738,40 +752,39 @@ function ProyectoForm({ projectId }) {
           mainImage: finalMainImage,
           mainImageAlter: finalMobileImage,
           images: finalImages,
-          models: modelosPayload
+          models: modelosPayload,
+          desarrolladora: data.desarrolladora
         });
 
         setAlert({ show: true, variant: 'success', message: isAdmin ? 'Proyecto publicado exitosamente' : 'Proyecto creado exitosamente' });
         setTimeout(() => navigate(`/cpanel/proyectos/view/${newId}`), 1500);
       } else {
         // MODO EDICIÓN
-        const hasNewDesktop = desktopImage?.file != null;
-        const hasNewMobile = mobileImage?.file != null;
+        let finalImages = [];
+        let finalLogo = devLogo?.path || '';
 
-        let finalMainImage = desktopImage?.path || '';
-        let finalMobileImage = mobileImage?.path || '';
-        let finalImages = pathsViejos;
-
-        if (hasNewDesktop || hasNewMobile || galleryFiles.length > 0) {
+        if (galleryFiles.length > 0 || logoFile) {
           const uploadResult = await uploadProyectosDirect({
             userId,
             projectId,
-            desktopFile: hasNewDesktop ? desktopImage.file : null,
-            mobileFile: hasNewMobile ? mobileImage.file : null,
-            galleryFiles
+            galleryFiles,
+            logoFile
           });
 
           if (!uploadResult.success) {
             throw new Error(uploadResult.error || 'Error al subir imágenes');
           }
 
-          const movedFiles = uploadResult.data.files;
-          if (hasNewDesktop && movedFiles.mainImage) finalMainImage = movedFiles.mainImage;
-          if (hasNewMobile && movedFiles.mobileImage) finalMobileImage = movedFiles.mobileImage;
-          if (galleryFiles.length > 0 && movedFiles.images) {
-            finalImages = [...pathsViejos, ...movedFiles.images];
-          }
+          finalImages = ordenarImagenesFinales(uploadResult.data.files.images || []);
+          finalLogo = uploadResult.data.files.logo || devLogo?.path || '';
+        } else {
+          finalImages = ordenarImagenesFinales([]);
         }
+
+        const finalMainImage = finalImages[0] || '';
+        const finalMobileImage = finalImages[1] || '';
+
+        if (finalLogo) data.desarrolladora = { ...(data.desarrolladora || {}), logo: finalLogo };
 
         // Fotos de modelos
         const modelosPayload = await subirFotosModelos(userId, projectId);
@@ -806,73 +819,6 @@ function ProyectoForm({ projectId }) {
     }
   };
 
-  const renderImagenPrincipal = (type) => {
-    const isDesktop = type === 'desktop';
-    const img = isDesktop ? desktopImage : mobileImage;
-    const dragOver = isDesktop ? desktopDragOver : mobileDragOver;
-    const inputRef = isDesktop ? desktopInputRef : mobileInputRef;
-
-    return (
-      <div
-        className={`border-2 rounded-4 d-flex flex-column align-items-center justify-content-center position-relative overflow-hidden ${img ? 'p-0' : 'p-5'}`}
-        style={{
-          minHeight: '220px',
-          maxWidth: isDesktop ? '100%' : '400px',
-          cursor: img?.uploading ? 'wait' : (!img ? 'pointer' : 'default'),
-          borderStyle: 'dashed',
-          borderColor: dragOver ? '#0d6efd' : '#adb5bd',
-          backgroundColor: dragOver ? 'rgba(13, 110, 253, 0.05)' : (img ? '#000' : '#f8f9fa'),
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-        onClick={() => !img?.uploading && !img && inputRef.current?.click()}
-        onDragOver={(e) => !img?.uploading && !img && handleDragOver(e, type)}
-        onDragLeave={(e) => !img?.uploading && !img && handleDragLeave(e, type)}
-        onDrop={(e) => !img?.uploading && !img && handleImageDrop(e, type)}
-      >
-        {img ? (
-          <>
-            <img
-              src={img.preview}
-              alt={`Vista previa ${isDesktop ? 'escritorio' : 'móvil'}`}
-              style={{ width: '100%', height: '260px', objectFit: 'cover' }}
-            />
-            {img.uploading && (
-              <div className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-white bg-opacity-75">
-                <Spinner animation="border" variant="primary" className="mb-2" />
-                <span className="text-primary fw-bold">Subiendo...</span>
-              </div>
-            )}
-            {!img.uploading && (
-              <button
-                type="button"
-                className="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 rounded-circle d-flex align-items-center justify-content-center"
-                style={{ width: '32px', height: '32px', zIndex: 10 }}
-                onClick={(e) => { e.stopPropagation(); handleRemoveImage(type); }}
-              >
-                <i className="fa-solid fa-times"></i>
-              </button>
-            )}
-          </>
-        ) : (
-          <>
-            <i className={`${isDesktop ? 'fa-solid fa-desktop' : 'fa-solid fa-mobile-screen-button'} fs-1 mb-3 ${dragOver ? 'text-primary' : 'text-secondary'}`}></i>
-            <h6 className="text-dark text-center mb-1">{isDesktop ? 'Haz clic o arrastra una imagen panorámica' : 'Haz clic o arrastra una imagen cuadrada'}</h6>
-            <p className="text-muted text-center small mb-0">{isDesktop ? 'Recomendado: 1200x600px o similar' : 'Recomendado: 600x600px o similar'}</p>
-          </>
-        )}
-        <input
-          type="file"
-          ref={inputRef}
-          accept="image/*"
-          style={{ display: 'none' }}
-          onChange={(e) => handleImageSelect(e, type)}
-          disabled={img?.uploading}
-        />
-      </div>
-    );
-  };
-
   if (loadingShow) return (
     <Container className="text-center py-5">
       <div className="spinner-border text-primary" />
@@ -884,7 +830,7 @@ function ProyectoForm({ projectId }) {
       <div className='fs-1 d-flex justify-content-between align-items-center'>
         {isEdit ? 'Editar proyecto' : 'Nuevo proyecto'}
         <a href="#" onClick={(e) => { e.preventDefault(); navigate('/cpanel/proyectos'); }} title='Atrás'>
-          <i className="fa-solid fa-arrow-left" style={{ fontSize: 'clamp(24px, 4vw, 34px)' }}></i>
+          <i className="fa-solid fa-arrow-left" style={{ fontSize: 'clamp(24px, 4vw, 34px)', color: '#000' }}></i>
         </a>
       </div>
       <div className='d-flex flex-column gap-4 mt-5'>
@@ -974,24 +920,12 @@ function ProyectoForm({ projectId }) {
 
                     {seccionId === 'modelos' && (
                       <Col xs={12}>
-                        <ModelosProyecto value={modelos} onChange={setModelos} />
+                        <ModelosProyecto value={modelos} onChange={setModelos} tipoProyecto={secciones.datosProyecto.datos.type || ''} />
                       </Col>
                     )}
 
                     {seccionId === 'multimedia' && (
                       <>
-                        <Col xs={12}>
-                          <Form.Group>
-                            <Form.Label className="fw-bold fs-5 mb-3">Imagen principal - Escritorio (panorámica)</Form.Label>
-                            {renderImagenPrincipal('desktop')}
-                          </Form.Group>
-                        </Col>
-                        <Col xs={12}>
-                          <Form.Group>
-                            <Form.Label className="fw-bold fs-5 mb-3">Imagen principal - Móvil (cuadrada)</Form.Label>
-                            {renderImagenPrincipal('mobile')}
-                          </Form.Group>
-                        </Col>
                         <Col xs={12}>
                           <SelectorGaleriaProyectos
                             value={galeria}

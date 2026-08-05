@@ -1,5 +1,6 @@
 import { getLogoUrl } from '../services/logoService';
 import { getProjectSlug } from './projectRoutes';
+import { enriquecerAmenidades } from './amenidades';
 
 import edificioImg from '../assets/images/proyecto/edificio.png';
 import modeloImg from '../assets/images/proyecto/Modelo1.png';
@@ -192,6 +193,8 @@ export const enriquecerProyecto = (p, { otros = [] } = {}) => {
     precioDesdeQ: !isNaN(precioQ) ? formatGTQ(precioQ) : '—',
     tasaUSD: `$${tasa}`,
     modo: p.mode || 'Venta',
+    situacional: p.situacional || '',
+    unidades: p.unidades || null,
     camas: primerModelo.camas || 0,
     banos: primerModelo.banos || 0,
     parqueo: primerModelo.parqueo || 0,
@@ -199,8 +202,11 @@ export const enriquecerProyecto = (p, { otros = [] } = {}) => {
     descripcion: p.description || '',
     tour360: p.tour360 || '#',
     desarrolladora: {
-      nombre: 'Desarrolladora del proyecto',
-      logo: DEVELOPER_FALLBACK_IMG,
+      nombre: p.desarrolladora?.nombre || 'Desarrolladora del proyecto',
+      telefono: p.desarrolladora?.telefono || '',
+      logo: p.desarrolladora?.logo
+        ? resolverImagen(p.desarrolladora.logo, DEVELOPER_FALLBACK_IMG)
+        : DEVELOPER_FALLBACK_IMG,
     },
     mainImage,
     imagenPrincipal: mainImage,
@@ -233,6 +239,11 @@ export const enriquecerProyecto = (p, { otros = [] } = {}) => {
     amenidadKeys: Object.entries(p.amenities || {})
       .filter(([, v]) => v)
       .map(([key]) => key),
+    amenidades: enriquecerAmenidades(
+      Object.entries(p.amenities || {})
+        .filter(([, v]) => v)
+        .map(([key]) => key)
+    ),
     modelos,
     otrosPropiedades: (otros || [])
       .filter((o) => getProjectSlug(o) !== getProjectSlug(p))

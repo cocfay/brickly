@@ -11,62 +11,11 @@ import diamond from '../../assets/images/iconos/diamond.png';
 import venta   from '../../assets/images/iconos/venta.png';
 import arrow   from '../../assets/images/iconos/arrow.png';
 import tour    from '../../assets/images/iconos/IconoTour.png';
+import bricklyIcon from '../../assets/images/logos/brickly-icon.png';
 import { useT } from '../../hooks/useT';
-import { getProyectoById, getProyectosPublicos } from '../../cpanel/services/proyectos';
+import { getProyectoById, getProyectosPublicos, sendProyectoLead, registerProyectoCitaClick } from '../../cpanel/services/proyectos';
 import { enriquecerProyecto, MODELO_FALLBACK_IMG } from '../../utils/proyectosUtils';
 import { getModelPath } from '../../utils/projectRoutes';
-
-// ── Amenidades del edificio ─────────────────────────────────────
-// edificio: true  → aplica SOLO al edificio (se marca con * en la UI)
-// edificio: false → es amenidad de los apartamentos
-const AMENIDADES_ALL = [
-    { key: 'balcon',             nombre: 'Balcón',                                 edificio: false },
-    { key: 'aire',               nombre: 'Aire acondicionado',                     edificio: false },
-    { key: 'airbnb',             nombre: 'AIRBNB friendly',                        edificio: false },
-    { key: 'calentador',         nombre: 'Calentador de agua',                     edificio: false },
-    { key: 'cocinaIsla',         nombre: 'Cocina con isla',                        edificio: false },
-    { key: 'despensa',           nombre: 'Despensa (Pantry)',                      edificio: false },
-    { key: 'lavanderia',         nombre: 'Área de lavandería',                     edificio: false },
-    { key: 'cuartoServicio',     nombre: 'Cuarto de servicio',                     edificio: false },
-    { key: 'ventanales',         nombre: 'Ventanales de piso a techo',             edificio: false },
-    { key: 'cerraduras',         nombre: 'Cerraduras inteligentes',                edificio: false },
-    { key: 'sueloRadiante',      nombre: 'Suelo radiante',                         edificio: false },
-    { key: 'bodegaPrivada',      nombre: 'Bodega privada',                         edificio: false },
-    { key: 'acabadosLujo',       nombre: 'Acabados de lujo',                       edificio: true },
-    { key: 'sonido',             nombre: 'Sistema de sonido integrado',            edificio: false },
-    { key: 'ductoBasura',        nombre: 'Ducto de basura',                        edificio: false },
-    { key: 'piscina',            nombre: 'Piscina',                                edificio: true },
-    { key: 'jacuzzi',            nombre: 'Jacuzzi / Spa',                          edificio: true },
-    { key: 'gimnasio',           nombre: 'Gimnasio',                               edificio: true },
-    { key: 'salonSocial',        nombre: 'Salón social',                           edificio: true },
-    { key: 'businessCenter',     nombre: 'Business Center / Co-working',           edificio: true },
-    { key: 'rooftop',            nombre: 'Roof top / Terraza',                     edificio: true },
-    { key: 'padel',              nombre: 'Cancha de pádel',                        edificio: true },
-    { key: 'tenis',              nombre: 'Cancha de tenis / Squash',               edificio: true },
-    { key: 'fogatas',            nombre: 'Área de fogatas (Fire pits)',            edificio: true },
-    { key: 'cinePrivado',        nombre: 'Cine privado',                           edificio: false },
-    { key: 'salonJuegos',        nombre: 'Salón de juegos (Billar/Ping pong)',     edificio: true },
-    { key: 'bar',                nombre: 'Bar / Lounge',                           edificio: true },
-    { key: 'juegosInfantiles',   nombre: 'Juegos infantiles (Playground)',         edificio: true },
-    { key: 'ludoteca',           nombre: 'Ludoteca',                               edificio: false },
-    { key: 'petPark',            nombre: 'Parque para mascotas (Pet park)',        edificio: true },
-    { key: 'petWash',            nombre: 'Estación de lavado para mascotas (Pet wash)', edificio: true },
-    { key: 'senderos',           nombre: 'Senderos para caminar',                  edificio: true },
-    { key: 'pinatas',            nombre: 'Área de piñatas',                        edificio: false },
-    { key: 'seguridad',          nombre: 'Seguridad 24/7 (CCTV)',                  edificio: true },
-    { key: 'parqueoVisitas',     nombre: 'Parqueo de visitas',                     edificio: true },
-    { key: 'planta',             nombre: 'Planta eléctrica de emergencia',         edificio: true },
-    { key: 'pozo',               nombre: 'Pozo de agua propio',                    edificio: true },
-    { key: 'lobby',              nombre: 'Lobby / Recepción',                      edificio: false },
-    { key: 'delivery',           nombre: 'Área de recepción de delivery',          edificio: false },
-    { key: 'wifi',               nombre: 'Wi-Fi en áreas comunes',                 edificio: false },
-    { key: 'elevadores',         nombre: 'Elevadores de alta velocidad',           edificio: false },
-    { key: 'cargadores',         nombre: 'Cargadores para vehículos eléctricos',   edificio: false },
-    { key: 'paneles',            nombre: 'Paneles solares',                        edificio: false },
-    { key: 'herramientas',       nombre: 'Cuarto de herramientas',                 edificio: false },
-    { key: 'helipuerto',         nombre: 'Helipuerto',                             edificio: false },
-    { key: 'muelle',             nombre: 'Frente al muelle',                       edificio: false },
-];
 
 // Fila tipo "label: valor" para las secciones de datos
 function BulletRow({ label, value }) {
@@ -80,9 +29,17 @@ function BulletRow({ label, value }) {
     );
 }
 
-function Apartament() {
+function Apartament({ preview = false }) {
     const { id } = useParams();
     const [isLg, setIsLg] = useState(window.innerWidth >= 992);
+
+    // Rutas adaptadas al contexto: preview (cpanel) vs público
+    const toInicio = preview ? '/cpanel' : '/';
+    const toProyectos = preview ? '/cpanel/proyectos' : '/proyectos';
+    const toProyecto = (pid) => preview ? `/cpanel/proyectos/view/${pid}` : `/proyectos/apartamento/${pid}`;
+    const toModelo = (pid, modelSlug) => preview
+        ? `/cpanel/proyectos/view/${pid}/modelo/${modelSlug}`
+        : getModelPath(pid, { modelSlug });
 
     useEffect(() => {
         const handleResize = () => setIsLg(window.innerWidth >= 992);
@@ -98,6 +55,50 @@ function Apartament() {
         phone: 'project-request-phone',
         message: 'project-request-message',
     }
+
+    const [formStatus, setFormStatus] = useState(null);
+    const [sending, setSending] = useState(false);
+
+    const handleCitaClick = () => {
+        if (localStorage.getItem(`citaClicked_${id}`)) return;
+        localStorage.setItem(`citaClicked_${id}`, '1');
+        registerProyectoCitaClick({ projectSlug: id });
+    };
+
+    const handleLeadSubmit = async (e) => {
+        e.preventDefault();
+        const name = document.getElementById(requestFieldIds.name)?.value?.trim();
+        const email = document.getElementById(requestFieldIds.email)?.value?.trim();
+        const phone = document.getElementById(requestFieldIds.phone)?.value?.trim();
+        const message = document.getElementById(requestFieldIds.message)?.value?.trim();
+
+        if (!name || !email || !phone) {
+            setFormStatus({ type: 'error', msg: t('Por favor completa nombre, correo y teléfono', 'Please complete name, email and phone') });
+            return;
+        }
+
+        setSending(true);
+        setFormStatus(null);
+        const res = await sendProyectoLead({
+            projectSlug: id,
+            name,
+            email,
+            phone,
+            message,
+            type: 'proyecto',
+        });
+        setSending(false);
+
+        if (res.success) {
+            setFormStatus({ type: 'success', msg: t('Solicitud enviada correctamente. Pronto te contactaremos.', 'Request sent successfully. We will contact you soon.') });
+            ['name', 'email', 'phone', 'message'].forEach((f) => {
+                const el = document.getElementById(requestFieldIds[f]);
+                if (el) el.value = '';
+            });
+        } else {
+            setFormStatus({ type: 'error', msg: res.error || t('No se pudo enviar la solicitud. Inténtalo de nuevo.', 'Could not send the request. Try again.') });
+        }
+    };
 
     // ── Drag-to-scroll para el scroll horizontal ──
     const scrollRef = useRef(null);
@@ -170,7 +171,8 @@ function Apartament() {
         );
     }
 
-    const amenidades = (project.amenidadKeys || []).map(key => AMENIDADES_ALL.find(a => a.key === key)).filter(Boolean);
+    const amenidades = project.amenidades || [];
+    const situacionalLabel = `APARTAMENTOS EN ${project.situacional === 'EN VENTA' ? 'VENTA' : 'PREVENTA'}`;
 
     return (
         <>
@@ -178,14 +180,14 @@ function Apartament() {
 
             {/* Breadcrumb */}
             <Breadcrumb className='px-3 py-1 rounder-1' style={{ "--bs-breadcrumb-divider": "'>'", fontSize: '14px', width: 'fit-content', background: '#f0f0f0' }}>
-                <Breadcrumb.Item linkAs={Link} linkProps={{ to: '/' }}>Inicio</Breadcrumb.Item>
-                <Breadcrumb.Item linkAs={Link} linkProps={{ to: '/proyectos' }}>Proyectos</Breadcrumb.Item>
+                <Breadcrumb.Item linkAs={Link} linkProps={{ to: toInicio }}>Inicio</Breadcrumb.Item>
+                <Breadcrumb.Item linkAs={Link} linkProps={{ to: toProyectos }}>Proyectos</Breadcrumb.Item>
                 <Breadcrumb.Item active>{project.titulo}</Breadcrumb.Item>
             </Breadcrumb>
 
             {/* Botón atrás */}
             <div className="d-flex justify-content-end mb-2 mt-4 mt-lg-0">
-                <Link to="/proyectos" title="Atrás" aria-label={t('Volver a proyectos', 'Back to projects')}>
+                <Link to={toProyectos} title="Atrás" aria-label={t('Volver a proyectos', 'Back to projects')}>
                     <img src={arrow} style={{ width: '36px' }} alt="Atrás" />
                 </Link>
             </div>
@@ -215,10 +217,10 @@ function Apartament() {
                         </div>
                     </div>
                     <div className="d-flex flex-column align-items-center gap-4 me-lg-5 mt-5">
-                        <div style={{ border: '1px solid black' }} className="py-2 px-4 rounded-4">APARTAMENTOS EN PREVENTA</div>
+                        <div style={{ border: '1px solid black' }} className="py-2 px-4 rounded-4">{situacionalLabel}</div>
                         {/* Desktop: 3 items en fila */}
                         <div className="d-none d-lg-flex align-items-center justify-content-center gap-5">
-                            <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>{project.areas.numeroPisos} Niveles</div>
+                            <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>{project.estructura.niveles} Niveles</div>
                             {project.unidades ? (<>
                                 <div style={{ width: '1px', height: '24px', backgroundColor: '#ccc' }}></div>
                                 <div className="d-flex align-items-center gap-2"><i className="fa-sharp fa-light fa-block"></i>{project.unidades} Unidades</div>
@@ -231,7 +233,7 @@ function Apartament() {
                         {/* Móvil/tablet: 2 columnas */}
                         <div className="d-lg-none w-100">
                             <div className="d-flex align-items-center justify-content-center gap-4 mb-3">
-                                <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>{project.areas.numeroPisos} Niveles</div>
+                                <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>{project.estructura.niveles} Niveles</div>
                                 {project.unidades ? (<>
                                     <div style={{ width: '1px', height: '24px', backgroundColor: '#ccc' }}></div>
                                     <div className="d-flex align-items-center gap-2"><i className="fa-sharp fa-light fa-block"></i>{project.unidades} Unidades</div>
@@ -444,7 +446,7 @@ function Apartament() {
                             {project.modelos.map((m, i) => (
                                 <div key={i} style={{ flex: isLg ? '0 0 calc(50% - 0.5rem)' : '0 0 100%', width: isLg ? 'calc(50% - 0.5rem)' : '100%' }}>
                                     <Link
-                                        to={getModelPath(id, m)}
+                                        to={toModelo(id, m.modelSlug)}
                                         className="d-flex justify-content-center align-items-center gap-1 mt-2 text-body text-decoration-none"
                                         onClick={e => { if (dragState.current.dragged) { e.preventDefault(); dragState.current.dragged = false; } }}
                                     >
@@ -500,33 +502,35 @@ function Apartament() {
 
                         {/* Desarrollado por */}
                         <div className="p-3 my-5">
-                            <div className="mb-3 fs-3">{t('Desarrollado por', 'Developed by')}</div>
-                            <div className="d-flex align-items-start justify-content-between align-items-lg-center flex-column flex-md-row gap-4">
+                            <div className="mb-3 fs-4">{t('Desarrollado por', 'Developed by')}</div>
+                            <div className="d-flex align-items-start justify-content-between align-items-lg-center flex-column flex-md-row gap-3">
                                 <Link to="" className='text-body' aria-label="Ver desarrolladora del proyecto">
                                     <div className="d-flex align-items-center gap-2">
-                                        <div className='rounded-circle' style={{ width: '60px', height: '60px' }}><img src={project.desarrolladora.logo} alt="Avatar" style={{ width: '60px', height: '60px' }} className='rounded-circle object-fit-cover' /></div>
+                                        <div className='rounded-circle' style={{ width: '36px', height: '36px' }}><img src={project.desarrolladora.logo} alt="Avatar" style={{ width: '36px', height: '36px' }} className='rounded-circle object-fit-cover' /></div>
                                         <div>
-                                            <div className='lh-sm'>{project.desarrolladora.nombre}</div>
-                                            <div style={{ fontSize: '12px' }}>
-                                            </div>
+                                            <div className='lh-sm' style={{ fontSize: '14px' }}>{project.desarrolladora.nombre}</div>
                                         </div>
                                     </div>
                                 </Link>
                                 <div className="d-flex justify-content-md-end flex-column">
-                                    <div className='mb-2 lh-1' style={{ fontSize: '20px' }}><FormattedMessage id="home.text12" /></div>
-                                    <a href="" target='_blank' className="rounded-1 text-center border-0 py-1" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box', padding: '2px 8px' }} rel="noreferrer" aria-label="Contactar por WhatsApp a la desarrolladora"><i className="fa-brands fa-whatsapp me-2" aria-hidden="true"></i> <FormattedMessage id="home.text13" /></a>
+                                    <div className='mb-2 lh-1' style={{ fontSize: '16px' }}><FormattedMessage id="home.text12" /></div>
+                                    <a href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa el proyecto ${project.titulo}, Necesito una cita para mas información`)}`} target='_blank' className="rounded-1 text-center border-0 py-1" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box', padding: '2px 8px', fontSize: '13px' }} rel="noreferrer" aria-label="Agendar una cita para información del proyecto" onClick={handleCitaClick}><i className="fa-brands fa-whatsapp me-2" aria-hidden="true"></i> <FormattedMessage id="home.text13" /></a>
                                 </div>
+                            </div>
+                            <div className="d-flex align-items-center gap-2 mt-3" style={{ fontSize: '15px' }}>
+                                <img src={bricklyIcon} alt="Brickly" style={{ width: '22px', height: '22px' }} />
+                                <span>{t('Comercializado por Brickly Proyectos', 'Sold by Brickly Proyectos')}</span>
                             </div>
                         </div>
 
                         {/* Solicitar información */}
                         <div className="mb-4">
                             <div className="mb-3 fs-3">{t('Solicitar información', 'Request information')}</div>
-                            <div className="d-flex flex-column gap-2">
+                            <Form onSubmit={handleLeadSubmit} className="d-flex flex-column gap-2">
                                 <label htmlFor={requestFieldIds.name} className="visually-hidden">Nombre</label>
                                 <Form.Control id={requestFieldIds.name} placeholder="Nombre" aria-label="Nombre" style={{ fontSize: '14px', borderRadius: '4px' }} />
                                 <label htmlFor={requestFieldIds.email} className="visually-hidden">Correo electrónico</label>
-                                <Form.Control id={requestFieldIds.email} placeholder="Correo electrónico" aria-label="Correo electrónico" style={{ fontSize: '14px', borderRadius: '4px' }} />
+                                <Form.Control id={requestFieldIds.email} type="email" placeholder="Correo electrónico" aria-label="Correo electrónico" style={{ fontSize: '14px', borderRadius: '4px' }} />
                                 <label htmlFor={requestFieldIds.phone} className="visually-hidden">Teléfono</label>
                                 <Form.Control id={requestFieldIds.phone} placeholder="Teléfono" aria-label="Teléfono" style={{ fontSize: '14px', borderRadius: '4px' }} />
                                 <label htmlFor={requestFieldIds.message} className="visually-hidden">Mensaje</label>
@@ -538,8 +542,13 @@ function Apartament() {
                                     aria-label="Mensaje"
                                     style={{ fontSize: '14px', borderRadius: '4px' }}
                                 />
-                                <button className="btn btn-dark w-100 rounded-1 py-2 mt-1">ENVIAR</button>
-                            </div>
+                                <button type="submit" className="btn btn-dark w-100 rounded-1 py-2 mt-1" disabled={sending}>
+                                    {sending ? t('Enviando...', 'Sending...') : 'ENVIAR'}
+                                </button>
+                                {formStatus && (
+                                    <div className={`small mt-1 ${formStatus.type === 'success' ? 'text-success' : 'text-danger'}`}>{formStatus.msg}</div>
+                                )}
+                            </Form>
                         </div>
 
                         {/* Ubicación geográfica — mapa placeholder */}
@@ -573,7 +582,7 @@ function Apartament() {
                     <div style={{ fontSize: 'clamp(36px, 5vw, 64px)', fontFamily: 'AppleGaramond' }}>
                         {t('Otras propiedades', 'Other properties')}
                     </div>
-                    <Link to="/proyectos" className="link-more-black d-flex align-items-center gap-2">
+                    <Link to={toProyectos} className="link-more-black d-flex align-items-center gap-2">
                         {t('Ver más', 'See more')} <i className="fa-solid fa-angle-right"></i>
                     </Link>
                 </div>
@@ -582,7 +591,7 @@ function Apartament() {
                     {project.otrosPropiedades.map((item, i) => (
                         <div key={i} className="col-md-6 col-xl-4">
                             <div className="position-relative d-block">
-                                <Link to={`/proyectos/apartamento/${item.id || 'torre-platino'}`} className="d-block propiedades-zoom">
+                                <Link to={toProyecto(item.id || 'torre-platino')} className="d-block propiedades-zoom">
                                     <img
                                         src={item.img}
                                         className="object-fit-cover w-100 border-radius-1"
@@ -601,7 +610,7 @@ function Apartament() {
                                     </div>
                                 </Link>
                             </div>
-                            <Link className="text-body text-decoration-none" to={`/proyectos/apartamento/${item.id || 'torre-platino'}`}>
+                            <Link className="text-body text-decoration-none" to={toProyecto(item.id || 'torre-platino')}>
                                 <div className="mt-3">
                                     <div className="text-truncate" style={{ fontSize: 'clamp(34px, 6vw, 44px)', fontFamily: 'AppleGaramond' }}>
                                         {item.titulo}

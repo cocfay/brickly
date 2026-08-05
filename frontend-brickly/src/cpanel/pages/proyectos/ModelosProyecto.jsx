@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react';
 import { Row, Col, Form, Button, Badge, Card, Collapse } from 'react-bootstrap';
-import { getLogoUrl } from '../../../services/logoService';
 
 // ─── Configuración por tipo de modelo ────────────────────────────────────────
 
@@ -39,8 +38,6 @@ const GASTOS_FIJOS = [
 const INCLUYE = [
   { key: 'iusi', label: 'IUSI', col: 4, select: ['Trimestral', 'Anual', 'Incluido'] },
 ];
-
-const TIPOS_MODELO = ['Apartamento', 'Bodega'];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -200,7 +197,7 @@ function Campo({ label, children }) {
   );
 }
 
-function ModeloForm({ modelo, index, onChange, onRemove }) {
+function ModeloForm({ modelo, index, tipoModelo, onChange, onRemove }) {
   const [open, setOpen] = useState(index === 0);
   const precioRefs = useRef({});
 
@@ -281,7 +278,7 @@ function ModeloForm({ modelo, index, onChange, onRemove }) {
             setSub('gastosFijos', campoConfig.key, raw);
           }}
           placeholder={isGTQ ? 'Q 0' : '$ 0'}
-          key={`${modelo.uid}-${campoConfig.key}-${value}`}
+          key={`${modelo.uid}-${campoConfig.key}`}
         />
       );
     }
@@ -302,7 +299,7 @@ function ModeloForm({ modelo, index, onChange, onRemove }) {
     );
   };
 
-  const distribucion = modelo.tipo === 'Bodega' ? DISTRIBUCION_BODEGA : DISTRIBUCION_APARTAMENTO;
+  const distribucion = tipoModelo === 'Bodega' ? DISTRIBUCION_BODEGA : DISTRIBUCION_APARTAMENTO;
 
   return (
     <Card className="mb-4 shadow-sm rounded-4">
@@ -310,7 +307,7 @@ function ModeloForm({ modelo, index, onChange, onRemove }) {
         <Button variant="link" className="text-body text-decoration-none p-0" onClick={() => setOpen(!open)}>
           <i className={`fa-solid fa-chevron-${open ? 'down' : 'right'} me-2`}></i>
           <strong>{modelo.nombre || `Modelo ${index + 1}`}</strong>
-          <Badge bg="secondary" className="ms-2">{modelo.tipo || 'Apartamento'}</Badge>
+          <Badge bg="secondary" className="ms-2">{tipoModelo}</Badge>
         </Button>
         <Button variant="danger" size="sm" className="rounded-circle" onClick={onRemove} title="Eliminar modelo">
           <i className="fa-solid fa-trash"></i>
@@ -321,19 +318,6 @@ function ModeloForm({ modelo, index, onChange, onRemove }) {
           {/* Datos del modelo */}
           <h6 className="fw-bold mb-3"><i className="fa-solid fa-tag me-2"></i>Datos del modelo</h6>
           <Row>
-            <Col xl={2} lg={6} md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>Tipo de modelo *</Form.Label>
-                <Form.Select
-                  value={modelo.tipo}
-                  onChange={(e) => set({ tipo: e.target.value })}
-                >
-                  {TIPOS_MODELO.map((opt) => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
-                </Form.Select>
-              </Form.Group>
-            </Col>
             <Col xl={4} lg={6} md={6}>
               <Form.Group className="mb-3">
                 <Form.Label>Nombre del modelo *</Form.Label>
@@ -357,7 +341,7 @@ function ModeloForm({ modelo, index, onChange, onRemove }) {
                     handlePrecio('precioDesdeQ', raw);
                   }}
                   placeholder="Q 0"
-                  key={`${modelo.uid}-q-${modelo.precioDesdeUSD}`}
+                  key={`${modelo.uid}-precioDesdeQ`}
                   ref={el => precioRefs.current.precioDesdeQ = el}
                 />
               </Form.Group>
@@ -386,7 +370,7 @@ function ModeloForm({ modelo, index, onChange, onRemove }) {
                     handlePrecio('precioDesdeUSD', raw);
                   }}
                   placeholder="$ 0"
-                  key={`${modelo.uid}-usd-${modelo.precioDesdeQ}`}
+                  key={`${modelo.uid}-precioDesdeUSD`}
                   ref={el => precioRefs.current.precioDesdeUSD = el}
                 />
               </Form.Group>
@@ -502,8 +486,9 @@ function ModeloForm({ modelo, index, onChange, onRemove }) {
 
 // ─── Componente principal: lista de modelos ──────────────────────────────────
 
-function ModelosProyecto({ value = [], onChange }) {
-  const addModelo = () => onChange([...value, nuevoModelo('Apartamento')]);
+function ModelosProyecto({ value = [], onChange, tipoProyecto = '' }) {
+  const tipoModelo = tipoProyecto === 'Bodegas' ? 'Bodega' : 'Apartamento';
+  const addModelo = () => onChange([...value, nuevoModelo(tipoModelo)]);
 
   const updateModelo = (uid, modeloActualizado) =>
     onChange(value.map((m) => (m.uid === uid ? modeloActualizado : m)));
@@ -517,6 +502,7 @@ function ModelosProyecto({ value = [], onChange }) {
           key={modelo.uid}
           modelo={modelo}
           index={index}
+          tipoModelo={tipoModelo}
           onChange={(actualizado) => updateModelo(modelo.uid, actualizado)}
           onRemove={() => removeModelo(modelo.uid)}
         />

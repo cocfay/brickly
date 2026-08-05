@@ -7,8 +7,9 @@ import 'glightbox/dist/css/glightbox.min.css';
 
 import tour    from '../../assets/images/iconos/IconoTour.png';
 import arrow   from '../../assets/images/iconos/arrow.png';
+import bricklyIcon from '../../assets/images/logos/brickly-icon.png';
 import { useT } from '../../hooks/useT';
-import { getProyectoById } from '../../cpanel/services/proyectos';
+import { getProyectoById, sendProyectoLead, registerProyectoCitaClick } from '../../cpanel/services/proyectos';
 import { enriquecerProyecto, MODELO_FALLBACK_IMG } from '../../utils/proyectosUtils';
 import { getModelPath } from '../../utils/projectRoutes';
 
@@ -24,7 +25,7 @@ function BulletRow({ label, value }) {
     );
 }
 
-function Floor() {
+function Floor({ preview = false }) {
     const t = useT();
     const { id, modelSlug } = useParams();
     const [project, setProject] = useState(null);
@@ -32,6 +33,8 @@ function Floor() {
     const [loading, setLoading] = useState(true);
     const [mainImg, setMainImg] = useState(MODELO_FALLBACK_IMG);
     const [isLg, setIsLg] = useState(window.innerWidth >= 992);
+    const [formStatus, setFormStatus] = useState(null);
+    const [sending, setSending] = useState(false);
 
     useEffect(() => {
         const handleResize = () => setIsLg(window.innerWidth >= 992);
@@ -85,7 +88,7 @@ function Floor() {
             <Container style={{ marginTop: 'clamp(1.5rem, 3vw, 3rem)', marginBottom: 'clamp(3rem, 6vw, 6rem)' }}>
                 <div className="text-center" style={{ marginTop: '8rem', marginBottom: '8rem' }}>
                     <div className="fs-2 text-muted">{t('Modelo no encontrado', 'Model not found')}</div>
-                    <Link to="/proyectos" className="btn btn-outline-dark mt-4">{t('Volver a proyectos', 'Back to projects')}</Link>
+                    <Link to={preview ? '/cpanel/proyectos' : '/proyectos'} className="btn btn-outline-dark mt-4">{t('Volver a proyectos', 'Back to projects')}</Link>
                 </div>
             </Container>
         );
@@ -95,6 +98,65 @@ function Floor() {
     const ubicacion = project.ubicacion;
     const desarrolladora = project.desarrolladora;
     const apartamentoId = id;
+
+    const requestFieldIds = {
+        name: 'model-request-name',
+        email: 'model-request-email',
+        phone: 'model-request-phone',
+        message: 'model-request-message',
+    }
+
+    const handleCitaClick = () => {
+        const storageKey = `citaClicked_${apartamentoId}_${modelSlug}`;
+        if (localStorage.getItem(storageKey)) return;
+        localStorage.setItem(storageKey, '1');
+        registerProyectoCitaClick({ projectSlug: apartamentoId, modelSlug });
+    };
+
+    const handleLeadSubmit = async (e) => {
+        e.preventDefault();
+        const name = document.getElementById(requestFieldIds.name)?.value?.trim();
+        const email = document.getElementById(requestFieldIds.email)?.value?.trim();
+        const phone = document.getElementById(requestFieldIds.phone)?.value?.trim();
+        const message = document.getElementById(requestFieldIds.message)?.value?.trim();
+
+        if (!name || !email || !phone) {
+            setFormStatus({ type: 'error', msg: t('Por favor completa nombre, correo y teléfono', 'Please complete name, email and phone') });
+            return;
+        }
+
+        setSending(true);
+        setFormStatus(null);
+        const res = await sendProyectoLead({
+            projectSlug: apartamentoId,
+            modelSlug,
+            modelName: modelo.nombre,
+            name,
+            email,
+            phone,
+            message,
+            type: 'modelo',
+        });
+        setSending(false);
+
+        if (res.success) {
+            setFormStatus({ type: 'success', msg: t('Solicitud enviada correctamente. Pronto te contactaremos.', 'Request sent successfully. We will contact you soon.') });
+            ['name', 'email', 'phone', 'message'].forEach((f) => {
+                const el = document.getElementById(requestFieldIds[f]);
+                if (el) el.value = '';
+            });
+        } else {
+            setFormStatus({ type: 'error', msg: res.error || t('No se pudo enviar la solicitud. Inténtalo de nuevo.', 'Could not send the request. Try again.') });
+        }
+    };
+
+    // Rutas adaptadas al contexto: preview (cpanel) vs público
+    const toInicio = preview ? '/cpanel' : '/';
+    const toProyectos = preview ? '/cpanel/proyectos' : '/proyectos';
+    const toProyecto = preview ? `/cpanel/proyectos/view/${apartamentoId}` : `/proyectos/apartamento/${apartamentoId}`;
+    const toModelo = (modelSlug) => preview
+        ? `/cpanel/proyectos/view/${apartamentoId}/modelo/${modelSlug}`
+        : getModelPath(apartamentoId, { modelSlug });
 
     // Galería dinámica: fotos del modelo o imagen de respaldo
     const galeria = Array.isArray(modelo.fotosUrls) && modelo.fotosUrls.length
@@ -123,15 +185,15 @@ function Floor() {
 
             {/* Breadcrumb */}
             <Breadcrumb className='px-3 py-1 rounder-1' style={{ "--bs-breadcrumb-divider": "'>'", fontSize: '14px', width: 'fit-content', background: '#f0f0f0' }} >
-                <Breadcrumb.Item linkAs={Link} linkProps={{ to: '/' }}>Inicio</Breadcrumb.Item>
-                <Breadcrumb.Item linkAs={Link} linkProps={{ to: '/proyectos' }}>Proyectos</Breadcrumb.Item>
-                <Breadcrumb.Item linkAs={Link} linkProps={{ to: `/proyectos/apartamento/${apartamentoId}` }}>{titulo}</Breadcrumb.Item>
+                <Breadcrumb.Item linkAs={Link} linkProps={{ to: toInicio }}>Inicio</Breadcrumb.Item>
+                <Breadcrumb.Item linkAs={Link} linkProps={{ to: toProyectos }}>Proyectos</Breadcrumb.Item>
+                <Breadcrumb.Item linkAs={Link} linkProps={{ to: toProyecto }}>{titulo}</Breadcrumb.Item>
                 <Breadcrumb.Item active>{modelo.nombre}</Breadcrumb.Item>
             </Breadcrumb>
 
             {/* Botón atrás */}
             <div className="d-flex justify-content-end mb-3 mt-4 mt-lg-0">
-                <Link to={`/proyectos/apartamento/${apartamentoId}`} title="Atrás">
+                <Link to={toProyecto} title="Atrás">
                     <img src={arrow} style={{ width: '36px' }} alt="Atrás" />
                 </Link>
             </div>
@@ -153,33 +215,50 @@ function Floor() {
                 <Col lg={4}>
                     {/* Desarrollado por */}
                     <div className="p-3 my-5">
-                        <div className="mb-3 fs-3">{t('Desarrollado por', 'Developed by')}</div>
-                        <div className="d-flex align-items-center gap-3">
-                            <img src={desarrolladora.logo} alt="company" className="object-fit-conver rounded-circle" style={{ width: '60px', height: '60px' }} />
-                            <div className="d-flex flex-column align-items-start gap-2">
-                                <span>{desarrolladora.nombre}</span>
-                                <button className="btn btn-dark btn-sm rounded-1 px-3">
-                                    <i className="fa-brands fa-whatsapp me-2"></i>Contactar
-                                </button>
+                        <div className="mb-3 fs-4">{t('Desarrollado por', 'Developed by')}</div>
+                        <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                            <div className="d-flex align-items-center gap-2">
+                                <div className='rounded-circle' style={{ width: '36px', height: '36px' }}><img src={desarrolladora.logo} alt="company" style={{ width: '36px', height: '36px' }} className='rounded-circle object-fit-cover' /></div>
+                                <div className='lh-sm' style={{ fontSize: '14px' }}>{desarrolladora.nombre}</div>
                             </div>
+                            <div className="d-flex flex-column align-items-end">
+                                <div className='mb-2 lh-1' style={{ fontSize: '16px' }}><FormattedMessage id="home.text12" /></div>
+<a href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa el model ${modelo.nombre} del proyecto ${titulo}, Necesito una cita para mas información`)}`} target="_blank" className="rounded-1 text-center border-0 py-1" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box', padding: '2px 8px', fontSize: '13px' }} rel="noreferrer" aria-label="Agendar una cita para información del modelo" onClick={handleCitaClick}>
+                        <i className="fa-brands fa-whatsapp me-2"></i><FormattedMessage id="home.text13" />
+                    </a>
+                            </div>
+                        </div>
+                        <div className="d-flex align-items-center gap-2 mt-3" style={{ fontSize: '15px' }}>
+                            <img src={bricklyIcon} alt="Brickly" style={{ width: '22px', height: '22px' }} />
+                            <span>{t('Comercializado por Brickly Proyectos', 'Sold by Brickly Proyectos')}</span>
                         </div>
                     </div>
 
                     {/* Solicitar información */}
                     <div>
                         <div className="mb-3 fs-3" >{t('Solicitar información', 'Request information')}</div>
-                        <div className="d-flex flex-column gap-2">
-                            <Form.Control placeholder="Nombre" style={{ fontSize: '14px', borderRadius: '4px' }} />
-                            <Form.Control placeholder="Correo electrónico" style={{ fontSize: '14px', borderRadius: '4px' }} />
-                            <Form.Control placeholder="Teléfono" style={{ fontSize: '14px', borderRadius: '4px' }} />
+                        <Form onSubmit={handleLeadSubmit} className="d-flex flex-column gap-2">
+                            <label htmlFor={requestFieldIds.name} className="visually-hidden">Nombre</label>
+                            <Form.Control id={requestFieldIds.name} placeholder="Nombre" style={{ fontSize: '14px', borderRadius: '4px' }} />
+                            <label htmlFor={requestFieldIds.email} className="visually-hidden">Correo electrónico</label>
+                            <Form.Control id={requestFieldIds.email} type="email" placeholder="Correo electrónico" style={{ fontSize: '14px', borderRadius: '4px' }} />
+                            <label htmlFor={requestFieldIds.phone} className="visually-hidden">Teléfono</label>
+                            <Form.Control id={requestFieldIds.phone} placeholder="Teléfono" style={{ fontSize: '14px', borderRadius: '4px' }} />
+                            <label htmlFor={requestFieldIds.message} className="visually-hidden">Mensaje</label>
                             <Form.Control
+                                id={requestFieldIds.message}
                                 as="textarea"
                                 rows={4}
-                                defaultValue={`Estoy interesado en la propiedad: Torre Platino, ${modelo.nombre}`}
+                                defaultValue={`Estoy interesado en la propiedad: ${titulo}, ${modelo.nombre}`}
                                 style={{ fontSize: '14px', borderRadius: '4px' }}
                             />
-                            <button className="btn btn-dark w-100 rounded-1 py-2 mt-1">ENVIAR</button>
-                        </div>
+                            <button type="submit" className="btn btn-dark w-100 rounded-1 py-2 mt-1" disabled={sending}>
+                                {sending ? t('Enviando...', 'Sending...') : 'ENVIAR'}
+                            </button>
+                            {formStatus && (
+                                <div className={`small mt-1 ${formStatus.type === 'success' ? 'text-success' : 'text-danger'}`}>{formStatus.msg}</div>
+                            )}
+                        </Form>
                     </div>
                 </Col>
 
@@ -343,6 +422,25 @@ function Floor() {
                         </Row>
                     </div>
 
+                    {/* Amenidades del edificio */}
+                    {(project.amenidades || []).length > 0 && (
+                        <div className="mb-4">
+                            <div className="d-flex align-items-center gap-2 mb-3 fs-3">
+                                <i className="fa-sharp fa-regular fa-umbrella-beach"></i> {t('Amenidades del edificio', 'Building amenities')}
+                            </div>
+                            <div className="d-flex flex-wrap gap-2">
+                                {project.amenidades.map((a, i) => (
+                                    <span key={i} className="border border-black rounded-pill px-3 py-2" style={{ color: '#333', fontWeight: 400 }}>
+                                        {a.nombre}{a.edificio ? ' *' : ''}
+                                    </span>
+                                ))}
+                            </div>
+                            <div className="small text-muted mt-3" style={{ fontSize: '13px' }}>
+                                * = {t('Amenidad exclusiva del edificio. El resto corresponden a los apartamentos.', 'Building-only amenity. The rest belong to the apartments.')}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Descripción del modelo */}
                     <div className="mb-4">
                         <div className="d-flex align-items-center gap-2 mb-2 fs-3">
@@ -459,7 +557,7 @@ function Floor() {
                     <div style={{ fontSize: 'clamp(36px, 5vw, 64px)', fontFamily: 'AppleGaramond' }}>
                         {t('Explora más modelos', 'Explore more models')}
                     </div>
-                    <Link to={getModelPath(apartamentoId, otrosModelos[0])} className="link-more-black d-flex align-items-center gap-2">
+                    <Link to={toModelo(otrosModelos[0].modelSlug)} className="link-more-black d-flex align-items-center gap-2">
                         {t('Ver todos', 'View all')} <i className="fa-solid fa-angle-right"></i>
                     </Link>
                 </div>
@@ -467,7 +565,7 @@ function Floor() {
                 <div className="row gy-5 align-items-start">
                     {otrosModelos.map((m, i) => (
                         <div key={i} className="col-md-6 col-xl-4">
-                            <Link to={getModelPath(apartamentoId, m)} className="d-block text-body border rounded-3">
+                            <Link to={toModelo(m.modelSlug)} className="d-block text-body border rounded-3">
                                 <div className="position-relative d-block propiedades-zoom">
                                     <img
                                         src={m.img}

@@ -9,6 +9,7 @@ import {
   Delete,
   Req,
   Query,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
@@ -32,6 +33,44 @@ export class ProjectsController {
   @Get()
   findAll(@Query() query: any) {
     return this.projectsService.findAll(query);
+  }
+
+  @Post('lead')
+  createLead(@Body() body: any) {
+    return this.projectsService.createLead(body);
+  }
+
+  @Post('cita-click')
+  createCitaClick(@Body() body: any) {
+    return this.projectsService.createCitaClick(body);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN, Role.DESARROLLADORA, Role.ARQUITECTO)
+  @Get('leads')
+  findLeads(@Query() query: any) {
+    return this.projectsService.findLeads(query);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN, Role.DESARROLLADORA, Role.ARQUITECTO)
+  @Put('leads/status')
+  updateLeadStatus(@Body() body: { ids: string[]; status: string }) {
+    return this.projectsService.updateLeadStatus(body.ids, body.status);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN, Role.DESARROLLADORA, Role.ARQUITECTO)
+  @Get('cita-clicks')
+  findCitaClicks(@Query() query: any) {
+    return this.projectsService.findCitaClicks(query);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN, Role.DESARROLLADORA, Role.ARQUITECTO)
+  @Get('cita-clicks/daily')
+  getCitaClicksDaily(@Query() query: any) {
+    return this.projectsService.getCitaClicksDaily(query);
   }
 
   @Get('user/:userId')

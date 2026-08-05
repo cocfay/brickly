@@ -70,6 +70,8 @@ const CpProyectos = lazy(() => import('./cpanel/pages/proyectos/index.jsx'));
 const CpAddProyectos = lazy(() => import('./cpanel/pages/proyectos/add.jsx'));
 const CpEditProyectos = lazy(() => import('./cpanel/pages/proyectos/edit.jsx'));
 const CpViewProyectos = lazy(() => import('./cpanel/pages/proyectos/view.jsx'));
+// Preview de un modelo dentro del cpanel reutilizando el diseño público
+const CpViewModeloProyectos = lazy(() => import('./pages/projects/floor.jsx'));
 const CpLeads = lazy(() => import('./cpanel/pages/leads/index.jsx'));
 const CpFavoritosProyectos = lazy(() => import('./cpanel/pages/proyectos/favoritos.jsx'));
 const CpSubsAgency = lazy(() => import('./cpanel/pages/agencia/subsAgency.jsx'));
@@ -172,6 +174,7 @@ const App = () => {
               <Route path="proyectos/add" element={<CpAddProyectos />} />
               <Route path="proyectos/edit/:id" element={<CpEditProyectos />} />
               <Route path="proyectos/view/:id" element={<CpViewProyectos />} />
+              <Route path="proyectos/view/:id/modelo/:modelSlug" element={<CpViewModeloProyectos preview />} />
               <Route path="proyectos/favoritos" element={<CpFavoritosProyectos />} />
               <Route path="agencia/suscripcion" element={<CpSubsAgency />} />
               <Route path="arquitectos/suscripcion" element={<CpSubsArchitect />} />
