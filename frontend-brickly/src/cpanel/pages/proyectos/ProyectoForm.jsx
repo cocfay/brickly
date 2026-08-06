@@ -109,6 +109,13 @@ const SECCIONES = {
       amenities: { type: 'amenities', label: '', col: 12 }
     }
   },
+  multimedia: {
+    id: 'multimedia',
+    titulo: 'Imágenes y tour 360',
+    icono: 'fa-solid fa-images',
+    obligatoria: false,
+    campos: {}
+  },
   modelos: {
     id: 'modelos',
     titulo: 'Modelos',
@@ -116,13 +123,6 @@ const SECCIONES = {
     obligatoria: false,
     campos: {}
   },
-  multimedia: {
-    id: 'multimedia',
-    titulo: 'Imágenes y tour 360',
-    icono: 'fa-solid fa-images',
-    obligatoria: false,
-    campos: {}
-  }
 };
 
 function ProyectoForm({ projectId }) {

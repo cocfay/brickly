@@ -15,6 +15,7 @@ import {
   ProjectCitaClickDocument,
 } from './schemas/project-cita-click.schema';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { ContactService } from '../contact/contact.service';
 
 @Injectable()
 export class ProjectsService {
@@ -25,6 +26,7 @@ export class ProjectsService {
     private projectLeadModel: Model<ProjectLeadDocument>,
     @InjectModel(ProjectCitaClick.name)
     private projectCitaClickModel: Model<ProjectCitaClickDocument>,
+    private contactService: ContactService,
   ) {}
 
   async create(userId: string, dto: CreateProjectDto) {
@@ -143,7 +145,29 @@ export class ProjectsService {
     const { projectId, ...rest } = dto;
     const ref = await this.resolveProjectRef(dto.projectSlug, projectId);
     const lead = new this.projectLeadModel({ ...rest, ...ref });
-    return lead.save();
+    const saved = await lead.save();
+
+    const project = ref.projectId
+      ? await this.projectModel
+          .findById(ref.projectId)
+          .select('title')
+          .lean()
+      : null;
+
+    await this.contactService
+      .sendProjectLeadEmails({
+        email: dto.email,
+        name: dto.name,
+        lastname: dto.lastname,
+        phone: dto.phone,
+        message: dto.message,
+        projectTitle: project?.title || dto.projectSlug,
+        modelName: dto.modelName,
+        type: dto.type,
+      })
+      .catch(() => {});
+
+    return saved;
   }
 
   async findLeads(query: any = {}) {
