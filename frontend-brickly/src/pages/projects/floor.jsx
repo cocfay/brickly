@@ -15,6 +15,7 @@ import { getModelPath } from '../../utils/projectRoutes';
 
 // Fila tipo "label: valor" para las secciones de datos
 function BulletRow({ label, value }) {
+    if (value == null || value === '' || value === '—') return null;
     return (
         <Col md={6}>
             <div className="d-flex align-items-center gap-1">
@@ -180,6 +181,32 @@ function Floor({ preview = false }) {
     const esBodega = modelo.tipo === 'Bodega';
     const otrosModelos = (project.modelos || []).filter(m => m.modelSlug !== modelSlug);
 
+    const tieneValor = (v) => v != null && v !== '' && v !== '—';
+
+    const distribFields = esBodega
+        ? [
+            modelo.distribucion.oficina,
+            modelo.distribucion.banosCompletos,
+            modelo.distribucion.mediosBanos,
+            modelo.distribucion.habitacionServicio,
+            modelo.distribucion.areaDescarga,
+            modelo.distribucion.helipuerto,
+            modelo.distribucion.mezzanine,
+        ]
+        : [
+            modelo.distribucion.dormitorios,
+            modelo.distribucion.banosCompletos,
+            modelo.distribucion.mediosBanos,
+            modelo.distribucion.habitacionServicio,
+            modelo.distribucion.pergolaDeck,
+            modelo.distribucion.parqueo,
+            modelo.distribucion.amueblado,
+            modelo.distribucion.areaLavanderia,
+            modelo.distribucion.estudioOficina,
+            modelo.distribucion.salaFamiliar,
+        ];
+    const distribTiene = tieneValor(modelo.distribucion.totalAmbientes) || distribFields.some(tieneValor);
+
     return (
         <Container style={{ marginTop: 'clamp(1.5rem, 3vw, 3rem)', marginBottom: 'clamp(3rem, 6vw, 6rem)' }}>
 
@@ -215,11 +242,12 @@ function Floor({ preview = false }) {
                 <Col lg={4}>
                     {/* Desarrollado por */}
                     <div className="p-3 my-5">
-                        <div className="mb-3 fs-4">{t('Desarrollado por', 'Developed by')}</div>
+                        <div className="mb-3">{t('Desarrollado por: ', 'Developed by:')} {desarrolladora.nombre}</div>
+                        <div className="mb-3 fs-4">{t('Comercializado por', 'Marketed by')}</div>
                         <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                            <div className="d-flex align-items-center gap-2">
-                                <div className='rounded-circle' style={{ width: '36px', height: '36px' }}><img src={desarrolladora.logo} alt="company" style={{ width: '36px', height: '36px' }} className='rounded-circle object-fit-cover' /></div>
-                                <div className='lh-sm' style={{ fontSize: '14px' }}>{desarrolladora.nombre}</div>
+                            <div className="d-flex align-items-center gap-2 mt-3" style={{ fontSize: '15px' }}>
+                                <img src={bricklyIcon} alt="Brickly" style={{ width: '30px', height: '30px' }} />
+                                <span>{t('Brickly Proyectos', 'Brickly Proyectos')}</span>
                             </div>
                             <div className="d-flex flex-column align-items-end">
                                 <div className='mb-2 lh-1' style={{ fontSize: '16px' }}><FormattedMessage id="home.text12" /></div>
@@ -228,10 +256,7 @@ function Floor({ preview = false }) {
                     </a>
                             </div>
                         </div>
-                        <div className="d-flex align-items-center gap-2 mt-3" style={{ fontSize: '15px' }}>
-                            <img src={bricklyIcon} alt="Brickly" style={{ width: '22px', height: '22px' }} />
-                            <span>{t('Comercializado por Brickly Proyectos', 'Sold by Brickly Proyectos')}</span>
-                        </div>
+                        
                     </div>
 
                     {/* Solicitar información */}
@@ -269,10 +294,12 @@ function Floor({ preview = false }) {
                         <div className="lh-1" style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontFamily: 'AppleGaramond' }}>
                             {modelo.nombre}
                         </div>
-                        <a href={modelo.tour360} className="d-flex align-items-center gap-2 text-body text-decoration-none" style={{ fontSize: '18px' }}>
-                            <img src={tour} alt="tour" style={{ width: '30px' }} />
-                            Tour 360
-                        </a>
+                        {modelo.tour360 ? (
+                            <a href={modelo.tour360} className="d-flex align-items-center gap-2 text-body text-decoration-none" style={{ fontSize: '18px' }}>
+                                <img src={tour} alt="tour" style={{ width: '30px' }} />
+                                Tour 360
+                            </a>
+                        ) : null}
                     </div>
 
                     {/* Galería */}
@@ -442,14 +469,17 @@ function Floor({ preview = false }) {
                     )}
 
                     {/* Descripción del modelo */}
+                    {tieneValor(modelo.descripcion) && (
                     <div className="mb-4">
                         <div className="d-flex align-items-center gap-2 mb-2 fs-3">
                             <i className="fa-sharp fa-regular fa-building"></i> {t('Descripción del modelo', 'Model description')}
                         </div>
-                        <div style={{ lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: modelo.descripcion || '' }} />
+                        <div style={{ lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: modelo.descripcion }} />
                     </div>
+                    )}
 
                     {/* Iconos principales */}
+                    {(modelo.camas > 0 || modelo.banos > 0 || modelo.parqueo > 0 || tieneValor(modelo.area)) && (
                     <div className="d-flex mb-4 py-3 border-top border-bottom justify-content-center" style={{ gap: 'clamp(45px, 8vw, 100px)' }}>
                         <div className="text-center">
                             <i className="fa-solid fa-bed d-block mb-1" style={{ fontSize: '22px' }}></i>
@@ -468,8 +498,10 @@ function Floor({ preview = false }) {
                             <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.area}</span>
                         </div>
                     </div>
+                    )}
 
                     {/* Áreas y dimensiones */}
+                    {(tieneValor(modelo.areas.areaConstruccionM2) || tieneValor(modelo.areas.espacioAlmacenamiento)) && (
                     <div className="mb-4">
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3" >
                             <i className="fa-sharp fa-regular fa-chart-area"></i> {t('Áreas y dimensiones', 'Areas and dimensions')}
@@ -479,8 +511,10 @@ function Floor({ preview = false }) {
                             <BulletRow label={t('Espacio de almacenamiento', 'Storage space')} value={modelo.areas.espacioAlmacenamiento} />
                         </Row>
                     </div>
+                    )}
 
                     {/* Estructura y obra gris */}
+                    {tieneValor(modelo.estructura.alturaCielo) && (
                     <div className="mb-4">
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
                             <i className="fa-sharp fa-regular fa-trowel-bricks"></i> {t('Estructura y obra gris', 'Structure and gray work')}
@@ -489,8 +523,10 @@ function Floor({ preview = false }) {
                             <BulletRow label={t('Altura del cielo', 'Ceiling height')} value={modelo.estructura.alturaCielo} />
                         </Row>
                     </div>
+                    )}
 
                     {/* Distribución de ambientes */}
+                    {distribTiene && (
                     <div className="mb-4">
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
                             <i className="fa-sharp fa-regular fa-tree-city"></i> {t('Distribución de ambientes', 'Room distribution')}
@@ -523,8 +559,10 @@ function Floor({ preview = false }) {
                             )}
                         </Row>
                     </div>
+                    )}
 
                     {/* Gastos fijos */}
+                    {(tieneValor(modelo.gastosFijos.tipoEstufa) || tieneValor(modelo.gastosFijos.servicioAgua) || tieneValor(modelo.gastosFijos.mantenimientoUSD) || tieneValor(modelo.gastosFijos.mantenimientoQ)) && (
                     <div className="mb-4">
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
                             <i className="fa-sharp fa-regular fa-sack-dollar"></i> {t('Gastos fijos', 'Fixed expenses')}
@@ -536,8 +574,10 @@ function Floor({ preview = false }) {
                             <BulletRow label={t('Mantenimiento (Q)', 'Maintenance (Q)')} value={modelo.gastosFijos.mantenimientoQ} />
                         </Row>
                     </div>
+                    )}
 
                     {/* Incluye */}
+                    {tieneValor(modelo.incluye.iusi) && (
                     <div className="mb-4">
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
                             <i className="fa-sharp fa-regular fa-circle-check"></i> {t('Incluye', 'Includes')}
@@ -546,6 +586,7 @@ function Floor({ preview = false }) {
                             <BulletRow label="IUSI" value={modelo.incluye.iusi} />
                         </Row>
                     </div>
+                    )}
 
                 </Col>
             </Row>

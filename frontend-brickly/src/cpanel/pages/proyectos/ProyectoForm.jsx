@@ -43,8 +43,6 @@ const SECCIONES = {
       priceFromUSD: { type: 'priceUSD', label: 'Precio desde ($) *', col: 3 },
       description: { type: 'textarea', label: 'Descripción del proyecto *', col: 12, opcional: false },
       devNombre: { type: 'text', label: 'Nombre de la empresa *', col: 4, opcional: false },
-      devTelefono: { type: 'text', label: 'Teléfono de la empresa', col: 4, opcional: true },
-      devLogo: { type: 'logo', label: 'Logotipo de la empresa', col: 4, opcional: true },
       situacional: { type: 'select', label: 'Estado situacional *', col: 4, opcional: false, options: ['EN VENTA', 'PREVENTA'] },
       unidades: { type: 'number', label: 'Cantidad de unidades', col: 4, opcional: true }
     }
@@ -158,8 +156,6 @@ function ProyectoForm({ projectId }) {
   // refs para precios formateados
   const priceInputRefs = useRef({});
 
-  const logoInputRef = useRef(null);
-
   const [galeria, setGaleria] = useState([]);
   const [modelos, setModelos] = useState([]);
 
@@ -268,10 +264,6 @@ function ProyectoForm({ projectId }) {
                 priceFromUSD: data.priceFromUSD ?? '',
                 description: data.description || '',
                 devNombre: dev.nombre || '',
-                devTelefono: dev.telefono || '',
-                devLogo: dev.logo
-                  ? { file: null, path: dev.logo, preview: getLogoUrl(dev.logo) }
-                  : '',
                 situacional: data.situacional || '',
                 unidades: data.unidades ?? ''
               }
@@ -484,50 +476,6 @@ function ProyectoForm({ projectId }) {
             />
           );
         }
-      case 'logo':
-        {
-          const logo = value && typeof value === 'object' ? value : null;
-          return (
-            <div>
-              {logo && logo.preview && (
-                <div className="position-relative mb-2" style={{ width: '90px', height: '90px' }}>
-                  <img
-                    src={logo.preview}
-                    alt="Logotipo de la empresa"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 rounded-circle d-flex align-items-center justify-content-center"
-                    style={{ width: '24px', height: '24px', padding: 0 }}
-                    onClick={(e) => { e.preventDefault(); handleChange(seccionId, campoKey, ''); }}
-                  >
-                    <i className="fa-solid fa-times" style={{ fontSize: '11px' }}></i>
-                  </button>
-                </div>
-              )}
-              <div
-                className="border rounded-3 d-flex flex-column align-items-center justify-content-center p-3"
-                style={{ cursor: 'pointer', borderStyle: 'dashed', borderColor: '#adb5bd', minHeight: '90px' }}
-                onClick={() => logoInputRef.current?.click()}
-              >
-                <i className="fa-solid fa-image text-secondary fs-3 mb-1"></i>
-                <span className="text-muted small">{logo ? 'Cambiar logotipo' : 'Subir logotipo'}</span>
-              </div>
-              <input
-                type="file"
-                ref={logoInputRef}
-                accept="image/*"
-                style={{ display: 'none' }}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleChange(seccionId, campoKey, { file, preview: URL.createObjectURL(file), path: null });
-                  e.target.value = '';
-                }}
-              />
-            </div>
-          );
-        }
       default:
         return (
           <Form.Control
@@ -606,11 +554,9 @@ function ProyectoForm({ projectId }) {
       }
     }
 
-    if (datos.devNombre || datos.devTelefono || (datos.devLogo?.path)) {
+    if (datos.devNombre) {
       const desarrolladora = {};
       if (datos.devNombre) desarrolladora.nombre = datos.devNombre;
-      if (datos.devTelefono) desarrolladora.telefono = datos.devTelefono;
-      if (datos.devLogo?.path) desarrolladora.logo = datos.devLogo.path;
       data.desarrolladora = desarrolladora;
     }
 
@@ -693,8 +639,6 @@ function ProyectoForm({ projectId }) {
       const userId = currentUser?._id || currentUser?.id || currentUser?.sub || 'unknown';
       const data = construirDataFinal();
       const { galleryFiles } = extraerImagenes();
-      const devLogo = secciones.datosProyecto.datos.devLogo;
-      const logoFile = devLogo?.file || null;
 
       if (!isEdit) {
         // PASO 1: Crear el proyecto primero (sin imágenes) para obtener el ID
@@ -714,16 +658,14 @@ function ProyectoForm({ projectId }) {
 
         const newId = createResult.data?._id || createResult.data?.id;
 
-        // PASO 2: Subir la galería y el logotipo (la primera imagen es la principal)
+        // PASO 2: Subir la galería (la primera imagen es la principal)
         let finalImages = [];
-        let finalLogo = devLogo?.path || '';
 
-        if (galleryFiles.length > 0 || logoFile) {
+        if (galleryFiles.length > 0) {
           const uploadResult = await uploadProyectosDirect({
             userId,
             projectId: newId,
-            galleryFiles,
-            logoFile
+            galleryFiles
           });
 
           if (!uploadResult.success) {
@@ -737,13 +679,10 @@ function ProyectoForm({ projectId }) {
           }
 
           finalImages = ordenarImagenesFinales(uploadResult.data.files.images || []);
-          finalLogo = uploadResult.data.files.logo || devLogo?.path || '';
         }
 
         const finalMainImage = finalImages[0] || '';
         const finalMobileImage = finalImages[1] || '';
-
-        if (finalLogo) data.desarrolladora = { ...(data.desarrolladora || {}), logo: finalLogo };
 
         // PASO 3: Fotos de modelos y payload final
         const modelosPayload = await subirFotosModelos(userId, newId);
@@ -761,14 +700,12 @@ function ProyectoForm({ projectId }) {
       } else {
         // MODO EDICIÓN
         let finalImages = [];
-        let finalLogo = devLogo?.path || '';
 
-        if (galleryFiles.length > 0 || logoFile) {
+        if (galleryFiles.length > 0) {
           const uploadResult = await uploadProyectosDirect({
             userId,
             projectId,
-            galleryFiles,
-            logoFile
+            galleryFiles
           });
 
           if (!uploadResult.success) {
@@ -776,15 +713,12 @@ function ProyectoForm({ projectId }) {
           }
 
           finalImages = ordenarImagenesFinales(uploadResult.data.files.images || []);
-          finalLogo = uploadResult.data.files.logo || devLogo?.path || '';
         } else {
           finalImages = ordenarImagenesFinales([]);
         }
 
         const finalMainImage = finalImages[0] || '';
         const finalMobileImage = finalImages[1] || '';
-
-        if (finalLogo) data.desarrolladora = { ...(data.desarrolladora || {}), logo: finalLogo };
 
         // Fotos de modelos
         const modelosPayload = await subirFotosModelos(userId, projectId);

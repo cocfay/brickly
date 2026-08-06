@@ -19,6 +19,7 @@ import { getModelPath } from '../../utils/projectRoutes';
 
 // Fila tipo "label: valor" para las secciones de datos
 function BulletRow({ label, value }) {
+    if (value == null || value === '' || value === '—') return null;
     return (
         <Col md={6}>
             <div className="d-flex align-items-center gap-1">
@@ -174,6 +175,8 @@ function Apartament({ preview = false }) {
     const amenidades = project.amenidades || [];
     const situacionalLabel = `APARTAMENTOS EN ${project.situacional === 'EN VENTA' ? 'VENTA' : 'PREVENTA'}`;
 
+    const tieneValor = (v) => v != null && v !== '' && v !== '—';
+
     return (
         <>
         <Container style={{ marginTop: 'clamp(1.5rem, 3vw, 3rem)', marginBottom: 'clamp(3rem, 6vw, 6rem)' }}>
@@ -220,7 +223,7 @@ function Apartament({ preview = false }) {
                         <div style={{ border: '1px solid black' }} className="py-2 px-4 rounded-4">{situacionalLabel}</div>
                         {/* Desktop: 3 items en fila */}
                         <div className="d-none d-lg-flex align-items-center justify-content-center gap-5">
-                            <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>{project.estructura.niveles} Niveles</div>
+                            {tieneValor(project.estructura.niveles) && <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>{project.estructura.niveles} Niveles</div>}
                             {project.unidades ? (<>
                                 <div style={{ width: '1px', height: '24px', backgroundColor: '#ccc' }}></div>
                                 <div className="d-flex align-items-center gap-2"><i className="fa-sharp fa-light fa-block"></i>{project.unidades} Unidades</div>
@@ -233,7 +236,7 @@ function Apartament({ preview = false }) {
                         {/* Móvil/tablet: 2 columnas */}
                         <div className="d-lg-none w-100">
                             <div className="d-flex align-items-center justify-content-center gap-4 mb-3">
-                                <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>{project.estructura.niveles} Niveles</div>
+                                {tieneValor(project.estructura.niveles) && <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>{project.estructura.niveles} Niveles</div>}
                                 {project.unidades ? (<>
                                     <div style={{ width: '1px', height: '24px', backgroundColor: '#ccc' }}></div>
                                     <div className="d-flex align-items-center gap-2"><i className="fa-sharp fa-light fa-block"></i>{project.unidades} Unidades</div>
@@ -246,10 +249,12 @@ function Apartament({ preview = false }) {
                             ) : null}
                         </div>
                         {/* Tour 360 */}
+                        {project.tour360 ? (
                         <a href={project.tour360} className="d-flex align-items-center gap-2 text-body text-decoration-none" style={{ fontSize: '16px', border: '1px solid black', borderRadius: '999px', padding: '8px 20px' }}>
                             <img src={tour} alt="tour" style={{ width: '24px' }} />
                             Tour 360
                         </a>
+                        ) : null}
                     </div>
                 </div>
             </div>
@@ -343,6 +348,7 @@ function Apartament({ preview = false }) {
                 <Col lg={7}>
 
                     {/* Descripción del edificio */}
+                    {(tieneValor(project.descripcion) || project.camas > 0 || project.banos > 0 || project.parqueo > 0 || tieneValor(project.area)) && (
                     <div className="mb-5">
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
                             <i className="fa-sharp fa-regular fa-building fs-2"></i> {t('Descripción del edificio', 'Building description')}
@@ -350,6 +356,7 @@ function Apartament({ preview = false }) {
                         <div style={{ lineHeight: 1.8 }} dangerouslySetInnerHTML={{ __html: project.descripcion || '' }} />
 
                         {/* Iconos principales */}
+                        {(project.camas > 0 || project.banos > 0 || project.parqueo > 0 || tieneValor(project.area)) && (
                         <div className="d-flex mb-4 py-3 border-top border-bottom justify-content-center align-items-center" style={{ gap: 'clamp(25px, 8vw, 70px)' }}>
                             <div>A partir de: </div>
                             <div className="text-center">
@@ -369,7 +376,9 @@ function Apartament({ preview = false }) {
                                 <span style={{ fontSize: '20px', fontWeight: 600 }}>{project.area}</span>
                             </div>
                         </div>
+                        )}
                     </div>
+                    )}
 
                     {/* Datos del proyecto */}
                     <div className="mb-5">
@@ -386,6 +395,7 @@ function Apartament({ preview = false }) {
                     </div>
 
                     {/* Ubicación y entorno */}
+                    {(tieneValor(project.location.departamento) || tieneValor(project.location.municipio) || tieneValor(project.location.zona) || tieneValor(project.location.condominio) || tieneValor(project.location.direccionExacta) || tieneValor(project.location.gps) || tieneValor(project.location.relacionAgua) || tieneValor(project.location.vista) || tieneValor(project.location.tipoCalle)) && (
                     <div className="mb-5">
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
                             <i className="fa-sharp fa-regular fa-location-dot"></i> {t('Ubicación y entorno', 'Location and surroundings')}
@@ -402,8 +412,10 @@ function Apartament({ preview = false }) {
                             <BulletRow label={t('Tipo de calle', 'Street type')} value={project.location.tipoCalle} />
                         </Row>
                     </div>
+                    )}
 
                     {/* Áreas y dimensiones */}
+                    {(tieneValor(project.areas.terrenoM2) || tieneValor(project.areas.terrenoV2) || tieneValor(project.areas.construccionM2) || tieneValor(project.areas.numeroPisos)) && (
                     <div className="mb-5">
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
                             <i className="fa-sharp fa-regular fa-chart-area"></i> {t('Áreas y dimensiones', 'Areas and dimensions')}
@@ -415,8 +427,10 @@ function Apartament({ preview = false }) {
                             <BulletRow label={t('Número de pisos', 'Number of floors')} value={project.areas.numeroPisos} />
                         </Row>
                     </div>
+                    )}
 
                     {/* Estructura y obra gris */}
+                    {(tieneValor(project.estructura.anioConstruccion) || tieneValor(project.estructura.niveles) || tieneValor(project.estructura.muroPerimetral)) && (
                     <div className="mb-5">
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
                             <i className="fa-sharp fa-regular fa-trowel-bricks"></i> {t('Estructura y obra gris', 'Structure and gray work')}
@@ -427,6 +441,7 @@ function Apartament({ preview = false }) {
                             <BulletRow label={t('Muro perimetral', 'Perimeter wall')} value={project.estructura.muroPerimetral} />
                         </Row>
                     </div>
+                    )}
 
                     {/* Modelos disponibles */}
                     <div className="mb-5">
@@ -458,7 +473,9 @@ function Apartament({ preview = false }) {
                                                 <div className="fw-bold" style={{ fontSize: '24px' }}>{m.nombre}</div>
                                                 <div className="text-muted" style={{ fontSize: '12px' }}>{t('Desde', 'From')}</div>
                                                 <div className="fw-bold">{m.precioDesdeUSD}</div>
+                                                {m.precioDesdeQ ? (
                                                 <div className="text-muted" style={{ fontSize: '12px' }}>(Q {m.precioDesdeQ.replace('Q ', '')})</div>
+                                            ) : null}
                                                 <hr />
                                                 <div className="d-flex justify-content-around align-items-center gap-2 mt-2 text-muted" style={{ fontSize: '12px' }}>
                                                     <span><i className="fa-solid fa-crop-simple me-1"></i>{m.area}</span>
@@ -478,6 +495,7 @@ function Apartament({ preview = false }) {
                     </div>
 
                     {/* Amenidades del edificio */}
+                    {amenidades.length > 0 && (
                     <div className="mb-5">
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
                             <i className="fa-sharp fa-regular fa-umbrella-beach"></i> {t('Amenidades del edificio', 'Building amenities')}
@@ -493,6 +511,7 @@ function Apartament({ preview = false }) {
                             * = {t('Amenidad exclusiva del edificio. El resto corresponden a los apartamentos.', 'Building-only amenity. The rest belong to the apartments.')}
                         </div>
                     </div>
+                    )}
 
                 </Col>
 
@@ -502,25 +521,19 @@ function Apartament({ preview = false }) {
 
                         {/* Desarrollado por */}
                         <div className="p-3 my-5">
-                            <div className="mb-3 fs-4">{t('Desarrollado por', 'Developed by')}</div>
+                            <div className="mb-3">{t('Desarrollado por: ', 'Developed by:')} {project.desarrolladora.nombre}</div>
+                            <div className="mb-3 fs-4">{t('Comercializado por', 'Marketed by')}</div>
                             <div className="d-flex align-items-start justify-content-between align-items-lg-center flex-column flex-md-row gap-3">
-                                <Link to="" className='text-body' aria-label="Ver desarrolladora del proyecto">
-                                    <div className="d-flex align-items-center gap-2">
-                                        <div className='rounded-circle' style={{ width: '36px', height: '36px' }}><img src={project.desarrolladora.logo} alt="Avatar" style={{ width: '36px', height: '36px' }} className='rounded-circle object-fit-cover' /></div>
-                                        <div>
-                                            <div className='lh-sm' style={{ fontSize: '14px' }}>{project.desarrolladora.nombre}</div>
-                                        </div>
-                                    </div>
-                                </Link>
+                                <div className="d-flex align-items-center gap-2 mt-3" style={{ fontSize: '15px' }}>
+                                    <img src={bricklyIcon} alt="Brickly" style={{ width: '30px', height: '30px' }} />
+                                    <span>{t('Brickly Proyectos', 'Brickly Proyectos')}</span>
+                                </div>
                                 <div className="d-flex justify-content-md-end flex-column">
                                     <div className='mb-2 lh-1' style={{ fontSize: '16px' }}><FormattedMessage id="home.text12" /></div>
                                     <a href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa el proyecto ${project.titulo}, Necesito una cita para mas información`)}`} target='_blank' className="rounded-1 text-center border-0 py-1" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box', padding: '2px 8px', fontSize: '13px' }} rel="noreferrer" aria-label="Agendar una cita para información del proyecto" onClick={handleCitaClick}><i className="fa-brands fa-whatsapp me-2" aria-hidden="true"></i> <FormattedMessage id="home.text13" /></a>
                                 </div>
                             </div>
-                            <div className="d-flex align-items-center gap-2 mt-3" style={{ fontSize: '15px' }}>
-                                <img src={bricklyIcon} alt="Brickly" style={{ width: '22px', height: '22px' }} />
-                                <span>{t('Comercializado por Brickly Proyectos', 'Sold by Brickly Proyectos')}</span>
-                            </div>
+                            
                         </div>
 
                         {/* Solicitar información */}

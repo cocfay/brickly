@@ -77,7 +77,7 @@ export const enriquecerModelo = (m) => {
     tipo: m.tipo || 'Apartamento',
     precioDesdeQ: formatGTQ(precioQ),
     precioDesdeUSD: formatUSD(precioUSD),
-    tasaUSD: !isNaN(tasa) ? `$${tasa}` : '—',
+    tasaUSD: !isNaN(tasa) ? `$${tasa}` : '',
     area: areaStr,
     camas,
     banos,
@@ -85,23 +85,23 @@ export const enriquecerModelo = (m) => {
     img: resolverImagen(fotos[0], MODELO_FALLBACK_IMG),
     fotosUrls: fotos.map((f) => resolverImagen(f)),
     descripcion: m.descripcion || '',
-    tour360: m.tour360 || '#',
+    tour360: m.tour360 || '',
     areas: {
-      areaConstruccionM2: areas.areaConstruccionM2 || '—',
-      espacioAlmacenamiento: areas.espacioAlmacenamiento || '—',
+      areaConstruccionM2: areas.areaConstruccionM2 || '',
+      espacioAlmacenamiento: areas.espacioAlmacenamiento || '',
     },
-    estructura: { alturaCielo: m.estructura?.alturaCielo || '—' },
+    estructura: { alturaCielo: m.estructura?.alturaCielo || '' },
     gastosFijos: {
-      tipoEstufa: m.gastosFijos?.tipoEstufa || '—',
-      servicioAgua: m.gastosFijos?.servicioAgua || '—',
+      tipoEstufa: m.gastosFijos?.tipoEstufa || '',
+      servicioAgua: m.gastosFijos?.servicioAgua || '',
       mantenimientoUSD: m.gastosFijos?.mantenimientoUSD
         ? formatUSD(m.gastosFijos.mantenimientoUSD)
-        : '—',
+        : '',
       mantenimientoQ: m.gastosFijos?.mantenimientoQ
         ? formatGTQ(m.gastosFijos.mantenimientoQ)
-        : '—',
+        : '',
     },
-    incluye: { iusi: m.incluye?.iusi || '—' },
+    incluye: { iusi: m.incluye?.iusi || '' },
   };
 };
 
@@ -200,9 +200,9 @@ export const enriquecerProyecto = (p, { otros = [] } = {}) => {
     parqueo: primerModelo.parqueo || 0,
     area: primerModelo.area || '',
     descripcion: p.description || '',
-    tour360: p.tour360 || '#',
+    tour360: p.tour360 || '',
     desarrolladora: {
-      nombre: p.desarrolladora?.nombre || 'Desarrolladora del proyecto',
+      nombre: p.desarrolladora?.nombre || '',
       telefono: p.desarrolladora?.telefono || '',
       logo: p.desarrolladora?.logo
         ? resolverImagen(p.desarrolladora.logo, DEVELOPER_FALLBACK_IMG)
@@ -213,28 +213,32 @@ export const enriquecerProyecto = (p, { otros = [] } = {}) => {
     imagenesThumbs: imagenes.slice(0, 2),
     imagenesGaleria,
     location: {
-      departamento: loc.department || loc.departamento || '—',
-      municipio: loc.municipality || loc.municipio || '—',
-      zona: loc.zone || loc.zona || '—',
-      condominio: loc.gatedCommunity || '—',
-      direccionExacta: loc.address || '—',
+      departamento: loc.department || loc.departamento || '',
+      municipio: loc.municipality || loc.municipio || '',
+      zona: loc.zone || loc.zona || '',
+      condominio: loc.gatedCommunity || '',
+      direccionExacta: loc.address || '',
       gps: Array.isArray(loc.coordinates?.coordinates)
         ? loc.coordinates.coordinates.join(', ')
-        : loc.coordinates?.gps || '—',
-      relacionAgua: loc.waterRelation || '—',
-      vista: loc.view || '—',
-      tipoCalle: loc.streettype || '—',
+        : loc.coordinates?.gps || '',
+      relacionAgua: loc.waterRelation || '',
+      vista: loc.view || '',
+      tipoCalle: loc.streettype || '',
     },
     areas: {
-      terrenoM2: areas.terrenoM2 || '—',
-      terrenoV2: areas.terrenoV2 || '—',
-      construccionM2: areas.construccionM2 || '—',
-      numeroPisos: areas.numeroPisos || '—',
+      terrenoM2: areas.terrenoM2 || '',
+      terrenoV2: areas.terrenoV2 || '',
+      construccionM2: areas.construccionM2 || '',
+      numeroPisos: areas.numeroPisos || '',
     },
     estructura: {
-      anioConstruccion: est.anioConstruccion || '—',
-      niveles: est.niveles || '—',
-      muroPerimetral: est.muroPerimetral ? 'Sí' : 'No',
+      anioConstruccion: est.anioConstruccion || '',
+      niveles: est.niveles || '',
+      muroPerimetral: est.muroPerimetral
+        ? String(est.muroPerimetral).toLowerCase().startsWith('s')
+          ? 'Sí'
+          : 'No'
+        : '',
     },
     amenidadKeys: Object.entries(p.amenities || {})
       .filter(([, v]) => v)
