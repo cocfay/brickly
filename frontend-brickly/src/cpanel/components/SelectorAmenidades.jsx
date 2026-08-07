@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button, Row, Col } from 'react-bootstrap';
 import { amenitiesList } from '../data/amenites';
 
-function SelectorAmenidades({ value = {}, onChange, filter = null }) {
+function SelectorAmenidades({ value = {}, onChange, filter = null, list = null }) {
   const [selected, setSelected] = useState(value);
 
   // Función para generar key a partir del nombre
@@ -34,14 +34,23 @@ function SelectorAmenidades({ value = {}, onChange, filter = null }) {
     return !!selected[key];
   };
 
-  const visibleAmenities = filter
-    ? amenitiesList.filter(name => filter.includes(getKeyFromName(name)))
-    : amenitiesList;
+  const visibleAmenities = list
+    ? list
+    : (filter
+        ? amenitiesList.filter(name => filter.includes(getKeyFromName(name)))
+        : amenitiesList);
+
+  const amenidadLabel = (name) => {
+    if (name === 'AIRBNB friendly') {
+      return (<><i className="fa-brands fa-airbnb me-1"></i>{name}</>);
+    }
+    return name;
+  };
 
   return (
     <Row className="g-2">
       {visibleAmenities.map((amenidadName, index) => (
-        <Col key={index} xs="auto">
+        <Col key={amenidadName} xs="auto">
           <Button
             variant={isSelected(amenidadName) ? 'dark' : 'outline-secondary'}
             className="mb-2 text-center rounded-4"
@@ -53,7 +62,7 @@ function SelectorAmenidades({ value = {}, onChange, filter = null }) {
               fontSize: '14px'
             }}
           >
-            {amenidadName}
+            {amenidadLabel(amenidadName)}
           </Button>
         </Col>
       ))}

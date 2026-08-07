@@ -1,5 +1,7 @@
 import { useState, useRef } from 'react';
 import { Row, Col, Form, Button, Badge, Card, Collapse } from 'react-bootstrap';
+import SelectorAmenidades from '../../components/SelectorAmenidades';
+import { AMENIDADES_MODELO } from '../../data/amenites';
 
 // ─── Configuración por tipo de modelo ────────────────────────────────────────
 
@@ -72,6 +74,7 @@ const nuevoModelo = (tipo = 'Apartamento') => ({
   },
   gastosFijos: { tipoEstufa: '', servicioAgua: '', mantenimientoUSD: '', mantenimientoQ: '' },
   incluye: { iusi: '' },
+  amenities: {},
   fotos: [],
   tour360: '',
 });
@@ -444,6 +447,18 @@ function ModeloForm({ modelo, index, tipoModelo, onChange, onRemove }) {
                 {renderIncluye(campoConfig)}
               </Campo>
             ))}
+          </Row>
+
+          {/* Amenidades del modelo */}
+          <h6 className="fw-bold mt-4 mb-3"><i className="fa-solid fa-umbrella-beach me-2"></i>Amenidades del modelo</h6>
+          <Row>
+            <Col xs={12}>
+              <SelectorAmenidades
+                value={modelo.amenities || {}}
+                list={AMENIDADES_MODELO}
+                onChange={(amenities) => set({ amenities })}
+              />
+            </Col>
           </Row>
 
           {/* Multimedia */}

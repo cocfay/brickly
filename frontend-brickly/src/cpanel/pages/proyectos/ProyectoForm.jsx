@@ -7,6 +7,7 @@ import SelectorAmenidades from '../../components/SelectorAmenidades';
 import MyTextEditor from '../../components/ckeditor';
 import SelectorGaleriaProyectos from '../../components/SelectorGaleriaProyectos';
 import ModelosProyecto, { modelosValidos, modelosFaltantes } from './ModelosProyecto';
+import { AMENIDADES_PROYECTO } from '../../data/amenites';
 import {
   createProyecto,
   updateProyecto,
@@ -221,6 +222,7 @@ function ProyectoForm({ projectId }) {
             mantenimientoQ: m.gastosFijos?.mantenimientoQ ?? '',
           },
           incluye: { iusi: m.incluye?.iusi ?? '' },
+          amenities: m.amenities || {},
           fotos: (m.fotos || []).map(p => {
             const path = typeof p === 'string' ? p : (p?.path || '');
             return {
@@ -433,6 +435,7 @@ function ProyectoForm({ projectId }) {
       return (
         <SelectorAmenidades
           value={value}
+          list={AMENIDADES_PROYECTO}
           onChange={(nuevoValor) => handleChange(seccionId, campoKey, nuevoValor)}
         />
       );
@@ -623,6 +626,7 @@ function ProyectoForm({ projectId }) {
         distribucion: m.distribucion || {},
         gastosFijos: m.gastosFijos || {},
         incluye: m.incluye || {},
+        amenities: m.amenities || {},
         fotos: fotosFinales,
         tour360: m.tour360 || ''
       });

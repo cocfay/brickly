@@ -12,6 +12,7 @@ import { useT } from '../../hooks/useT';
 import '../../assets/css/proyectos.css';
 import { getProyectoById, sendProyectoLead, registerProyectoCitaClick } from '../../cpanel/services/proyectos';
 import { enriquecerProyecto, MODELO_FALLBACK_IMG } from '../../utils/proyectosUtils';
+import { enriquecerAmenidades } from '../../utils/amenidades';
 import { getModelPath } from '../../utils/projectRoutes';
 
 // Fila tipo "label: valor" para las secciones de datos
@@ -207,6 +208,12 @@ function Floor({ preview = false }) {
             modelo.distribucion.salaFamiliar,
         ];
     const distribTiene = tieneValor(modelo.distribucion.totalAmbientes) || distribFields.some(tieneValor);
+
+    const modeloAmenidades = enriquecerAmenidades(
+        Object.entries(modelo.amenities || {})
+            .filter(([, v]) => v)
+            .map(([key]) => key)
+    );
 
     return (
         <>
@@ -462,21 +469,18 @@ function Floor({ preview = false }) {
                         </Row>
                     </div>
 
-                    {/* Amenidades del edificio */}
-                    {(project.amenidades || []).length > 0 && (
+                    {/* Amenidades del modelo */}
+                    {(modeloAmenidades || []).length > 0 && (
                         <div className="mb-4">
                             <div className="d-flex align-items-center gap-2 mb-3 fs-3">
-                                <i className="fa-sharp fa-regular fa-umbrella-beach"></i> {t('Amenidades del edificio', 'Building amenities')}
+                                <i className="fa-sharp fa-regular fa-umbrella-beach"></i> {t('Amenidades del modelo', 'Model amenities')}
                             </div>
                             <div className="d-flex flex-wrap gap-2">
-                                {project.amenidades.map((a, i) => (
+                                {modeloAmenidades.map((a, i) => (
                                     <span key={i} className="border border-black rounded-pill px-3 py-2" style={{ color: '#333', fontWeight: 400 }}>
-                                        {a.nombre}{a.edificio ? ' *' : ''}
+                                        {a.nombre}
                                     </span>
                                 ))}
-                            </div>
-                            <div className="small text-muted mt-3" style={{ fontSize: '13px' }}>
-                                * = {t('Amenidad exclusiva del edificio. El resto corresponden a los apartamentos.', 'Building-only amenity. The rest belong to the apartments.')}
                             </div>
                         </div>
                     )}
