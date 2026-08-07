@@ -100,8 +100,9 @@ export const enriquecerModelo = (m) => {
       mantenimientoQ: m.gastosFijos?.mantenimientoQ
         ? formatGTQ(m.gastosFijos.mantenimientoQ)
         : '',
+      iusi: m.gastosFijos?.iusi || '',
     },
-    incluye: { iusi: m.incluye?.iusi || '' },
+    incluye: { includes: Array.isArray(m.incluye?.includes) ? m.incluye.includes : [] },
   };
 };
 

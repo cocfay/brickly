@@ -22,7 +22,7 @@ function BulletRow({ label, value }) {
         <Col md={6}>
             <div className="d-flex align-items-center gap-1">
                 <span className="fs-2 lh-1">•</span>
-                <span><strong>{label}:</strong> {value || '—'}</span>
+                <span>{label}: {value || '—'}</span>
             </div>
         </Col>
     );
@@ -257,12 +257,12 @@ function Floor({ preview = false }) {
                         <div className="mb-3 fs-4">{t('Comercializado por', 'Marketed by')}</div>
                         <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
                             <div className="d-flex align-items-center gap-2 mt-3" style={{ fontSize: '17px' }}>
-                                <img src={bricklyIcon} alt="Brickly" style={{ width: '34px', height: '34px', borderRadius: '50%' }} />
+                                <img src={bricklyIcon} alt="Brickly" style={{ width: '80px', height: '80px', borderRadius: '50%' }} />
                                 <span>{t('Brickly Proyectos', 'Brickly Proyectos')}</span>
                             </div>
                             <div className="d-flex flex-column align-items-end">
                                 <div className='mb-2 lh-1' style={{ fontSize: '16px' }}><FormattedMessage id="home.text12" /></div>
-<a href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa el model ${modelo.nombre} del proyecto ${titulo}, Necesito una cita para mas información`)}`} target="_blank" className="rounded-1 text-center border-0 py-1" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box', padding: '2px 8px', fontSize: '13px' }} rel="noreferrer" aria-label="Agendar una cita para información del modelo" onClick={handleCitaClick}>
+<a href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa el model ${modelo.nombre} del proyecto ${titulo}, Necesito una cita para más información.`)}`} target="_blank" className="rounded-1 text-center border-0 py-1" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box', padding: '2px 8px', fontSize: '13px' }} rel="noreferrer" aria-label="Agendar una cita para información del modelo" onClick={handleCitaClick}>
                         <i className="fa-brands fa-whatsapp me-2"></i><FormattedMessage id="home.text13" />
                     </a>
                             </div>
@@ -579,7 +579,7 @@ function Floor({ preview = false }) {
                     )}
 
                     {/* Gastos fijos */}
-                    {(tieneValor(modelo.gastosFijos.tipoEstufa) || tieneValor(modelo.gastosFijos.servicioAgua) || tieneValor(modelo.gastosFijos.mantenimientoUSD) || tieneValor(modelo.gastosFijos.mantenimientoQ)) && (
+                    {(tieneValor(modelo.gastosFijos.tipoEstufa) || tieneValor(modelo.gastosFijos.servicioAgua) || tieneValor(modelo.gastosFijos.mantenimientoUSD) || tieneValor(modelo.gastosFijos.mantenimientoQ) || tieneValor(modelo.gastosFijos.iusi) || (Array.isArray(modelo.incluye.includes) && modelo.incluye.includes.length > 0)) && (
                     <div className="mb-4">
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
                             <i className="fa-sharp fa-regular fa-sack-dollar"></i> {t('Gastos fijos', 'Fixed expenses')}
@@ -589,19 +589,22 @@ function Floor({ preview = false }) {
                             <BulletRow label={t('Servicio de agua', 'Water service')} value={modelo.gastosFijos.servicioAgua} />
                             <BulletRow label={t('Mantenimiento ($)', 'Maintenance ($)')} value={modelo.gastosFijos.mantenimientoUSD} />
                             <BulletRow label={t('Mantenimiento (Q)', 'Maintenance (Q)')} value={modelo.gastosFijos.mantenimientoQ} />
+                            <BulletRow label={t('IUSI', 'IUSI')} value={modelo.gastosFijos.iusi} />
                         </Row>
-                    </div>
-                    )}
-
-                    {/* Incluye */}
-                    {tieneValor(modelo.incluye.iusi) && (
-                    <div className="mb-4">
-                        <div className="d-flex align-items-center gap-2 mb-3 fs-3">
-                            <i className="fa-sharp fa-regular fa-circle-check"></i> {t('Incluye', 'Includes')}
+                        {Array.isArray(modelo.incluye.includes) && modelo.incluye.includes.length > 0 && (
+                        <div className="mt-3">
+                            <div className="d-flex align-items-center gap-2 mb-2">
+                                <i className="fa-sharp fa-regular fa-circle-check"></i> {t('Incluye', 'Includes')}
+                            </div>
+                            <div className="d-flex flex-wrap gap-2">
+                                {modelo.incluye.includes.map((inc, i) => (
+                                    <span key={i} className="border border-black rounded-pill px-3 py-2" style={{ color: '#333', fontWeight: 400 }}>
+                                        {inc}
+                                    </span>
+                                ))}
+                            </div>
                         </div>
-                        <Row className="gy-1">
-                            <BulletRow label="IUSI" value={modelo.incluye.iusi} />
-                        </Row>
+                        )}
                     </div>
                     )}
 
@@ -668,7 +671,7 @@ function Floor({ preview = false }) {
                 </div>
             </div>
             <a
-                href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa el model ${modelo.nombre} del proyecto ${titulo}, Necesito una cita para mas información`)}`}
+                href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa el model ${modelo.nombre} del proyecto ${titulo}, Necesito una cita para más información.`)}`}
                 target="_blank"
                 rel="noreferrer"
                 className="brickly-bar-btn"

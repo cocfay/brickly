@@ -24,7 +24,7 @@ function BulletRow({ label, value }) {
         <Col md={6}>
             <div className="d-flex align-items-center gap-1">
                 <span className="fs-2 lh-1">•</span>
-                <span><strong>{label}:</strong> {value || '—'}</span>
+                <span>{label}: {value || '—'}</span>
             </div>
         </Col>
     );
@@ -534,12 +534,12 @@ function Apartament({ preview = false }) {
                             <div className="mb-3 fs-4">{t('Comercializado por', 'Marketed by')}</div>
                             <div className="d-flex align-items-start justify-content-between align-items-lg-center flex-column flex-md-row gap-3">
                                 <div className="d-flex align-items-center gap-2 mt-3" style={{ fontSize: '17px' }}>
-                                    <img src={bricklyIcon} alt="Brickly" style={{ width: '34px', height: '34px', borderRadius: '50%' }} />
+                                    <img src={bricklyIcon} alt="Brickly" style={{ width: '80px', height: '80px', borderRadius: '50%' }} />
                                     <span>{t('Brickly Proyectos', 'Brickly Proyectos')}</span>
                                 </div>
                                 <div className="d-flex justify-content-md-end flex-column">
                                     <div className='mb-2 lh-1' style={{ fontSize: '16px' }}><FormattedMessage id="home.text12" /></div>
-                                    <a href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa el proyecto ${project.titulo}, Necesito una cita para mas información`)}`} target='_blank' className="rounded-1 text-center border-0 py-1" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box', padding: '2px 8px', fontSize: '13px' }} rel="noreferrer" aria-label="Agendar una cita para información del proyecto" onClick={handleCitaClick}><i className="fa-brands fa-whatsapp me-2" aria-hidden="true"></i> <FormattedMessage id="home.text13" /></a>
+                                    <a href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa el proyecto ${project.titulo}, Necesito una cita para más información.`)}`} target='_blank' className="rounded-1 text-center border-0 py-1" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box', padding: '2px 8px', fontSize: '13px' }} rel="noreferrer" aria-label="Agendar una cita para información del proyecto" onClick={handleCitaClick}><i className="fa-brands fa-whatsapp me-2" aria-hidden="true"></i> <FormattedMessage id="home.text13" /></a>
                                 </div>
                             </div>
                             <br />

@@ -220,8 +220,9 @@ function ProyectoForm({ projectId }) {
             servicioAgua: m.gastosFijos?.servicioAgua ?? '',
             mantenimientoUSD: m.gastosFijos?.mantenimientoUSD ?? '',
             mantenimientoQ: m.gastosFijos?.mantenimientoQ ?? '',
+            iusi: m.gastosFijos?.iusi ?? '',
           },
-          incluye: { iusi: m.incluye?.iusi ?? '' },
+          incluye: { includes: Array.isArray(m.incluye?.includes) ? m.incluye.includes : [] },
           amenities: m.amenities || {},
           fotos: (m.fotos || []).map(p => {
             const path = typeof p === 'string' ? p : (p?.path || '');

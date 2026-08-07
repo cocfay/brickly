@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { Row, Col, Form, Button, Badge, Card, Collapse } from 'react-bootstrap';
+import Select from 'react-select';
 import SelectorAmenidades from '../../components/SelectorAmenidades';
 import { AMENIDADES_MODELO } from '../../data/amenites';
 
@@ -35,11 +36,10 @@ const GASTOS_FIJOS = [
   { key: 'servicioAgua', label: 'Servicio de agua', col: 4, select: ['Público', 'Pozo propio del condominio', 'Empresa privada'] },
   { key: 'mantenimientoUSD', label: 'Mantenimiento $', col: 4, type: 'priceUSD' },
   { key: 'mantenimientoQ', label: 'Mantenimiento Q', col: 4, type: 'priceQ' },
+  { key: 'iusi', label: 'IUSI', col: 4, select: ['Trimestral', 'Anual'] },
 ];
 
-const INCLUYE = [
-  { key: 'iusi', label: 'IUSI', col: 4, select: ['Trimestral', 'Anual', 'Incluido'] },
-];
+const INCLUYE_OPCIONES = ['Seguridad', 'Agua', 'Basura', 'Áreas verdes', 'Gimnasio'];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -72,8 +72,8 @@ const nuevoModelo = (tipo = 'Apartamento') => ({
     helipuerto: '',
     mezzanine: '',
   },
-  gastosFijos: { tipoEstufa: '', servicioAgua: '', mantenimientoUSD: '', mantenimientoQ: '' },
-  incluye: { iusi: '' },
+  gastosFijos: { tipoEstufa: '', servicioAgua: '', mantenimientoUSD: '', mantenimientoQ: '', iusi: '' },
+  incluye: { includes: [] },
   amenities: {},
   fotos: [],
   tour360: '',
@@ -197,9 +197,9 @@ function FotosModelo({ fotos = [], onChange }) {
 
 // ─── Sub-componente: formulario de un modelo ─────────────────────────────────
 
-function Campo({ label, children }) {
+function Campo({ label, children, xl = 3 }) {
   return (
-    <Col xl={3} lg={6} md={6}>
+    <Col xl={xl} lg={6} md={6}>
       <Form.Group className="mb-3">
         <Form.Label>{label}</Form.Label>
         {children}
@@ -286,15 +286,29 @@ function ModeloForm({ modelo, index, tipoModelo, onChange, onRemove }) {
     );
   };
 
-  const renderIncluye = (campoConfig) => {
-    const value = modelo.incluye?.[campoConfig.key] || '';
+  const renderIncluye = () => {
+    const value = (modelo.incluye?.includes || []).map((v) => ({ label: v, value: v }));
     return (
-      <Form.Select value={value} onChange={(e) => setSub('incluye', campoConfig.key, e.target.value)}>
-        <option value="">Seleccione...</option>
-        {campoConfig.select.map((opt) => (
-          <option key={opt} value={opt}>{opt}</option>
-        ))}
-      </Form.Select>
+      <Select
+        isMulti
+        options={INCLUYE_OPCIONES.map((opt) => ({ label: opt, value: opt }))}
+        value={value}
+        placeholder="Selecciona una o varias..."
+        classNamePrefix="select"
+        onChange={(selected) =>
+          set({
+            incluye: { ...(modelo.incluye || {}), includes: selected ? selected.map((x) => x.value) : [] },
+          })
+        }
+        styles={{
+          control: (base) => ({
+            ...base,
+            borderRadius: '2rem',
+            padding: '2px 10px',
+            borderColor: '#dee2e6',
+          }),
+        }}
+      />
     );
   };
 
@@ -429,16 +443,9 @@ function ModeloForm({ modelo, index, tipoModelo, onChange, onRemove }) {
                 {renderGasto(campoConfig)}
               </Campo>
             ))}
-          </Row>
-
-          {/* Incluye */}
-          <h6 className="fw-bold mt-4 mb-3"><i className="fa-solid fa-circle-check me-2"></i>Incluye</h6>
-          <Row>
-            {INCLUYE.map((campoConfig) => (
-              <Campo key={campoConfig.key} label={campoConfig.label}>
-                {renderIncluye(campoConfig)}
-              </Campo>
-            ))}
+            <Campo label="Incluye" xl={6}>
+              {renderIncluye()}
+            </Campo>
           </Row>
 
           {/* Amenidades del modelo */}
