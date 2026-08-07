@@ -169,18 +169,8 @@ function SelectorGaleriaProyectos({ value = [], onChange }) {
 
     const arrayFiles = Array.from(files);
 
-    // Verificar límite de 5 imágenes
-    const currentCount = imagenes.length;
-    const availableSlots = 5 - currentCount;
-    if (availableSlots <= 0) {
-      alert('Máximo 5 imágenes permitidas.');
-      return;
-    }
-
-    const filesToProcess = arrayFiles.slice(0, availableSlots);
-
     // Crear previews locales inmediatamente (se subirán al PHP al hacer submit)
-    const nuevasImagenes = filesToProcess.map(file => ({
+    const nuevasImagenes = arrayFiles.map(file => ({
       id: genId(),
       _localId: true,
       file,
@@ -278,25 +268,25 @@ function SelectorGaleriaProyectos({ value = [], onChange }) {
       <Form.Group className="mb-4">
         <Form.Label className="fw-bold fs-5 mb-3">Galería de imágenes</Form.Label>
         <div 
-          className={`border-2 rounded-4 d-flex flex-column align-items-center justify-content-center p-5 position-relative transition-all ${totalCount >= 5 ? 'opacity-50' : ''}`}
+          className={`border-2 rounded-4 d-flex flex-column align-items-center justify-content-center p-5 position-relative transition-all`}
           style={{ 
             minHeight: '180px', 
-            cursor: totalCount >= 5 ? 'not-allowed' : 'pointer',
+            cursor: 'pointer',
             borderStyle: 'dashed',
             borderColor: isOver ? '#0d6efd' : '#adb5bd',
             backgroundColor: isOver ? 'rgba(13, 110, 253, 0.05)' : '#f8f9fa'
           }}
-          onDragOver={totalCount < 5 ? handleDragOver : undefined}
+          onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
-          onDrop={totalCount < 5 ? handleDrop : undefined}
-          onClick={() => totalCount < 5 && fileInputRef.current?.click()}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
         >
           <i className={`fa-solid fa-cloud-arrow-up fs-1 mb-3 ${isOver ? 'text-primary' : 'text-secondary'}`}></i>
           <h6 className="mb-2 text-dark text-center">Arrastra y suelta tus fotos aquí</h6>
           <p className="text-muted text-center small mb-0">
-            {totalCount >= 5
-              ? 'Límite de 5 imágenes alcanzado'
-              : `Mínimo 3 imágenes - Máximo 5 (${totalCount}/5 usadas)`
+            {totalCount >= 3
+              ? `Mínimo de 3 imágenes cumplido (${totalCount} cargadas)`
+              : `Mínimo 3 imágenes (${totalCount}/3)`
             }
           </p>
           <input 
@@ -304,7 +294,6 @@ function SelectorGaleriaProyectos({ value = [], onChange }) {
             multiple 
             ref={fileInputRef} 
             accept="image/*" 
-            disabled={totalCount >= 5}
             onChange={(e) => {
               handleFiles(e.target.files);
               e.target.value = '';

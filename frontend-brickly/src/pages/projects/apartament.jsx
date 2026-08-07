@@ -388,7 +388,7 @@ function Apartament({ preview = false }) {
                     )}
 
                     {/* Datos del proyecto */}
-                    <div className="mb-5">
+                    {/* <div className="mb-5">
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
                             <i className="fa-sharp fa-regular fa-file-lines"></i> {t('Datos del proyecto', 'Project data')}
                         </div>
@@ -399,7 +399,7 @@ function Apartament({ preview = false }) {
                             <BulletRow label={t('Tasa ($)', 'Rate ($)')} value={project.tasaUSD} />
                             <BulletRow label={t('Precio desde ($)', 'Starting price ($)')} value={project.precioDesdeUSD} />
                         </Row>
-                    </div>
+                    </div> */}
 
                     {/* Ubicación y entorno */}
                     {(tieneValor(project.location.departamento) || tieneValor(project.location.municipio) || tieneValor(project.location.zona) || tieneValor(project.location.condominio) || tieneValor(project.location.direccionExacta) || tieneValor(project.location.gps) || tieneValor(project.location.relacionAgua) || tieneValor(project.location.vista) || tieneValor(project.location.tipoCalle)) && (
@@ -480,9 +480,9 @@ function Apartament({ preview = false }) {
                                                 <div className="fw-bold" style={{ fontSize: '24px' }}>{m.nombre}</div>
                                                 <div className="text-muted" style={{ fontSize: '12px' }}>{t('Desde', 'From')}</div>
                                                 <div className="fw-bold">{m.precioDesdeUSD}</div>
-                                                {m.precioDesdeQ ? (
+                                                {/* {m.precioDesdeQ ? (
                                                 <div className="text-muted" style={{ fontSize: '12px' }}>(Q {m.precioDesdeQ.replace('Q ', '')})</div>
-                                            ) : null}
+                                            ) : null} */}
                                                 <hr />
                                                 <div className="d-flex justify-content-around align-items-center gap-2 mt-2 text-muted" style={{ fontSize: '12px' }}>
                                                     <span><i className="fa-solid fa-crop-simple me-1"></i>{m.area}</span>

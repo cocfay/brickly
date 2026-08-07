@@ -457,7 +457,7 @@ function Floor({ preview = false }) {
                     ) : null}
 
                     {/* Datos del modelo */}
-                    <div className="mb-4">
+                    {/* <div className="mb-4">
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
                             <i className="fa-sharp fa-regular fa-file-lines"></i> {t('Datos del modelo', 'Model data')}
                         </div>
@@ -467,7 +467,7 @@ function Floor({ preview = false }) {
                             <BulletRow label={t('Tasa ($)', 'Rate ($)')} value={modelo.tasaUSD} />
                             <BulletRow label={t('Precio desde ($)', 'Starting price ($)')} value={modelo.precioDesdeUSD} />
                         </Row>
-                    </div>
+                    </div> */}
 
                     {/* Amenidades del modelo */}
                     {(modeloAmenidades || []).length > 0 && (

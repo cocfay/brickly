@@ -125,12 +125,7 @@ function FotosModelo({ fotos = [], onChange }) {
   const handleFiles = (files) => {
     if (!files || files.length === 0) return;
     const arrayFiles = Array.from(files);
-    const disponibles = 5 - fotos.length;
-    if (disponibles <= 0) {
-      alert('Máximo 5 fotos por modelo.');
-      return;
-    }
-    const nuevas = arrayFiles.slice(0, disponibles).map((file) => ({
+    const nuevas = arrayFiles.map((file) => ({
       file,
       preview: URL.createObjectURL(file),
       path: null,
@@ -148,24 +143,22 @@ function FotosModelo({ fotos = [], onChange }) {
   return (
     <div>
       <div
-        className={`border-2 rounded-4 d-flex flex-column align-items-center justify-content-center p-4 position-relative ${fotos.length >= 5 ? 'opacity-50' : ''}`}
+        className={`border-2 rounded-4 d-flex flex-column align-items-center justify-content-center p-4 position-relative`}
         style={{
           minHeight: '140px',
-          cursor: fotos.length >= 5 ? 'not-allowed' : 'pointer',
+          cursor: 'pointer',
           borderStyle: 'dashed',
           borderColor: isOver ? '#0d6efd' : '#adb5bd',
           backgroundColor: isOver ? 'rgba(13, 110, 253, 0.05)' : '#f8f9fa',
         }}
-        onDragOver={(e) => { if (fotos.length < 5) { e.preventDefault(); setIsOver(true); } }}
+        onDragOver={(e) => { e.preventDefault(); setIsOver(true); }}
         onDragLeave={() => setIsOver(false)}
-        onDrop={(e) => { e.preventDefault(); setIsOver(false); if (fotos.length < 5) handleFiles(e.dataTransfer.files); }}
-        onClick={() => fotos.length < 5 && inputRef.current?.click()}
+        onDrop={(e) => { e.preventDefault(); setIsOver(false); handleFiles(e.dataTransfer.files); }}
+        onClick={() => inputRef.current?.click()}
       >
         <i className={`fa-solid fa-cloud-arrow-up fs-2 mb-2 ${isOver ? 'text-primary' : 'text-secondary'}`}></i>
         <span className="text-muted small text-center">
-          {fotos.length >= 5
-            ? 'Límite de 5 fotos alcanzado'
-            : `Arrastra o haz clic para agregar fotos (${fotos.length}/5)`}
+          {`Arrastra o haz clic para agregar fotos (${fotos.length} cargadas)`}
         </span>
         <input
           type="file"
@@ -173,7 +166,6 @@ function FotosModelo({ fotos = [], onChange }) {
           ref={inputRef}
           accept="image/*"
           style={{ display: 'none' }}
-          disabled={fotos.length >= 5}
           onChange={(e) => { handleFiles(e.target.files); e.target.value = ''; }}
         />
       </div>
