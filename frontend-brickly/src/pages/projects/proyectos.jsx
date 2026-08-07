@@ -407,7 +407,7 @@ function Proyectos() {
                             {filters.type === 'Todos' ? t('Tipo', 'Type') : filters.type}
                         </Dropdown.Toggle>
                         <Dropdown.Menu className="p-2 shadow border-0">
-                            {['Todos', 'Apartamento', 'Bodega', 'Casa', 'Edificio', 'Finca', 'Local comercial', 'Oficina', 'Terreno'].map(type => (
+                            {['Todos', 'Apartamento', 'Bodega'].map(type => (
                                 <div key={type} className="px-3 py-1" style={{ cursor: 'pointer' }}
                                     onClick={() => handleSelect('type', type)}>
                                     <Form.Check
@@ -462,7 +462,7 @@ function Proyectos() {
                     )}
 
                     {/* Camas y Baños */}
-                    {filters.type !== 'Terreno' && filters.type !== 'Finca' && (
+                    {filters.type === 'Apartamento' && (
                         <Dropdown autoClose="outside" className="d-none d-lg-block">
                             <Dropdown.Toggle variant={(filters.beds !== 'Cualquiera' || filters.baths !== 'Cualquiera') ? 'dark' : 'outline-dark'} style={{ fontSize: '14px' }}>
                                 {filters.beds === 'Cualquiera' && filters.baths === 'Cualquiera'
@@ -704,7 +704,7 @@ function Proyectos() {
                         <div className="mb-4">
                             <p className="fw-bold mb-2">Tipo de proyecto</p>
                             <div className="d-flex flex-wrap gap-2">
-                                {['Todos', 'Apartamento', 'Bodega', 'Casa', 'Edificio', 'Finca', 'Local comercial', 'Oficina', 'Terreno'].map(type => (
+                                {['Todos', 'Apartamento', 'Bodega'].map(type => (
                                     <Button key={type} size="sm"
                                         variant={filters.type === type ? 'dark' : 'outline-dark'}
                                         onClick={() => handleSelect('type', type)}>{type}</Button>
@@ -739,7 +739,7 @@ function Proyectos() {
                         )}
 
                         {/* Camas */}
-                        {filters.type !== 'Terreno' && filters.type !== 'Finca' && (
+                        {filters.type === 'Apartamento' && (
                             <div className="mb-4">
                                 <p className="fw-bold mb-2">{ (filters.type === 'Oficina' || filters.type === 'Local comercial') ? t('Espacios', 'Spaces') : filters.type === 'Bodega' ? t('Ambientes', 'Spaces') : t('Habitaciones', 'Bedrooms') }</p>
                                 <ButtonGroup size="sm" className="w-100">
@@ -752,7 +752,7 @@ function Proyectos() {
                         )}
 
                         {/* Baños */}
-                        {filters.type !== 'Terreno' && filters.type !== 'Finca' && filters.type !== 'Bodega' && (
+                        {filters.type === 'Apartamento' && (
                             <div className="mb-4">
                                 <p className="fw-bold mb-2">{t('Baños', 'Baths')}</p>
                                 <ButtonGroup size="sm" className="w-100">

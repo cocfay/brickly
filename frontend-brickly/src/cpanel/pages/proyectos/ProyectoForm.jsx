@@ -16,6 +16,7 @@ import {
 } from '../../services/proyectos';
 import { getCurrentUser } from '../../../services/authService';
 import { getLogoUrl } from '../../../services/logoService';
+import arrow from '../../../assets/images/iconos/arrow.png';
 
 // Definición de secciones con sus campos
 const SECCIONES = {
@@ -43,7 +44,7 @@ const SECCIONES = {
       priceFromUSD: { type: 'priceUSD', label: 'Precio desde ($) *', col: 3 },
       description: { type: 'textarea', label: 'Descripción del proyecto *', col: 12, opcional: false },
       devNombre: { type: 'text', label: 'Nombre de la empresa *', col: 4, opcional: false },
-      situacional: { type: 'select', label: 'Estado situacional *', col: 4, opcional: false, options: ['EN VENTA', 'PREVENTA'] },
+      situacional: { type: 'select', label: 'Estado *', col: 4, opcional: false, options: ['EN VENTA', 'PREVENTA'] },
       unidades: { type: 'number', label: 'Cantidad de unidades', col: 4, opcional: true }
     }
   },
@@ -764,7 +765,7 @@ function ProyectoForm({ projectId }) {
       <div className='fs-1 d-flex justify-content-between align-items-center'>
         {isEdit ? 'Editar proyecto' : 'Nuevo proyecto'}
         <a href="#" onClick={(e) => { e.preventDefault(); navigate('/cpanel/proyectos'); }} title='Atrás'>
-          <i className="fa-solid fa-arrow-left" style={{ fontSize: 'clamp(24px, 4vw, 34px)', color: '#000' }}></i>
+          <img src={arrow} style={{ width: 'clamp(30px, 5vw, 40px)' }} alt="Atrás" />
         </a>
       </div>
       <div className='d-flex flex-column gap-4 mt-5'>

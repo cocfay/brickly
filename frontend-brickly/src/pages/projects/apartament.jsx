@@ -222,7 +222,7 @@ function Apartament({ preview = false }) {
                     <div className="d-flex flex-column align-items-center gap-4 me-lg-5 mt-5">
                         <div style={{ border: '1px solid black' }} className="py-2 px-4 rounded-4">{situacionalLabel}</div>
                         {/* Desktop: 3 items en fila */}
-                        <div className="d-none d-lg-flex align-items-center justify-content-center gap-5">
+                        <div className="d-none d-lg-flex align-items-center justify-content-center gap-5" style={{ fontSize: '1.5rem' }}>
                             {tieneValor(project.estructura.niveles) && <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>{project.estructura.niveles} Niveles</div>}
                             {project.unidades ? (<>
                                 <div style={{ width: '1px', height: '24px', backgroundColor: '#ccc' }}></div>
