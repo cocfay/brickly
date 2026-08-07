@@ -9,6 +9,7 @@ import tour    from '../../assets/images/iconos/IconoTour.png';
 import arrow   from '../../assets/images/iconos/arrow.png';
 import bricklyIcon from '../../assets/images/logos/brickly-icon.png';
 import { useT } from '../../hooks/useT';
+import '../../assets/css/proyectos.css';
 import { getProyectoById, sendProyectoLead, registerProyectoCitaClick } from '../../cpanel/services/proyectos';
 import { enriquecerProyecto, MODELO_FALLBACK_IMG } from '../../utils/proyectosUtils';
 import { getModelPath } from '../../utils/projectRoutes';
@@ -208,6 +209,7 @@ function Floor({ preview = false }) {
     const distribTiene = tieneValor(modelo.distribucion.totalAmbientes) || distribFields.some(tieneValor);
 
     return (
+        <>
         <Container style={{ marginTop: 'clamp(1.5rem, 3vw, 3rem)', marginBottom: 'clamp(3rem, 6vw, 6rem)' }}>
 
             {/* Breadcrumb */}
@@ -240,13 +242,15 @@ function Floor({ preview = false }) {
             <Row className="g-5">
                 {/* ── Columna izquierda ── */}
                 <Col lg={4}>
-                    {/* Desarrollado por */}
-                    <div className="p-3 my-5">
+                    {/* Desarrollado por — solo desktop (en móvil va bajo las fotos + barra flotante) */}
+                    <div className="p-3 my-5 d-none d-lg-block">
+                        <hr/>
+                        <br />
                         <div className="mb-3">{t('Desarrollado por: ', 'Developed by:')} {desarrolladora.nombre}</div>
                         <div className="mb-3 fs-4">{t('Comercializado por', 'Marketed by')}</div>
                         <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                            <div className="d-flex align-items-center gap-2 mt-3" style={{ fontSize: '15px' }}>
-                                <img src={bricklyIcon} alt="Brickly" style={{ width: '30px', height: '30px' }} />
+                            <div className="d-flex align-items-center gap-2 mt-3" style={{ fontSize: '17px' }}>
+                                <img src={bricklyIcon} alt="Brickly" style={{ width: '34px', height: '34px', borderRadius: '50%' }} />
                                 <span>{t('Brickly Proyectos', 'Brickly Proyectos')}</span>
                             </div>
                             <div className="d-flex flex-column align-items-end">
@@ -256,7 +260,9 @@ function Floor({ preview = false }) {
                     </a>
                             </div>
                         </div>
-                        
+                        <br />
+                        <hr/>
+                            
                     </div>
 
                     {/* Solicitar información */}
@@ -435,6 +441,13 @@ function Floor({ preview = false }) {
                         </div>
                     </div>
                     )}
+
+                    {/* Desarrollado por — móvil: justo debajo de las fotos */}
+                    {desarrolladora.nombre ? (
+                        <div className="d-lg-none mb-4" style={{ fontSize: '17px', fontWeight: 500 }}>
+                            {t('Desarrollado por: ', 'Developed by:')} {desarrolladora.nombre}
+                        </div>
+                    ) : null}
 
                     {/* Datos del modelo */}
                     <div className="mb-4">
@@ -640,6 +653,27 @@ function Floor({ preview = false }) {
             )}
 
         </Container>
+
+        {/* Barra flotante móvil: Comercializado por + Agendar cita */}
+        <div className="brickly-fixed-bar">
+            <div className="brickly-bar-info">
+                <img src={bricklyIcon} alt="Brickly" className="brickly-bar-logo" />
+                <div>
+                    <div className="brickly-bar-title">{t('Comercializado por', 'Marketed by')}</div>
+                    <div className="brickly-bar-name">{t('Brickly Proyectos', 'Brickly Proyectos')}</div>
+                </div>
+            </div>
+            <a
+                href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa el model ${modelo.nombre} del proyecto ${titulo}, Necesito una cita para mas información`)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="brickly-bar-btn"
+                onClick={handleCitaClick}
+            >
+                <i className="fa-brands fa-whatsapp me-2"></i>{t('Agendar cita', 'Schedule appointment')}
+            </a>
+        </div>
+        </>
     );
 }
 

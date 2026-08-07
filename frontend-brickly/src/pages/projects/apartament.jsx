@@ -214,9 +214,9 @@ function Apartament({ preview = false }) {
                         </div>
                         {/* Precio desde Q + Tasa */}
                         <div className="d-flex align-items-center gap-3 flex-wrap mt-1">
-                            <span style={{ fontSize: '16px' }}><strong>{t('Precio desde', 'Starting from')} (Q):</strong> {project.precioDesdeQ}</span>
+                            {/* <span style={{ fontSize: '16px' }}><strong>{t('Precio desde', 'Starting from')} (Q):</strong> {project.precioDesdeQ}</span>
                             <span style={{ width: '1px', height: '18px', backgroundColor: '#ccc' }}></span>
-                            <span style={{ fontSize: '16px' }}><strong>Tasa ($):</strong> {project.tasaUSD}</span>
+                            <span style={{ fontSize: '16px' }}><strong>Tasa ($):</strong> {project.tasaUSD}</span> */}
                         </div>
                     </div>
                     <div className="d-flex flex-column align-items-center gap-4 me-lg-5 mt-5">
@@ -340,6 +340,13 @@ function Apartament({ preview = false }) {
                     ))}
                 </div>
             </div>
+            )}
+
+            {/* Desarrollado por — móvil: justo debajo de las fotos */}
+            {tieneValor(project.desarrolladora.nombre) && (
+                <div className="d-lg-none mb-4" style={{ fontSize: '17px', fontWeight: 500 }}>
+                    {t('Desarrollado por: ', 'Developed by:')} {project.desarrolladora.nombre}
+                </div>
             )}
 
             {/* ── Contenido principal ── */}
@@ -508,7 +515,7 @@ function Apartament({ preview = false }) {
                             ))}
                         </div>
                         <div className="small text-muted mt-3" style={{ fontSize: '13px' }}>
-                            * = {t('Amenidad exclusiva del edificio. El resto corresponden a los apartamentos.', 'Building-only amenity. The rest belong to the apartments.')}
+                            {/* * = {t('Amenidad exclusiva del edificio. El resto corresponden a los apartamentos.', 'Building-only amenity. The rest belong to the apartments.')} */}
                         </div>
                     </div>
                     )}
@@ -519,13 +526,15 @@ function Apartament({ preview = false }) {
                 <Col lg={5}>
                     <div className="sticky-lg-top" style={{ top: '100px' }}>
 
-                        {/* Desarrollado por */}
-                        <div className="p-3 my-5">
+                        {/* Desarrollado por — solo desktop (en móvil va bajo las fotos + barra flotante) */}
+                        <div className="p-3 my-5 d-none d-lg-block">
+                            <hr/>
+                            <br />
                             <div className="mb-3">{t('Desarrollado por: ', 'Developed by:')} {project.desarrolladora.nombre}</div>
                             <div className="mb-3 fs-4">{t('Comercializado por', 'Marketed by')}</div>
                             <div className="d-flex align-items-start justify-content-between align-items-lg-center flex-column flex-md-row gap-3">
-                                <div className="d-flex align-items-center gap-2 mt-3" style={{ fontSize: '15px' }}>
-                                    <img src={bricklyIcon} alt="Brickly" style={{ width: '30px', height: '30px' }} />
+                                <div className="d-flex align-items-center gap-2 mt-3" style={{ fontSize: '17px' }}>
+                                    <img src={bricklyIcon} alt="Brickly" style={{ width: '34px', height: '34px', borderRadius: '50%' }} />
                                     <span>{t('Brickly Proyectos', 'Brickly Proyectos')}</span>
                                 </div>
                                 <div className="d-flex justify-content-md-end flex-column">
@@ -533,7 +542,8 @@ function Apartament({ preview = false }) {
                                     <a href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa el proyecto ${project.titulo}, Necesito una cita para mas información`)}`} target='_blank' className="rounded-1 text-center border-0 py-1" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box', padding: '2px 8px', fontSize: '13px' }} rel="noreferrer" aria-label="Agendar una cita para información del proyecto" onClick={handleCitaClick}><i className="fa-brands fa-whatsapp me-2" aria-hidden="true"></i> <FormattedMessage id="home.text13" /></a>
                                 </div>
                             </div>
-                            
+                            <br />
+                            <hr/>
                         </div>
 
                         {/* Solicitar información */}
@@ -654,6 +664,26 @@ function Apartament({ preview = false }) {
             </div>
 
         </Container>
+
+        {/* Barra flotante móvil: Comercializado por + Agendar cita */}
+        <div className="brickly-fixed-bar">
+            <div className="brickly-bar-info">
+                <img src={bricklyIcon} alt="Brickly" className="brickly-bar-logo" />
+                <div>
+                    <div className="brickly-bar-title">{t('Comercializado por', 'Marketed by')}</div>
+                    <div className="brickly-bar-name">{t('Brickly Proyectos', 'Brickly Proyectos')}</div>
+                </div>
+            </div>
+            <a
+                href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa el proyecto ${project.titulo}, Necesito una cita para mas información`)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="brickly-bar-btn"
+                onClick={handleCitaClick}
+            >
+                <i className="fa-brands fa-whatsapp me-2"></i>{t('Agendar cita', 'Schedule appointment')}
+            </a>
+        </div>
         </>
     );
 }

@@ -6,7 +6,7 @@ import SelectorMapaDropdown from '../../components/SelectorMapaDropdown';
 import SelectorAmenidades from '../../components/SelectorAmenidades';
 import MyTextEditor from '../../components/ckeditor';
 import SelectorGaleriaProyectos from '../../components/SelectorGaleriaProyectos';
-import ModelosProyecto, { modelosValidos } from './ModelosProyecto';
+import ModelosProyecto, { modelosValidos, modelosFaltantes } from './ModelosProyecto';
 import {
   createProyecto,
   updateProyecto,
@@ -882,13 +882,20 @@ function ProyectoForm({ projectId }) {
 
                     <Col xs={12} className='d-flex justify-content-end'>
                       {!secciones[seccionId].completada ? (
-                        <Button
-                          className='bg-dark rounded-5 border-0 px-4'
-                          onClick={() => handleGuardarSeccion(seccionId)}
-                          disabled={!validarSeccion(seccionId)}
-                        >
-                          Guardar y continuar
-                        </Button>
+                        <div className="d-flex flex-column align-items-end gap-1">
+                          {seccionId === 'modelos' && !validarSeccion(seccionId) && modelosFaltantes(modelos).length > 0 && (
+                            <div className="small text-danger" style={{ fontSize: '13px' }}>
+                              <i className="fa-solid fa-circle-info me-1"></i>Faltan campos obligatorios: {modelosFaltantes(modelos).join(', ')}
+                            </div>
+                          )}
+                          <Button
+                            className='bg-dark rounded-5 border-0 px-4'
+                            onClick={() => handleGuardarSeccion(seccionId)}
+                            disabled={!validarSeccion(seccionId)}
+                          >
+                            Guardar y continuar
+                          </Button>
+                        </div>
                       ) : (
                         <Badge bg="success" className="p-3 fs-6">
                           <i className="fa-solid fa-check-circle me-2"></i>

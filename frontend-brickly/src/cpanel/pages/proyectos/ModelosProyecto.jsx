@@ -85,6 +85,22 @@ export const modelosValidos = (modelos) => {
   });
 };
 
+export const modelosFaltantes = (modelos) => {
+  const faltantes = [];
+  (modelos || []).forEach((m, idx) => {
+    const ref = `Modelo ${idx + 1}`;
+    if (!m.nombre) faltantes.push(`Nombre (${ref})`);
+    if (!m.precioDesdeQ) faltantes.push(`Precio Q (${ref})`);
+    if (!m.tasa) faltantes.push(`Tasa ($) (${ref})`);
+    if (!m.precioDesdeUSD) faltantes.push(`Precio $ (${ref})`);
+    if (!m.descripcion) faltantes.push(`Descripción (${ref})`);
+    if (!m.distribucion?.totalAmbientes) faltantes.push(`Total de ambientes (${ref})`);
+    if (!m.distribucion?.banosCompletos) faltantes.push(`Baños completos (${ref})`);
+    if (m.tipo === 'Apartamento' && !m.distribucion?.dormitorios) faltantes.push(`Dormitorios (${ref})`);
+  });
+  return faltantes;
+};
+
 const formatGTQ = (val) => {
   const num = String(val).replace(/[^0-9]/g, '');
   if (!num) return '';
@@ -199,7 +215,6 @@ function Campo({ label, children }) {
 
 function ModeloForm({ modelo, index, tipoModelo, onChange, onRemove }) {
   const [open, setOpen] = useState(index === 0);
-  const precioRefs = useRef({});
 
   const set = (patch) => onChange({ ...modelo, ...patch });
 
@@ -218,15 +233,6 @@ function ModeloForm({ modelo, index, tipoModelo, onChange, onRemove }) {
     } else if (campo === 'precioDesdeUSD' && !isNaN(precioUSD) && !isNaN(tasa) && tasa > 0) {
       nuevo.precioDesdeQ = Math.round(precioUSD * tasa);
     }
-
-    setTimeout(() => {
-      if (precioRefs.current.precioDesdeQ && campo !== 'precioDesdeQ') {
-        precioRefs.current.precioDesdeQ.value = formatGTQ(nuevo.precioDesdeQ);
-      }
-      if (precioRefs.current.precioDesdeUSD && campo !== 'precioDesdeUSD') {
-        precioRefs.current.precioDesdeUSD.value = formatUSD(nuevo.precioDesdeUSD);
-      }
-    }, 0);
 
     onChange(nuevo);
   };
@@ -271,14 +277,12 @@ function ModeloForm({ modelo, index, tipoModelo, onChange, onRemove }) {
       return (
         <Form.Control
           type="text"
-          defaultValue={isGTQ ? formatGTQ(value) : formatUSD(value)}
-          onKeyUp={(e) => {
+          value={isGTQ ? formatGTQ(value) : formatUSD(value)}
+          onChange={(e) => {
             const raw = e.target.value.replace(/[^0-9]/g, '');
-            e.target.value = isGTQ ? formatGTQ(raw) : formatUSD(raw);
             setSub('gastosFijos', campoConfig.key, raw);
           }}
           placeholder={isGTQ ? 'Q 0' : '$ 0'}
-          key={`${modelo.uid}-${campoConfig.key}`}
         />
       );
     }
@@ -334,15 +338,9 @@ function ModeloForm({ modelo, index, tipoModelo, onChange, onRemove }) {
                 <Form.Label>Precio desde Q *</Form.Label>
                 <Form.Control
                   type="text"
-                  defaultValue={formatGTQ(modelo.precioDesdeQ)}
-                  onKeyUp={(e) => {
-                    const raw = e.target.value.replace(/[^0-9]/g, '');
-                    e.target.value = formatGTQ(raw);
-                    handlePrecio('precioDesdeQ', raw);
-                  }}
+                  value={formatGTQ(modelo.precioDesdeQ)}
+                  onChange={(e) => handlePrecio('precioDesdeQ', e.target.value.replace(/[^0-9]/g, ''))}
                   placeholder="Q 0"
-                  key={`${modelo.uid}-precioDesdeQ`}
-                  ref={el => precioRefs.current.precioDesdeQ = el}
                 />
               </Form.Group>
             </Col>
@@ -363,15 +361,9 @@ function ModeloForm({ modelo, index, tipoModelo, onChange, onRemove }) {
                 <Form.Label>Precio desde $ *</Form.Label>
                 <Form.Control
                   type="text"
-                  defaultValue={formatUSD(modelo.precioDesdeUSD)}
-                  onKeyUp={(e) => {
-                    const raw = e.target.value.replace(/[^0-9]/g, '');
-                    e.target.value = formatUSD(raw);
-                    handlePrecio('precioDesdeUSD', raw);
-                  }}
+                  value={formatUSD(modelo.precioDesdeUSD)}
+                  onChange={(e) => handlePrecio('precioDesdeUSD', e.target.value.replace(/[^0-9]/g, ''))}
                   placeholder="$ 0"
-                  key={`${modelo.uid}-precioDesdeUSD`}
-                  ref={el => precioRefs.current.precioDesdeUSD = el}
                 />
               </Form.Group>
             </Col>
