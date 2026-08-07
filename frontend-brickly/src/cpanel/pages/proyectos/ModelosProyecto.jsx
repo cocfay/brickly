@@ -50,7 +50,7 @@ const nuevoModelo = (tipo = 'Apartamento') => ({
   tipo,
   nombre: '',
   precioDesdeQ: '',
-  tasa: '',
+  tasa: '7.5',
   precioDesdeUSD: '',
   descripcion: '',
   areas: { areaConstruccionM2: '', espacioAlmacenamiento: '' },
@@ -219,7 +219,7 @@ function ModeloForm({ modelo, index, tipoModelo, onChange, onRemove }) {
   const handlePrecio = (campo, value) => {
     const precioQ = parseFloat(campo === 'precioDesdeQ' ? value : modelo.precioDesdeQ);
     const precioUSD = parseFloat(campo === 'precioDesdeUSD' ? value : modelo.precioDesdeUSD);
-    const tasa = parseFloat(campo === 'tasa' ? value : (modelo.tasa || 7.8));
+    const tasa = parseFloat(campo === 'tasa' ? value : (modelo.tasa || 7.5));
 
     const nuevo = { ...modelo, [campo]: value };
 

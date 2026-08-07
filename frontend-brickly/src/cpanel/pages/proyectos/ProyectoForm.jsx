@@ -138,7 +138,7 @@ function ProyectoForm({ projectId }) {
       acc[key] = {
         completada: false,
         datos: Object.keys(SECCIONES[key].campos).reduce((campos, campoKey) => {
-          campos[campoKey] = campoKey === 'rate' ? '7.8' : '';
+          campos[campoKey] = campoKey === 'rate' ? '7.5' : '';
           return campos;
         }, {})
       };
@@ -190,7 +190,7 @@ function ProyectoForm({ projectId }) {
           tipo: m.tipo || 'Apartamento',
           nombre: m.nombre || '',
           precioDesdeQ: m.precioDesdeQ ?? '',
-          tasa: m.tasa ?? '',
+          tasa: m.tasa ?? '7.5',
           precioDesdeUSD: m.precioDesdeUSD ?? '',
           descripcion: m.descripcion || '',
           areas: {
@@ -264,7 +264,7 @@ function ProyectoForm({ projectId }) {
                 type: data.type || '',
                 mode: data.mode || '',
                 priceFromQ: data.priceFromQ ?? '',
-                rate: data.rate ?? '7.8',
+                rate: data.rate ?? '7.5',
                 priceFromUSD: data.priceFromUSD ?? '',
                 description: data.description || '',
                 devNombre: dev.nombre || '',
@@ -323,7 +323,7 @@ function ProyectoForm({ projectId }) {
       if (seccionId === 'datosProyecto') {
         const priceQ = parseFloat(campo === 'priceFromQ' ? value : newDatos.priceFromQ);
         const priceUSD = parseFloat(campo === 'priceFromUSD' ? value : newDatos.priceFromUSD);
-        const tasa = parseFloat(campo === 'rate' ? value : (newDatos.rate || 7.8));
+        const tasa = parseFloat(campo === 'rate' ? value : (newDatos.rate || 7.5));
 
         if ((campo === 'priceFromQ' || campo === 'rate') && !isNaN(priceQ) && !isNaN(tasa) && tasa > 0) {
           newDatos.priceFromUSD = Math.round(priceQ / tasa);
