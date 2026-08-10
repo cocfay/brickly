@@ -19,6 +19,9 @@ import { getCurrentUser } from '../../../services/authService';
 import { getLogoUrl } from '../../../services/logoService';
 import arrow from '../../../assets/images/iconos/arrow.png';
 
+// Estados que habilitan el campo "Fecha de entrega"
+const ESTADOS_CON_ENTREGA = ['preventa', 'en construcción', 'próximo a entregar'];
+
 // Definición de secciones con sus campos
 const SECCIONES = {
   datosProyecto: {
@@ -45,7 +48,8 @@ const SECCIONES = {
       priceFromUSD: { type: 'priceUSD', label: 'Precio desde ($) *', col: 3 },
       description: { type: 'textarea', label: 'Descripción del proyecto *', col: 12, opcional: false },
       devNombre: { type: 'text', label: 'Nombre de la empresa *', col: 4, opcional: false },
-      situacional: { type: 'select', label: 'Estado *', col: 4, opcional: false, options: ['EN VENTA', 'PREVENTA'] },
+      situacional: { type: 'select', label: 'Estado *', col: 4, opcional: false, options: ['EN VENTA', 'PREVENTA', 'En construcción', 'Próximo a entregar', 'Terminado'] },
+      fechaEntrega: { type: 'month', label: 'Fecha de entrega', col: 4, opcional: true },
       unidades: { type: 'number', label: 'Cantidad de unidades', col: 4, opcional: true }
     }
   },
@@ -269,6 +273,7 @@ function ProyectoForm({ projectId }) {
                 description: data.description || '',
                 devNombre: dev.nombre || '',
                 situacional: data.situacional || '',
+                fechaEntrega: data.fechaEntrega || '',
                 unidades: data.unidades ?? ''
               }
             };
@@ -425,7 +430,7 @@ function ProyectoForm({ projectId }) {
     return '$ ' + num.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   };
 
-  const renderCampo = (seccionId, campoKey, campoConfig) => {
+  const renderCampo = (seccionId, campoKey, campoConfig, disabled = false) => {
     const value = secciones[seccionId].datos[campoKey] || (campoKey === 'amenities' ? {} : '');
 
     if (campoConfig.type === 'hidden') return null;
@@ -486,6 +491,7 @@ function ProyectoForm({ projectId }) {
           <Form.Control
             type={campoConfig.type}
             value={value}
+            disabled={disabled}
             onChange={(e) => handleChange(seccionId, campoKey, e.target.value)}
             placeholder={campoConfig.opcional ? 'Opcional' : ''}
             {...(campoConfig.type === 'number' && { min: 0 })}
@@ -511,6 +517,7 @@ function ProyectoForm({ projectId }) {
       description: datos.description,
       tour360: tour360 || '',
       situacional: datos.situacional || '',
+      fechaEntrega: datos.fechaEntrega || '',
       unidades: datos.unidades ? parseFloat(datos.unidades) : undefined
     };
 
@@ -843,6 +850,19 @@ function ProyectoForm({ projectId }) {
                                 value={secciones.ubicacion.datos.coordinates || ''}
                                 onChange={(valor) => handleChange('ubicacion', 'coordinates', valor)}
                               />
+                            </Form.Group>
+                          </Col>
+                        );
+                      }
+
+                      if (campoKey === 'fechaEntrega' && seccionId === 'datosProyecto') {
+                        const estado = secciones.datosProyecto.datos.situacional || '';
+                        const habilitado = ESTADOS_CON_ENTREGA.includes(String(estado).toLowerCase());
+                        return (
+                          <Col key={campoKey} xl={campoConfig.col} lg={campoConfig.col === 12 ? 12 : 6} md={campoConfig.col === 12 ? 12 : 6}>
+                            <Form.Group>
+                              <Form.Label>{campoConfig.label}</Form.Label>
+                              {renderCampo(seccionId, campoKey, campoConfig, !habilitado)}
                             </Form.Group>
                           </Col>
                         );

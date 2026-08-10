@@ -195,6 +195,7 @@ export const enriquecerProyecto = (p, { otros = [] } = {}) => {
     tasaUSD: `$${tasa}`,
     modo: p.mode || 'Venta',
     situacional: p.situacional || '',
+    fechaEntrega: p.fechaEntrega || '',
     unidades: p.unidades || null,
     camas: primerModelo.camas || 0,
     banos: primerModelo.banos || 0,

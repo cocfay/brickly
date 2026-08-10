@@ -173,9 +173,15 @@ function Apartament({ preview = false }) {
     }
 
     const amenidades = project.amenidades || [];
-    const situacionalLabel = `APARTAMENTOS EN ${project.situacional === 'EN VENTA' ? 'VENTA' : 'PREVENTA'}`;
+    const situacional = project.situacional || '';
+    const situacionalLabel = situacional ? `APARTAMENTOS EN ${situacional.toUpperCase().replace(/^EN\s+/, '')}` : '';
 
     const tieneValor = (v) => v != null && v !== '' && v !== '—';
+    const formatearFechaEntrega = (val) => {
+      if (!val) return '';
+      const m = String(val).match(/^(\d{4})-(\d{2})/);
+      return m ? `${m[2]}/${m[1]}` : val;
+    };
 
     return (
         <>
@@ -222,7 +228,7 @@ function Apartament({ preview = false }) {
                     <div className="d-flex flex-column align-items-center gap-4 me-lg-5 mt-5">
                         <div style={{ border: '1px solid black' }} className="py-2 px-4 rounded-4">{situacionalLabel}</div>
                         {/* Desktop: 3 items en fila */}
-                        <div className="d-none d-lg-flex align-items-center justify-content-center gap-5" style={{ fontSize: '1.5rem' }}>
+                        <div className="d-none d-lg-flex align-items-center justify-content-center gap-5 mb-3" style={{ fontSize: '1.5rem' }}>
                             {tieneValor(project.estructura.niveles) && <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>{project.estructura.niveles} Niveles</div>}
                             {project.unidades ? (<>
                                 <div style={{ width: '1px', height: '24px', backgroundColor: '#ccc' }}></div>
@@ -230,7 +236,7 @@ function Apartament({ preview = false }) {
                             </>) : null}
                             {project.fechaEntrega ? (<>
                                 <div style={{ width: '1px', height: '24px', backgroundColor: '#ccc' }}></div>
-                                <div className="d-flex align-items-center gap-2"><i className="fa-regular fa-calendar"></i>Entrega: {project.fechaEntrega}</div>
+                                <div className="d-flex align-items-center gap-2"><i className="fa-regular fa-calendar"></i>Entrega: {formatearFechaEntrega(project.fechaEntrega)}</div>
                             </>) : null}
                         </div>
                         {/* Móvil/tablet: 2 columnas */}
@@ -242,9 +248,9 @@ function Apartament({ preview = false }) {
                                     <div className="d-flex align-items-center gap-2"><i className="fa-sharp fa-light fa-block"></i>{project.unidades} Unidades</div>
                                 </>) : null}
                             </div>
-                            {project.fechaEntrega ? (
+{project.fechaEntrega ? (
                                 <div className="d-flex justify-content-center">
-                                    <div className="d-flex align-items-center gap-2"><i className="fa-regular fa-calendar"></i>Entrega: {project.fechaEntrega}</div>
+                                    <div className="d-flex align-items-center gap-2"><i className="fa-regular fa-calendar"></i>Entrega: {formatearFechaEntrega(project.fechaEntrega)}</div>
                                 </div>
                             ) : null}
                         </div>
@@ -527,9 +533,8 @@ function Apartament({ preview = false }) {
                     <div className="sticky-lg-top" style={{ top: '100px' }}>
 
                         {/* Desarrollado por — solo desktop (en móvil va bajo las fotos + barra flotante) */}
-                        <div className="p-3 my-5 d-none d-lg-block">
-                            <hr/>
-                            <br />
+                        <div className="p-3 my-2 d-none d-lg-block">
+                            
                             <div className="mb-3">{t('Desarrollado por: ', 'Developed by:')} {project.desarrolladora.nombre}</div>
                             <div className="mb-3 fs-4">{t('Comercializado por', 'Marketed by')}</div>
                             <div className="d-flex align-items-start justify-content-between align-items-lg-center flex-column flex-md-row gap-3">

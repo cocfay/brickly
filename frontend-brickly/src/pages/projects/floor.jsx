@@ -235,24 +235,37 @@ function Floor({ preview = false }) {
             </div>
 
 
-            {/* Info proyecto */}
-            <div className="mb-4">
-                <div style={{ fontSize: 'clamp(28px, 4vw, 50px)', fontFamily: 'AppleGaramond', lineHeight: 1.1 }}>
-                    {titulo}
+            {/* Info proyecto + nombre del modelo */}
+            <div className="mb-4 d-flex justify-content-between align-items-end flex-column flex-lg-row gap-3">
+                <div>
+                    <div style={{ fontSize: 'clamp(28px, 4vw, 50px)', fontFamily: 'AppleGaramond', lineHeight: 1.1 }}>
+                        {titulo}
+                    </div>
+                    <div className="d-flex align-items-center gap-1 mt-1" style={{ fontSize: '20px' }}>
+                        <i className="fa-solid fa-location-dot me-1"></i>
+                        {ubicacion}
+                    </div>
+                    <div style={{ fontSize: '20px' }}>Tipo: {esBodega ? 'Bodega' : 'Apartamento'}</div>
                 </div>
-                <div className="d-flex align-items-center gap-1 mt-1" style={{ fontSize: '20px' }}>
-                    <i className="fa-solid fa-location-dot me-1"></i>
-                    {ubicacion}
+                <div className="text-lg-end">
+                    <div className="lh-1" style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontFamily: 'AppleGaramond' }}>
+                        {modelo.nombre}
+                    </div>
+                    {modelo.tour360 ? (
+                        <a href={modelo.tour360} className="d-flex align-items-center gap-2 text-body text-decoration-none mt-2 justify-content-lg-end" style={{ fontSize: '18px' }}>
+                            <img src={tour} alt="tour" style={{ width: '30px' }} />
+                            Tour 360
+                        </a>
+                    ) : null}
                 </div>
-                <div style={{ fontSize: '20px' }}>Tipo: {esBodega ? 'Bodega' : 'Apartamento'}</div>
             </div>
             <Row className="g-5">
                 {/* ── Columna izquierda ── */}
                 <Col lg={4}>
+                    <div className="sticky-lg-top" style={{ top: '100px' }}>
                     {/* Desarrollado por — solo desktop (en móvil va bajo las fotos + barra flotante) */}
-                    <div className="p-3 my-5 d-none d-lg-block">
+                    <div className="p-3 my-2 d-none d-lg-block">
                         <hr/>
-                        <br />
                         <div className="mb-3">{t('Desarrollado por: ', 'Developed by:')} {desarrolladora.nombre}</div>
                         <div className="mb-3 fs-4">{t('Comercializado por', 'Marketed by')}</div>
                         <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
@@ -298,23 +311,11 @@ function Floor({ preview = false }) {
                             )}
                         </Form>
                     </div>
+                    </div>
                 </Col>
 
                 {/* ── Columna derecha ── */}
                 <Col lg={8}>
-                    {/* Título + tour virtual */}
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                        <div className="lh-1" style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontFamily: 'AppleGaramond' }}>
-                            {modelo.nombre}
-                        </div>
-                        {modelo.tour360 ? (
-                            <a href={modelo.tour360} className="d-flex align-items-center gap-2 text-body text-decoration-none" style={{ fontSize: '18px' }}>
-                                <img src={tour} alt="tour" style={{ width: '30px' }} />
-                                Tour 360
-                            </a>
-                        ) : null}
-                    </div>
-
                     {/* Galería */}
                     {isLg ? (
                     <div className="d-flex gap-2 mb-4" style={{ height: 'clamp(320px, 45vw, 520px)' }}>
