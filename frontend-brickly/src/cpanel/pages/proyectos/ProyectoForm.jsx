@@ -6,7 +6,7 @@ import SelectorMapaDropdown from '../../components/SelectorMapaDropdown';
 import SelectorAmenidades from '../../components/SelectorAmenidades';
 import MyTextEditor from '../../components/ckeditor';
 import SelectorGaleriaProyectos from '../../components/SelectorGaleriaProyectos';
-import ModelosProyecto, { modelosValidos, modelosFaltantes } from './ModelosProyecto';
+import ModelosProyecto, { modelosValidos, modelosFaltantes, tipoModeloDesdeProyecto } from './ModelosProyecto';
 import { AMENIDADES_PROYECTO } from '../../data/amenites';
 import {
   createProyecto,
@@ -35,7 +35,7 @@ const SECCIONES = {
         type: 'select',
         label: 'Tipo de proyecto *',
         col: 2,
-        options: ['Edificio', 'Bodegas']
+        options: ['Edificio', 'Bodegas', 'Condominio', 'Edificio de oficinas']
       },
       mode: {
         type: 'select',
@@ -598,7 +598,7 @@ function ProyectoForm({ projectId }) {
 
   const subirFotosModelos = async (userId, projectId) => {
     const modelosPayload = [];
-    const tipoModelo = secciones.datosProyecto.datos.type === 'Bodegas' ? 'Bodega' : 'Apartamento';
+    const tipoModelo = tipoModeloDesdeProyecto(secciones.datosProyecto.datos.type);
 
     for (const m of modelos) {
       const pathsExistentes = (m.fotos || [])

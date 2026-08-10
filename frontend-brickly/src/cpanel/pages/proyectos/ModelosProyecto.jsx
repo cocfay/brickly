@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Row, Col, Form, Button, Badge, Card, Collapse } from 'react-bootstrap';
 import Select from 'react-select';
 import SelectorAmenidades from '../../components/SelectorAmenidades';
-import { AMENIDADES_MODELO } from '../../data/amenites';
+import { AMENIDADES_MODELO, AMENIDADES_CASA, AMENIDADES_OFICINA } from '../../data/amenites';
 
 // ─── Configuración por tipo de modelo ────────────────────────────────────────
 
@@ -31,6 +31,31 @@ const DISTRIBUCION_BODEGA = [
   { key: 'mezzanine', label: 'Mezzanine', col: 4, select: ['Si', 'No'] },
 ];
 
+const DISTRIBUCION_CASA = [
+  { key: 'totalAmbientes', label: 'Total de ambientes *', col: 4 },
+  { key: 'dormitorios', label: 'Dormitorios *', col: 4 },
+  { key: 'banosCompletos', label: 'Baños completos *', col: 4 },
+  { key: 'mediosBanos', label: 'Medios baños', col: 4 },
+  { key: 'habitacionServicio', label: 'Habitación de servicio', col: 4, select: ['Con baño propio', 'Solo habitación', 'No tiene'] },
+  { key: 'pergolaDeck', label: 'Pérgola / Deck social', col: 4, select: ['Si', 'No'] },
+  { key: 'parqueo', label: 'Parqueo / Driveway', col: 4 },
+  { key: 'amueblado', label: 'Amueblado / No amueblado', col: 4, select: ['Si', 'No'] },
+  { key: 'numeroPisos', label: 'Número de pisos', col: 4, type: 'number' },
+  { key: 'areaLavanderia', label: 'Área de lavandería', col: 4, select: ['Techada', 'Al aire libre', 'Closet de lavandería (Torre)'] },
+  { key: 'estudioOficina', label: 'Estudio / Oficina', col: 4, select: ['Si', 'No'] },
+  { key: 'salaFamiliar', label: 'Sala familiar', col: 4, select: ['Independiente de la sala principal', 'Sala/Comedor integrados', 'Sala de visitas', 'Solo sala Principal'] },
+];
+
+const DISTRIBUCION_OFICINA = [
+  { key: 'totalAmbientes', label: 'Total de ambientes *', col: 4 },
+  { key: 'espacios', label: 'Espacios *', col: 4 },
+  { key: 'banosCompletos', label: 'Baños completos *', col: 4 },
+  { key: 'mediosBanos', label: 'Medios baños', col: 4 },
+  { key: 'parqueo', label: 'Parqueo / Driveway', col: 4 },
+  { key: 'amueblado', label: 'Amueblado / No amueblado', col: 4, select: ['Si', 'No'] },
+  { key: 'areaLavanderia', label: 'Área de lavandería', col: 4, select: ['Techada', 'Al aire libre', 'Closet de lavandería (Torre)'] },
+];
+
 const GASTOS_FIJOS = [
   { key: 'tipoEstufa', label: 'Tipo de estufa', col: 4, select: ['Gas Propano (Tambo)', 'Gas Centralizado (Contador)', 'Eléctrica 220v', 'Inducción'] },
   { key: 'servicioAgua', label: 'Servicio de agua', col: 4, select: ['Público', 'Pozo propio del condominio', 'Empresa privada'] },
@@ -42,6 +67,41 @@ const GASTOS_FIJOS = [
 const INCLUYE_OPCIONES = ['Seguridad', 'Agua', 'Basura', 'Áreas verdes', 'Gimnasio'];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+
+// Tipo de proyecto → tipo de modelo por defecto
+export const tipoModeloDesdeProyecto = (tipoProyecto) => {
+  switch (tipoProyecto) {
+    case 'Condominio': return 'Casa';
+    case 'Edificio de oficinas': return 'Oficina';
+    case 'Bodegas': return 'Bodega';
+    case 'Edificio': return 'Apartamento';
+    default: return 'Apartamento';
+  }
+};
+
+// Distribución de ambientes por tipo de modelo
+const DISTRIBUCION_POR_TIPO = {
+  Apartamento: DISTRIBUCION_APARTAMENTO,
+  Bodega: DISTRIBUCION_BODEGA,
+  Casa: DISTRIBUCION_CASA,
+  Oficina: DISTRIBUCION_OFICINA,
+};
+
+// Amenidades disponibles por tipo de modelo
+const AMENIDADES_POR_TIPO = {
+  Apartamento: AMENIDADES_MODELO,
+  Bodega: AMENIDADES_MODELO,
+  Casa: AMENIDADES_CASA,
+  Oficina: AMENIDADES_OFICINA,
+};
+
+// Título del bloque "Datos"
+const TITULOS_DATOS = {
+  Apartamento: 'Datos del modelo',
+  Bodega: 'Datos del modelo',
+  Casa: 'Datos de la Casa',
+  Oficina: 'Datos de la oficina',
+};
 
 const genUid = () => `model-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -71,6 +131,8 @@ const nuevoModelo = (tipo = 'Apartamento') => ({
     areaDescarga: '',
     helipuerto: '',
     mezzanine: '',
+    numeroPisos: '',
+    espacios: '',
   },
   gastosFijos: { tipoEstufa: '', servicioAgua: '', mantenimientoUSD: '', mantenimientoQ: '', iusi: '' },
   incluye: { includes: [] },
@@ -83,7 +145,8 @@ export const modelosValidos = (modelos) => {
   return (modelos || []).every((m) => {
     if (!m.nombre || !m.precioDesdeQ || !m.tasa || !m.precioDesdeUSD || !m.descripcion) return false;
     if (!m.distribucion?.totalAmbientes || !m.distribucion?.banosCompletos) return false;
-    if (m.tipo === 'Apartamento' && !m.distribucion?.dormitorios) return false;
+    if ((m.tipo === 'Apartamento' || m.tipo === 'Casa') && !m.distribucion?.dormitorios) return false;
+    if (m.tipo === 'Oficina' && !m.distribucion?.espacios) return false;
     return true;
   });
 };
@@ -99,7 +162,8 @@ export const modelosFaltantes = (modelos) => {
     if (!m.descripcion) faltantes.push(`Descripción (${ref})`);
     if (!m.distribucion?.totalAmbientes) faltantes.push(`Total de ambientes (${ref})`);
     if (!m.distribucion?.banosCompletos) faltantes.push(`Baños completos (${ref})`);
-    if (m.tipo === 'Apartamento' && !m.distribucion?.dormitorios) faltantes.push(`Dormitorios (${ref})`);
+    if ((m.tipo === 'Apartamento' || m.tipo === 'Casa') && !m.distribucion?.dormitorios) faltantes.push(`Dormitorios (${ref})`);
+    if (m.tipo === 'Oficina' && !m.distribucion?.espacios) faltantes.push(`Espacios (${ref})`);
   });
   return faltantes;
 };
@@ -208,7 +272,7 @@ function Campo({ label, children, xl = 3 }) {
   );
 }
 
-function ModeloForm({ modelo, index, tipoModelo, onChange, onRemove }) {
+function ModeloForm({ modelo, index, tipoModelo, listaAmenidades, onChange, onRemove }) {
   const [open, setOpen] = useState(index === 0);
 
   const set = (patch) => onChange({ ...modelo, ...patch });
@@ -312,7 +376,7 @@ function ModeloForm({ modelo, index, tipoModelo, onChange, onRemove }) {
     );
   };
 
-  const distribucion = tipoModelo === 'Bodega' ? DISTRIBUCION_BODEGA : DISTRIBUCION_APARTAMENTO;
+  const distribucion = DISTRIBUCION_POR_TIPO[tipoModelo] || DISTRIBUCION_APARTAMENTO;
 
   return (
     <Card className="mb-4 shadow-sm rounded-4">
@@ -328,8 +392,8 @@ function ModeloForm({ modelo, index, tipoModelo, onChange, onRemove }) {
       </Card.Header>
       <Collapse in={open}>
         <Card.Body>
-          {/* Datos del modelo */}
-          <h6 className="fw-bold mb-3"><i className="fa-solid fa-tag me-2"></i>Datos del modelo</h6>
+          {/* Datos */}
+          <h6 className="fw-bold mb-3"><i className="fa-solid fa-tag me-2"></i>{TITULOS_DATOS[tipoModelo] || 'Datos del modelo'}</h6>
           <Row>
             <Col xl={4} lg={6} md={6}>
               <Form.Group className="mb-3">
@@ -454,7 +518,7 @@ function ModeloForm({ modelo, index, tipoModelo, onChange, onRemove }) {
             <Col xs={12}>
               <SelectorAmenidades
                 value={modelo.amenities || {}}
-                list={AMENIDADES_MODELO}
+                list={listaAmenidades}
                 onChange={(amenities) => set({ amenities })}
               />
             </Col>
@@ -493,7 +557,8 @@ function ModeloForm({ modelo, index, tipoModelo, onChange, onRemove }) {
 // ─── Componente principal: lista de modelos ──────────────────────────────────
 
 function ModelosProyecto({ value = [], onChange, tipoProyecto = '' }) {
-  const tipoModelo = tipoProyecto === 'Bodegas' ? 'Bodega' : 'Apartamento';
+  const tipoModelo = tipoModeloDesdeProyecto(tipoProyecto);
+  const listaAmenidades = AMENIDADES_POR_TIPO[tipoModelo] || AMENIDADES_MODELO;
   const addModelo = () => onChange([...value, nuevoModelo(tipoModelo)]);
 
   const updateModelo = (uid, modeloActualizado) =>
@@ -509,6 +574,7 @@ function ModelosProyecto({ value = [], onChange, tipoProyecto = '' }) {
           modelo={modelo}
           index={index}
           tipoModelo={tipoModelo}
+          listaAmenidades={listaAmenidades}
           onChange={(actualizado) => updateModelo(modelo.uid, actualizado)}
           onRemove={() => removeModelo(modelo.uid)}
         />

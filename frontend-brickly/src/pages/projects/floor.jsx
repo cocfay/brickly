@@ -181,6 +181,7 @@ function Floor({ preview = false }) {
     };
 
     const esBodega = modelo.tipo === 'Bodega';
+    const esOficina = modelo.tipo === 'Oficina';
     const otrosModelos = (project.modelos || []).filter(m => m.modelSlug !== modelSlug);
 
     const tieneValor = (v) => v != null && v !== '' && v !== '—';
@@ -195,6 +196,15 @@ function Floor({ preview = false }) {
             modelo.distribucion.helipuerto,
             modelo.distribucion.mezzanine,
         ]
+        : esOficina
+        ? [
+            modelo.distribucion.espacios,
+            modelo.distribucion.banosCompletos,
+            modelo.distribucion.mediosBanos,
+            modelo.distribucion.parqueo,
+            modelo.distribucion.amueblado,
+            modelo.distribucion.areaLavanderia,
+        ]
         : [
             modelo.distribucion.dormitorios,
             modelo.distribucion.banosCompletos,
@@ -203,6 +213,7 @@ function Floor({ preview = false }) {
             modelo.distribucion.pergolaDeck,
             modelo.distribucion.parqueo,
             modelo.distribucion.amueblado,
+            modelo.distribucion.numeroPisos,
             modelo.distribucion.areaLavanderia,
             modelo.distribucion.estudioOficina,
             modelo.distribucion.salaFamiliar,
@@ -245,7 +256,7 @@ function Floor({ preview = false }) {
                         <i className="fa-solid fa-location-dot me-1"></i>
                         {ubicacion}
                     </div>
-                    <div style={{ fontSize: '20px' }}>Tipo: {esBodega ? 'Bodega' : 'Apartamento'}</div>
+                    <div style={{ fontSize: '20px' }}>Tipo: {modelo.tipo}</div>
                 </div>
                 <div className="text-lg-end">
                     <div className="lh-1" style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontFamily: 'AppleGaramond' }}>
@@ -561,6 +572,15 @@ function Floor({ preview = false }) {
                                     <BulletRow label={t('Helipuerto', 'Helipad')} value={modelo.distribucion.helipuerto} />
                                     <BulletRow label={t('Mezzanine', 'Mezzanine')} value={modelo.distribucion.mezzanine} />
                                 </>
+                            ) : esOficina ? (
+                                <>
+                                    <BulletRow label={t('Espacios', 'Spaces')} value={modelo.distribucion.espacios} />
+                                    <BulletRow label={t('Baños completos', 'Full bathrooms')} value={modelo.distribucion.banosCompletos} />
+                                    <BulletRow label={t('Medios baños', 'Half bathrooms')} value={modelo.distribucion.mediosBanos} />
+                                    <BulletRow label={t('Parqueo/Driveway', 'Parking/Driveway')} value={modelo.distribucion.parqueo} />
+                                    <BulletRow label={t('Amueblado/No amueblado', 'Furnished/Unfurnished')} value={modelo.distribucion.amueblado} />
+                                    <BulletRow label={t('Área de lavandería', 'Laundry area')} value={modelo.distribucion.areaLavanderia} />
+                                </>
                             ) : (
                                 <>
                                     <BulletRow label={t('Dormitorios', 'Bedrooms')} value={modelo.distribucion.dormitorios} />
@@ -570,6 +590,7 @@ function Floor({ preview = false }) {
                                     <BulletRow label={t('Pérgola/Deck social', 'Social pergola/deck')} value={modelo.distribucion.pergolaDeck} />
                                     <BulletRow label={t('Parqueo/Driveway', 'Parking/Driveway')} value={modelo.distribucion.parqueo} />
                                     <BulletRow label={t('Amueblado/No amueblado', 'Furnished/Unfurnished')} value={modelo.distribucion.amueblado} />
+                                    <BulletRow label={t('Número de pisos', 'Number of floors')} value={modelo.distribucion.numeroPisos} />
                                     <BulletRow label={t('Área de lavandería', 'Laundry area')} value={modelo.distribucion.areaLavanderia} />
                                     <BulletRow label={t('Estudio/Oficina', 'Study/Office')} value={modelo.distribucion.estudioOficina} />
                                     <BulletRow label={t('Sala familiar', 'Family room')} value={modelo.distribucion.salaFamiliar} />
