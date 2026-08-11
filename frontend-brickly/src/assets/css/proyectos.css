@@ -137,3 +137,16 @@
         display: none !important;
     }
 }
+
+/* Columna de contenido de floor.jsx: garantiza altura para que el sidebar
+   sticky (Desarrollado por / Comercializado por / Solicitar información + mapa)
+   tenga espacio para fijarse igual que en apartament.jsx */
+.floor-content-col {
+    min-height: 1100px;
+}
+
+@media (max-width: 991.98px) {
+    .floor-content-col {
+        min-height: 0;
+    }
+}

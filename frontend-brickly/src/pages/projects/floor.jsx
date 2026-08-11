@@ -7,6 +7,7 @@ import 'glightbox/dist/css/glightbox.min.css';
 
 import tour    from '../../assets/images/iconos/IconoTour.png';
 import arrow   from '../../assets/images/iconos/arrow.png';
+import venta   from '../../assets/images/iconos/venta.png';
 import bricklyIcon from '../../assets/images/logos/brickly-icon.png';
 import { useT } from '../../hooks/useT';
 import '../../assets/css/proyectos.css';
@@ -239,300 +240,179 @@ function Floor({ preview = false }) {
             </Breadcrumb>
 
             {/* Botón atrás */}
-            <div className="d-flex justify-content-end mb-3 mt-4 mt-lg-0">
+            <div className="d-flex justify-content-end mb-2 mt-4 mt-lg-0">
                 <Link to={toProyecto} title="Atrás">
                     <img src={arrow} style={{ width: '36px' }} alt="Atrás" />
                 </Link>
             </div>
 
-
-            {/* Info proyecto + nombre del modelo */}
-            <div className="mb-4 d-flex justify-content-between align-items-end flex-column flex-lg-row gap-3">
-                <div>
-                    <div style={{ fontSize: 'clamp(28px, 4vw, 50px)', fontFamily: 'AppleGaramond', lineHeight: 1.1 }}>
-                        {titulo}
+            {/* Header */}
+            <div className="mb-4">
+                <div className="d-flex justify-content-between align-items-lg-end flex-column flex-lg-row gap-3">
+                    <div className="d-flex flex-wrap flex-column align-items-start gap-2 mt-3">
+                        <div style={{ fontSize: 'clamp(28px, 4vw, 50px)', fontFamily: 'AppleGaramond', lineHeight: 1.1 }}>
+                            {titulo}
+                        </div>
+                        <div className="d-flex align-items-center gap-1" style={{ fontSize: '20px' }}>
+                            <i className="fa-solid fa-location-dot me-1"></i>
+                            {ubicacion}
+                        </div>
+                        <div style={{ fontSize: '20px' }}>Tipo: {modelo.tipo}</div>
+                        <div className="d-flex align-items-center gap-3 flex-wrap">
+                            <span className="fw-bold" style={{ fontSize: 'clamp(22px, 3vw, 30px)' }}>{modelo.precioDesdeUSD}</span>
+                            <div className='d-flex align-items-center gap-2'><img src={venta} alt="icons" style={{ width: '20px' }} /> <div className="bg-dark rounded-1 px-4 py-0 text-white fw-lighter" style={{ fontSize: '16px' }}>{project.modo}</div></div>
+                        </div>
                     </div>
-                    <div className="d-flex align-items-center gap-1 mt-1" style={{ fontSize: '20px' }}>
-                        <i className="fa-solid fa-location-dot me-1"></i>
-                        {ubicacion}
+                    <div className="d-flex flex-column align-items-lg-end gap-2 text-lg-end">
+                        <div className="lh-1" style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontFamily: 'AppleGaramond' }}>
+                            {modelo.nombre}
+                        </div>
+                        {modelo.tour360 ? (
+                            <a href={modelo.tour360} className="d-flex align-items-center gap-2 text-body text-decoration-none" style={{ fontSize: '16px', border: '1px solid black', borderRadius: '999px', padding: '8px 20px' }}>
+                                <img src={tour} alt="tour" style={{ width: '24px' }} />
+                                Tour 360
+                            </a>
+                        ) : null}
                     </div>
-                    <div style={{ fontSize: '20px' }}>Tipo: {modelo.tipo}</div>
-                </div>
-                <div className="text-lg-end">
-                    <div className="lh-1" style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontFamily: 'AppleGaramond' }}>
-                        {modelo.nombre}
-                    </div>
-                    {modelo.tour360 ? (
-                        <a href={modelo.tour360} className="d-flex align-items-center gap-2 text-body text-decoration-none mt-2 justify-content-lg-end" style={{ fontSize: '18px' }}>
-                            <img src={tour} alt="tour" style={{ width: '30px' }} />
-                            Tour 360
-                        </a>
-                    ) : null}
                 </div>
             </div>
+
+            {/* ── Galería ── */}
+            {isLg ? (
+            <div className="d-flex gap-2 mb-5" style={{ height: 'clamp(400px, 55vw, 600px)' }}>
+                {/* Imagen principal */}
+                <div
+                    className="position-relative flex-grow-1"
+                    style={{ borderRadius: '14px', overflow: 'hidden', minWidth: 0, cursor: 'zoom-in' }}
+                    onClick={() => openLightbox(mainImg)}
+                >
+                    <img src={mainImg} alt="Principal" className="object-fit-cover w-100 border-radius-1 h-100" style={{ display: 'block' }} />
+                    <div className="position-absolute bottom-0 end-0 m-2 favorite-icon unlike" style={{ cursor: 'pointer' }} onClick={e => e.stopPropagation()}>
+                        <i className="fa-solid fa-heart"></i>
+                    </div>
+                    {galeria.length > 1 && (
+                    <div
+                        className="position-absolute d-flex align-items-center gap-2"
+                        style={{ bottom: '12px', left: '12px', backgroundColor: '#ffffffdd', borderRadius: '20px', padding: '4px 14px', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
+                        onClick={e => { e.stopPropagation(); openLightbox(mainImg); }}
+                    >
+                        <i className="fa-regular fa-image"></i> +{galeria.length - 1} Fotos
+                    </div>
+                    )}
+                </div>
+                {/* Thumbnails derecha */}
+                <div className="d-flex flex-column gap-2" style={{ width: '32%', flexShrink: 0 }}>
+                    {galeria.slice(1, 4).map((img, i) => (
+                        <div
+                            key={i}
+                            onClick={() => { setMainImg(img); openLightbox(img); }}
+                            style={{
+                                flex: 1,
+                                minHeight: 0,
+                                borderRadius: '10px',
+                                overflow: 'hidden',
+                                cursor: 'zoom-in',
+                                transition: 'opacity 0.2s',
+                            }}
+                        >
+                            <img src={img} alt="" className="object-fit-cover w-100 h-100" style={{ display: 'block' }} />
+                        </div>
+                    ))}
+                </div>
+            </div>
+            ) : (
+            <div className="d-flex flex-column gap-2 mb-5">
+                {/* Imagen principal arriba */}
+                <div
+                    className="position-relative w-100"
+                    style={{ borderRadius: '14px', overflow: 'hidden', cursor: 'zoom-in', aspectRatio: '16/9' }}
+                    onClick={() => openLightbox(mainImg)}
+                >
+                    <img src={mainImg} alt="Principal" className="object-fit-cover w-100 h-100" style={{ display: 'block' }} />
+                    <div className="position-absolute bottom-0 end-0 m-2 favorite-icon unlike" style={{ cursor: 'pointer' }} onClick={e => e.stopPropagation()}>
+                        <i className="fa-solid fa-heart"></i>
+                    </div>
+                    {galeria.length > 1 && (
+                    <div
+                        className="position-absolute d-flex align-items-center gap-2"
+                        style={{ bottom: '12px', left: '12px', backgroundColor: '#ffffffdd', borderRadius: '20px', padding: '4px 14px', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
+                        onClick={e => { e.stopPropagation(); openLightbox(mainImg); }}
+                    >
+                        <i className="fa-regular fa-image"></i> +{galeria.length - 1} Fotos
+                    </div>
+                    )}
+                </div>
+                {/* Thumbnails debajo */}
+                <div className="d-flex gap-2">
+                    {galeria.slice(1, 4).map((img, i) => (
+                        <div
+                            key={i}
+                            onClick={() => { setMainImg(img); openLightbox(img); }}
+                            style={{
+                                flex: 1,
+                                borderRadius: '10px',
+                                overflow: 'hidden',
+                                cursor: 'zoom-in',
+                                aspectRatio: '4/4',
+                                transition: 'opacity 0.2s',
+                            }}
+                        >
+                            <img src={img} alt="" className="object-fit-cover w-100 h-100" style={{ display: 'block' }} />
+                        </div>
+                    ))}
+                </div>
+            </div>
+            )}
+
+            {/* Desarrollado por — móvil: justo debajo de las fotos */}
+            {tieneValor(desarrolladora.nombre) && (
+                <div className="d-lg-none mb-4" style={{ fontSize: '17px', fontWeight: 500 }}>
+                    {t('Desarrollado por: ', 'Developed by:')} {desarrolladora.nombre}
+                </div>
+            )}
+
+            {/* ── Contenido principal ── */}
             <Row className="g-5">
-                {/* ── Columna izquierda ── */}
-                <Col lg={4}>
-                    <div className="sticky-lg-top" style={{ top: '100px' }}>
-                    {/* Desarrollado por — solo desktop (en móvil va bajo las fotos + barra flotante) */}
-                    <div className="p-3 my-2 d-none d-lg-block">
-                        <hr/>
-                        <div className="mb-3">{t('Desarrollado por: ', 'Developed by:')} {desarrolladora.nombre}</div>
-                        <div className="mb-3 fs-4">{t('Comercializado por', 'Marketed by')}</div>
-                        <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                            <div className="d-flex align-items-center gap-2 mt-3" style={{ fontSize: '17px' }}>
-                                <img src={bricklyIcon} alt="Brickly" style={{ width: '80px', height: '80px', borderRadius: '50%' }} />
-                                <span>{t('Brickly Proyectos', 'Brickly Proyectos')}</span>
-                            </div>
-                            <div className="d-flex flex-column align-items-end">
-                                <div className='mb-2 lh-1' style={{ fontSize: '16px' }}><FormattedMessage id="home.text12" /></div>
-<a href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa el model ${modelo.nombre} del proyecto ${titulo}, Necesito una cita para más información.`)}`} target="_blank" className="rounded-1 text-center border-0 py-1" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box', padding: '2px 8px', fontSize: '13px' }} rel="noreferrer" aria-label="Agendar una cita para información del modelo" onClick={handleCitaClick}>
-                        <i className="fa-brands fa-whatsapp me-2"></i><FormattedMessage id="home.text13" />
-                    </a>
-                            </div>
-                        </div>
-                        <br />
-                        <hr/>
-                            
-                    </div>
-
-                    {/* Solicitar información */}
-                    <div>
-                        <div className="mb-3 fs-3" >{t('Solicitar información', 'Request information')}</div>
-                        <Form onSubmit={handleLeadSubmit} className="d-flex flex-column gap-2">
-                            <label htmlFor={requestFieldIds.name} className="visually-hidden">Nombre</label>
-                            <Form.Control id={requestFieldIds.name} placeholder="Nombre" style={{ fontSize: '14px', borderRadius: '4px' }} />
-                            <label htmlFor={requestFieldIds.email} className="visually-hidden">Correo electrónico</label>
-                            <Form.Control id={requestFieldIds.email} type="email" placeholder="Correo electrónico" style={{ fontSize: '14px', borderRadius: '4px' }} />
-                            <label htmlFor={requestFieldIds.phone} className="visually-hidden">Teléfono</label>
-                            <Form.Control id={requestFieldIds.phone} placeholder="Teléfono" style={{ fontSize: '14px', borderRadius: '4px' }} />
-                            <label htmlFor={requestFieldIds.message} className="visually-hidden">Mensaje</label>
-                            <Form.Control
-                                id={requestFieldIds.message}
-                                as="textarea"
-                                rows={4}
-                                defaultValue={`Estoy interesado en la propiedad: ${titulo}, ${modelo.nombre}`}
-                                style={{ fontSize: '14px', borderRadius: '4px' }}
-                            />
-                            <button type="submit" className="btn btn-dark w-100 rounded-1 py-2 mt-1" disabled={sending}>
-                                {sending ? t('Enviando...', 'Sending...') : 'ENVIAR'}
-                            </button>
-                            {formStatus && (
-                                <div className={`small mt-1 ${formStatus.type === 'success' ? 'text-success' : 'text-danger'}`}>{formStatus.msg}</div>
-                            )}
-                        </Form>
-                    </div>
-                    </div>
-                </Col>
-
-                {/* ── Columna derecha ── */}
-                <Col lg={8}>
-                    {/* Galería */}
-                    {isLg ? (
-                    <div className="d-flex gap-2 mb-4" style={{ height: 'clamp(320px, 45vw, 520px)' }}>
-                        {/* Thumbnails izquierda */}
-                        <div className="d-flex flex-column gap-2" style={{ width: '28%', flexShrink: 0 }}>
-                            {galeria.slice(1, 4).map((img, i) => (
-                                <div
-                                    key={i}
-                                    onClick={() => { setMainImg(img); openLightbox(img); }}
-                                    style={{
-                                        flex: 1,
-                                        minHeight: 0,
-                                        borderRadius: '12px',
-                                        overflow: 'hidden',
-                                        cursor: 'zoom-in',
-                                        transition: 'border 0.2s, opacity 0.2s',
-                                    }}
-                                >
-                                    <img
-                                        src={img}
-                                        alt=""
-                                        className="object-fit-cover w-100 h-100"
-                                        style={{ display: 'block' }}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Imagen principal derecha */}
-                        <div
-                            className="flex-grow-1 position-relative"
-                            style={{ borderRadius: '14px', overflow: 'hidden', cursor: 'zoom-in' }}
-                            onClick={() => openLightbox(mainImg)}
-                        >
-                            <img
-                                src={mainImg}
-                                alt="Principal"
-                                className="w-100 h-100 object-fit-cover"
-                                style={{ display: 'block' }}
-                            />
-                            {/* Badge fotos */}
-                            <div
-                                className="position-absolute d-flex align-items-center gap-2"
-                                style={{
-                                    bottom: '12px', left: '12px',
-                                    backgroundColor: '#ffffffdd',
-                                    borderRadius: '20px',
-                                    padding: '4px 14px',
-                                    fontSize: '13px',
-                                    fontWeight: 500,
-                                    cursor: 'pointer',
-                                }}
-                                onClick={e => { e.stopPropagation(); openLightbox(mainImg); }}
-                            >
-                                <i className="fa-regular fa-image"></i>
-                                +{galeria.length - 1} Fotos
-                            </div>
-                            {/* Favorito */}
-                            <div
-                                className="position-absolute favorite-icon unlike"
-                                style={{ bottom: '12px', right: '12px', cursor: 'pointer' }}
-                                onClick={e => e.stopPropagation()}
-                            >
-                                <i className="fa-solid fa-heart"></i>
-                            </div>
-                        </div>
-                    </div>
-                    ) : (
-                    <div className="d-flex flex-column gap-2 mb-4">
-                        {/* Imagen principal arriba */}
-                        <div
-                            className="position-relative w-100"
-                            style={{ borderRadius: '14px', overflow: 'hidden', cursor: 'zoom-in', aspectRatio: '16/9' }}
-                            onClick={() => openLightbox(mainImg)}
-                        >
-                            <img
-                                src={mainImg}
-                                alt="Principal"
-                                className="w-100 h-100 object-fit-cover"
-                                style={{ display: 'block' }}
-                            />
-                            {/* Badge fotos */}
-                            <div
-                                className="position-absolute d-flex align-items-center gap-2"
-                                style={{
-                                    bottom: '12px', left: '12px',
-                                    backgroundColor: '#ffffffdd',
-                                    borderRadius: '20px',
-                                    padding: '4px 14px',
-                                    fontSize: '13px',
-                                    fontWeight: 500,
-                                    cursor: 'pointer',
-                                }}
-                                onClick={e => { e.stopPropagation(); openLightbox(mainImg); }}
-                            >
-                                <i className="fa-regular fa-image"></i>
-                                +{galeria.length - 1} Fotos
-                            </div>
-                            {/* Favorito */}
-                            <div
-                                className="position-absolute favorite-icon unlike"
-                                style={{ bottom: '12px', right: '12px', cursor: 'pointer' }}
-                                onClick={e => e.stopPropagation()}
-                            >
-                                <i className="fa-solid fa-heart"></i>
-                            </div>
-                        </div>
-                        {/* Thumbnails debajo */}
-                        <div className="d-flex gap-2">
-                            {galeria.slice(1, 4).map((img, i) => (
-                                <div
-                                    key={i}
-                                    onClick={() => { setMainImg(img); openLightbox(img); }}
-                                    style={{
-                                        flex: 1,
-                                        borderRadius: '12px',
-                                        overflow: 'hidden',
-                                        cursor: 'zoom-in',
-                                        aspectRatio: '4/4',
-                                        transition: 'border 0.2s, opacity 0.2s',
-                                    }}
-                                >
-                                    <img
-                                        src={img}
-                                        alt=""
-                                        className="object-fit-cover w-100 h-100"
-                                        style={{ display: 'block' }}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    )}
-
-                    {/* Desarrollado por — móvil: justo debajo de las fotos */}
-                    {desarrolladora.nombre ? (
-                        <div className="d-lg-none mb-4" style={{ fontSize: '17px', fontWeight: 500 }}>
-                            {t('Desarrollado por: ', 'Developed by:')} {desarrolladora.nombre}
-                        </div>
-                    ) : null}
-
-                    {/* Datos del modelo */}
-                    {/* <div className="mb-4">
-                        <div className="d-flex align-items-center gap-2 mb-3 fs-3">
-                            <i className="fa-sharp fa-regular fa-file-lines"></i> {t('Datos del modelo', 'Model data')}
-                        </div>
-                        <Row className="gy-1">
-                            <BulletRow label={t('Nombre del modelo', 'Model name')} value={modelo.nombre} />
-                            <BulletRow label={t('Precio desde (Q)', 'Starting price (Q)')} value={modelo.precioDesdeQ} />
-                            <BulletRow label={t('Tasa ($)', 'Rate ($)')} value={modelo.tasaUSD} />
-                            <BulletRow label={t('Precio desde ($)', 'Starting price ($)')} value={modelo.precioDesdeUSD} />
-                        </Row>
-                    </div> */}
-
-                    {/* Amenidades del modelo */}
-                    {(modeloAmenidades || []).length > 0 && (
-                        <div className="mb-4">
-                            <div className="d-flex align-items-center gap-2 mb-3 fs-3">
-                                <i className="fa-sharp fa-regular fa-umbrella-beach"></i> {t('Amenidades del modelo', 'Model amenities')}
-                            </div>
-                            <div className="d-flex flex-wrap gap-2">
-                                {modeloAmenidades.map((a, i) => (
-                                    <span key={i} className="border border-black rounded-pill px-3 py-2" style={{ color: '#333', fontWeight: 400 }}>
-                                        {a.nombre}
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                {/* Columna izquierda */}
+                <Col lg={7} className="floor-content-col">
 
                     {/* Descripción del modelo */}
-                    {tieneValor(modelo.descripcion) && (
-                    <div className="mb-4">
-                        <div className="d-flex align-items-center gap-2 mb-2 fs-3">
-                            <i className="fa-sharp fa-regular fa-building"></i> {t('Descripción del modelo', 'Model description')}
+                    {(tieneValor(modelo.descripcion) || modelo.camas > 0 || modelo.banos > 0 || modelo.parqueo > 0 || tieneValor(modelo.area)) && (
+                    <div className="mb-5">
+                        <div className="d-flex align-items-center gap-2 mb-3 fs-3">
+                            <i className="fa-sharp fa-regular fa-building fs-2"></i> {t('Descripción del modelo', 'Model description')}
                         </div>
-                        <div style={{ lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: modelo.descripcion }} />
-                    </div>
-                    )}
+                        <div style={{ lineHeight: 1.8 }} dangerouslySetInnerHTML={{ __html: modelo.descripcion || '' }} />
 
-                    {/* Iconos principales */}
-                    {(modelo.camas > 0 || modelo.banos > 0 || modelo.parqueo > 0 || tieneValor(modelo.area)) && (
-                    <div className="d-flex mb-4 py-3 border-top border-bottom justify-content-center" style={{ gap: 'clamp(45px, 8vw, 100px)' }}>
-                        <div className="text-center">
-                            <i className="fa-solid fa-bed d-block mb-1" style={{ fontSize: '22px' }}></i>
-                            <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.camas}</span>
+                        {/* Iconos principales */}
+                        {(modelo.camas > 0 || modelo.banos > 0 || modelo.parqueo > 0 || tieneValor(modelo.area)) && (
+                        <div className="d-flex mb-4 py-3 border-top border-bottom justify-content-center align-items-center" style={{ gap: 'clamp(25px, 8vw, 70px)' }}>
+                            <div>A partir de: </div>
+                            <div className="text-center">
+                                <i className="fa-solid fa-bed d-block mb-1" style={{ fontSize: '22px' }}></i>
+                                <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.camas}</span>
+                            </div>
+                            <div className="text-center">
+                                <i className="fa-solid fa-bath d-block mb-1" style={{ fontSize: '22px' }}></i>
+                                <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.banos}</span>
+                            </div>
+                            <div className="text-center">
+                                <i className="fa-solid fa-car-side d-block mb-1" style={{ fontSize: '22px' }}></i>
+                                <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.parqueo}</span>
+                            </div>
+                            <div className="text-center">
+                                <i className="fa-solid fa-crop-simple d-block mb-1" style={{ fontSize: '22px' }}></i>
+                                <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.area}</span>
+                            </div>
                         </div>
-                        <div className="text-center">
-                            <i className="fa-solid fa-bath d-block mb-1" style={{ fontSize: '22px' }}></i>
-                            <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.banos}</span>
-                        </div>
-                        <div className="text-center">
-                            <i className="fa-solid fa-car-side d-block mb-1" style={{ fontSize: '22px' }}></i>
-                            <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.parqueo}</span>
-                        </div>
-                        <div className="text-center">
-                            <i className="fa-solid fa-crop-simple d-block mb-1" style={{ fontSize: '22px' }}></i>
-                            <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.area}</span>
-                        </div>
+                        )}
                     </div>
                     )}
 
                     {/* Áreas y dimensiones */}
                     {(tieneValor(modelo.areas.areaConstruccionM2) || tieneValor(modelo.areas.espacioAlmacenamiento)) && (
-                    <div className="mb-4">
-                        <div className="d-flex align-items-center gap-2 mb-3 fs-3" >
+                    <div className="mb-5">
+                        <div className="d-flex align-items-center gap-2 mb-3 fs-3">
                             <i className="fa-sharp fa-regular fa-chart-area"></i> {t('Áreas y dimensiones', 'Areas and dimensions')}
                         </div>
                         <Row className="gy-1">
@@ -544,7 +424,7 @@ function Floor({ preview = false }) {
 
                     {/* Estructura y obra gris */}
                     {tieneValor(modelo.estructura.alturaCielo) && (
-                    <div className="mb-4">
+                    <div className="mb-5">
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
                             <i className="fa-sharp fa-regular fa-trowel-bricks"></i> {t('Estructura y obra gris', 'Structure and gray work')}
                         </div>
@@ -556,7 +436,7 @@ function Floor({ preview = false }) {
 
                     {/* Distribución de ambientes */}
                     {distribTiene && (
-                    <div className="mb-4">
+                    <div className="mb-5">
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
                             <i className="fa-sharp fa-regular fa-tree-city"></i> {t('Distribución de ambientes', 'Room distribution')}
                         </div>
@@ -602,7 +482,7 @@ function Floor({ preview = false }) {
 
                     {/* Gastos fijos */}
                     {(tieneValor(modelo.gastosFijos.tipoEstufa) || tieneValor(modelo.gastosFijos.servicioAgua) || tieneValor(modelo.gastosFijos.mantenimientoUSD) || tieneValor(modelo.gastosFijos.mantenimientoQ) || tieneValor(modelo.gastosFijos.iusi) || (Array.isArray(modelo.incluye.includes) && modelo.incluye.includes.length > 0)) && (
-                    <div className="mb-4">
+                    <div className="mb-5">
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
                             <i className="fa-sharp fa-regular fa-sack-dollar"></i> {t('Gastos fijos', 'Fixed expenses')}
                         </div>
@@ -630,6 +510,98 @@ function Floor({ preview = false }) {
                     </div>
                     )}
 
+                    {/* Amenidades del modelo */}
+                    {(modeloAmenidades || []).length > 0 && (
+                    <div className="mb-5">
+                        <div className="d-flex align-items-center gap-2 mb-3 fs-3">
+                            <i className="fa-sharp fa-regular fa-umbrella-beach"></i> {t('Amenidades del modelo', 'Model amenities')}
+                        </div>
+                        <div className="d-flex flex-wrap gap-2">
+                            {modeloAmenidades.map((a, i) => (
+                                <span key={i} className="border border-black rounded-pill px-3 py-2" style={{ color: '#333', fontWeight: 400 }}>
+                                    {a.nombre}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                    )}
+
+                </Col>
+
+                {/* Columna derecha — sidebar */}
+                <Col lg={5}>
+                    <div className="sticky-lg-top" style={{ top: '100px' }}>
+
+                        {/* Desarrollado por — solo desktop (en móvil va bajo las fotos + barra flotante) */}
+                        <div className="p-3 my-2 d-none d-lg-block">
+
+                            <div className="mb-3">{t('Desarrollado por: ', 'Developed by:')} {desarrolladora.nombre}</div>
+                            <div className="mb-3 fs-4">{t('Comercializado por', 'Marketed by')}</div>
+                            <div className="d-flex align-items-start justify-content-between align-items-lg-center flex-column flex-md-row gap-3">
+                                <div className="d-flex align-items-center gap-2 mt-3" style={{ fontSize: '17px' }}>
+                                    <img src={bricklyIcon} alt="Brickly" style={{ width: '80px', height: '80px', borderRadius: '50%' }} />
+                                    <span>{t('Brickly Proyectos', 'Brickly Proyectos')}</span>
+                                </div>
+                                <div className="d-flex justify-content-md-end flex-column">
+                                    <div className='mb-2 lh-1' style={{ fontSize: '16px' }}><FormattedMessage id="home.text12" /></div>
+                                    <a href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa el model ${modelo.nombre} del proyecto ${titulo}, Necesito una cita para más información.`)}`} target="_blank" className="rounded-1 text-center border-0 py-1" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box', padding: '2px 8px', fontSize: '13px' }} rel="noreferrer" aria-label="Agendar una cita para información del modelo" onClick={handleCitaClick}>
+                                        <i className="fa-brands fa-whatsapp me-2"></i><FormattedMessage id="home.text13" />
+                                    </a>
+                                </div>
+                            </div>
+                            <br />
+                            <hr/>
+                        </div>
+
+                        {/* Solicitar información */}
+                        <div className="mb-4">
+                            <div className="mb-3 fs-3">{t('Solicitar información', 'Request information')}</div>
+                            <Form onSubmit={handleLeadSubmit} className="d-flex flex-column gap-2">
+                                <label htmlFor={requestFieldIds.name} className="visually-hidden">Nombre</label>
+                                <Form.Control id={requestFieldIds.name} placeholder="Nombre" style={{ fontSize: '14px', borderRadius: '4px' }} />
+                                <label htmlFor={requestFieldIds.email} className="visually-hidden">Correo electrónico</label>
+                                <Form.Control id={requestFieldIds.email} type="email" placeholder="Correo electrónico" style={{ fontSize: '14px', borderRadius: '4px' }} />
+                                <label htmlFor={requestFieldIds.phone} className="visually-hidden">Teléfono</label>
+                                <Form.Control id={requestFieldIds.phone} placeholder="Teléfono" style={{ fontSize: '14px', borderRadius: '4px' }} />
+                                <label htmlFor={requestFieldIds.message} className="visually-hidden">Mensaje</label>
+                                <Form.Control
+                                    id={requestFieldIds.message}
+                                    as="textarea"
+                                    rows={3}
+                                    defaultValue={`Estoy interesado en la propiedad: ${titulo}, ${modelo.nombre}`}
+                                    style={{ fontSize: '14px', borderRadius: '4px' }}
+                                />
+                                <button type="submit" className="btn btn-dark w-100 rounded-1 py-2 mt-1" disabled={sending}>
+                                    {sending ? t('Enviando...', 'Sending...') : 'ENVIAR'}
+                                </button>
+                                {formStatus && (
+                                    <div className={`small mt-1 ${formStatus.type === 'success' ? 'text-success' : 'text-danger'}`}>{formStatus.msg}</div>
+                                )}
+                            </Form>
+                        </div>
+
+                        {/* Ubicación geográfica — mapa placeholder */}
+                        <div className="mt-5">
+                            <div className="mb-3 fs-3">
+                                <i className="fa-regular fa-earth-africa me-2"></i>{t('Ubicación geográfica', 'Geographic location')}
+                            </div>
+                            <div
+                                className="rounded-1 overflow-hidden d-flex align-items-center justify-content-center bg-light"
+                                style={{ height: '300px', border: '1px solid #dee2e6' }}
+                            >
+                                <iframe
+                                    title="mapa"
+                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3861.0!2d-90.5069!3d14.6099!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTTCsDM2JzM1LjYiTiA5MMKwMzAnMjQuOCJX!5e0!3m2!1ses!2sgt!4v1"
+                                    width="100%"
+                                    height="300"
+                                    style={{ border: 0 }}
+                                    allowFullScreen=""
+                                    loading="lazy"
+                                ></iframe>
+                            </div>
+                        </div>
+
+                    </div>
                 </Col>
             </Row>
 
