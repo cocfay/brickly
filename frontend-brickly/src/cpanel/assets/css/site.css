@@ -22,8 +22,8 @@
 
 .cpanel-layout .form-control:focus,
 .cpanel-layout .form-select:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+    border-color: #333;
+    box-shadow: 0 0 0 3px rgba(51,51,51,0.2);
 }
 
 .cpanel-layout .ck.ck-content.ck-editor__editable.ck-rounded-corners.ck-editor__editable_inline {
@@ -283,8 +283,8 @@
 }
 
 .cpanel-layout [class*="SearchBox"] input:focus {
-    border-color: #3b82f6 !important;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.2) !important;
+    border-color: #333 !important;
+    box-shadow: 0 0 0 3px rgba(51,51,51,0.2) !important;
     outline: none !important;
 }
 
