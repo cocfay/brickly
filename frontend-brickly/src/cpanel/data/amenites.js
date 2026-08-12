@@ -20,7 +20,7 @@ export const AMENIDADES_PROYECTO = [
   "Pozo de agua propio"
 ];
 
-// Amenidades de MODELOS (apartamento/bodega)
+// Amenidades de MODELOS (apartamento)
 export const AMENIDADES_MODELO = [
   "Balcón",
   "Aire acondicionado",
@@ -109,6 +109,24 @@ export const AMENIDADES_OFICINA = [
   "Área de lavandería",
   "Cerraduras inteligentes",
   "Sistema de sonido integrado",
+  "Lobby / Recepción",
+  "Área de recepción de delivery",
+  "Wi-Fi en áreas comunes",
+  "Elevadores de alta velocidad",
+  "Cargadores para vehículos eléctricos"
+];
+
+// Amenidades de MODELOS tipo BODEGA (proyectos de bodegas)
+export const AMENIDADES_BODEGA = [
+  "Business Center / Co-working",
+  "Roof top / Terraza",
+  "Parqueo de visitas",
+  "Planta eléctrica de emergencia",
+  "Balcón",
+  "Aire acondicionado",
+  "Calentador de agua",
+  "Cocina con isla",
+  "Cerraduras inteligentes",
   "Lobby / Recepción",
   "Área de recepción de delivery",
   "Wi-Fi en áreas comunes",

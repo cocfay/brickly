@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Row, Col, Form, Button, Badge, Card, Collapse } from 'react-bootstrap';
 import Select from 'react-select';
 import SelectorAmenidades from '../../components/SelectorAmenidades';
-import { AMENIDADES_MODELO, AMENIDADES_CASA, AMENIDADES_OFICINA } from '../../data/amenites';
+import { AMENIDADES_MODELO, AMENIDADES_CASA, AMENIDADES_OFICINA, AMENIDADES_BODEGA } from '../../data/amenites';
 
 // ─── Configuración por tipo de modelo ────────────────────────────────────────
 
@@ -90,7 +90,7 @@ const DISTRIBUCION_POR_TIPO = {
 // Amenidades disponibles por tipo de modelo
 const AMENIDADES_POR_TIPO = {
   Apartamento: AMENIDADES_MODELO,
-  Bodega: AMENIDADES_MODELO,
+  Bodega: AMENIDADES_BODEGA,
   Casa: AMENIDADES_CASA,
   Oficina: AMENIDADES_OFICINA,
 };

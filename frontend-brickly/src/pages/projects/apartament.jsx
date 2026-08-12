@@ -11,7 +11,7 @@ import diamond from '../../assets/images/iconos/diamond.png';
 import venta   from '../../assets/images/iconos/venta.png';
 import arrow   from '../../assets/images/iconos/arrow.png';
 import tour    from '../../assets/images/iconos/IconoTour.png';
-import bricklyIcon from '../../assets/images/logos/brickly-icon.png';
+import bricklyIcon from '../../assets/images/logos/logo_circular.png';
 import { useT } from '../../hooks/useT';
 import { getProyectoById, getProyectosPublicos, sendProyectoLead, registerProyectoCitaClick } from '../../cpanel/services/proyectos';
 import { enriquecerProyecto, MODELO_FALLBACK_IMG } from '../../utils/proyectosUtils';
@@ -539,7 +539,7 @@ function Apartament({ preview = false }) {
                             <div className="mb-3 fs-4">{t('Comercializado por', 'Marketed by')}</div>
                             <div className="d-flex align-items-start justify-content-between align-items-lg-center flex-column flex-md-row gap-3">
                                 <div className="d-flex align-items-center gap-2 mt-3" style={{ fontSize: '17px' }}>
-                                    <img src={bricklyIcon} alt="Brickly" style={{ width: '80px', height: '80px', borderRadius: '50%' }} />
+                                    <img src={bricklyIcon} alt="Brickly" style={{ width: '80px', height: '80px' }} />
                                     <span>{t('Brickly Proyectos', 'Brickly Proyectos')}</span>
                                 </div>
                                 <div className="d-flex justify-content-md-end flex-column">
