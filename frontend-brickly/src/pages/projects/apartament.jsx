@@ -419,7 +419,7 @@ function Apartament({ preview = false }) {
                             <BulletRow label="Zona" value={project.location.zona} />
                             <BulletRow label={t('Condominio', 'Condominium')} value={project.location.condominio} />
                             <BulletRow label={t('Dirección exacta', 'Exact address')} value={project.location.direccionExacta} />
-                            <BulletRow label="Coordenadas GPS" value={project.location.gps} />
+                            {/* <BulletRow label="Coordenadas GPS" value={project.location.gps} /> */}
                             <BulletRow label={t('Relación con el agua', 'Water supply')} value={project.location.relacionAgua} />
                             <BulletRow label={t('Vista', 'View')} value={project.location.vista} />
                             <BulletRow label={t('Tipo de calle', 'Street type')} value={project.location.tipoCalle} />
@@ -627,9 +627,9 @@ function Apartament({ preview = false }) {
                                         alt={item.titulo}
                                     />
                                     <div style={{ padding: '5%' }} className="position-absolute top-0 w-100 h-100 d-flex flex-column justify-content-between">
-                                        <div className="d-flex gap-2 align-items-center" style={{ backgroundColor: '#000000c7', color: 'white', width: 'fit-content', padding: '3px 10px', fontSize: '14px' }}>
+                                        {/* <div className="d-flex gap-2 align-items-center" style={{ backgroundColor: '#000000c7', color: 'white', width: 'fit-content', padding: '3px 10px', fontSize: '14px' }}>
                                             <img src={diamond} style={{ width: '14px' }} alt="" /> {t('Destacado', 'Featured')}
-                                        </div>
+                                        </div> */}
                                         <div className="d-flex justify-content-end align-items-center gap-2">
                                             <div className="favorite-icon unlike" style={{ cursor: 'pointer' }}>
                                                 <i className="fa-solid fa-heart"></i>
@@ -680,7 +680,7 @@ function Apartament({ preview = false }) {
                 </div>
             </div>
             <a
-                href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa el proyecto ${project.titulo}, Necesito una cita para mas información`)}`}
+                href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa el proyecto ${project.titulo}, Necesito una cita para más información`)}`}
                 target="_blank"
                 rel="noreferrer"
                 className="brickly-bar-btn"

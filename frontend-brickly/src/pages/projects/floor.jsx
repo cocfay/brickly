@@ -417,7 +417,7 @@ function Floor({ preview = false }) {
                         </div>
                         <Row className="gy-1">
                             <BulletRow label="Área de construcción (m²)" value={modelo.areas.areaConstruccionM2} />
-                            <BulletRow label={t('Espacio de almacenamiento', 'Storage space')} value={modelo.areas.espacioAlmacenamiento} />
+                            <BulletRow label={t('Espacio de almacenamiento (m²)', 'Storage space (m²)')} value={modelo.areas.espacioAlmacenamiento} />
                         </Row>
                     </div>
                     )}

@@ -346,6 +346,15 @@ function ProyectoForm({ projectId }) {
         }, 0);
       }
 
+      const campoConfig = SECCIONES[seccionId].campos[campo];
+      const esRequerido = campoConfig?.type !== 'hidden' &&
+        (campoConfig?.label?.includes('*') || campoConfig?.opcional === false);
+      const estaVacio = value === '' || value === undefined || value === null;
+
+      if (newState[seccionId].completada && esRequerido && estaVacio) {
+        newState[seccionId].completada = false;
+      }
+
       newState[seccionId] = {
         ...newState[seccionId],
         datos: newDatos
@@ -647,6 +656,17 @@ function ProyectoForm({ projectId }) {
     e.preventDefault();
     setLoading(true);
     setAlert({ show: false, variant: '', message: '' });
+
+    if (!secciones.datosProyecto.datos.situacional) {
+      setLoading(false);
+      setAlert({
+        show: true,
+        variant: 'danger',
+        message: 'No puedes guardar el proyecto sin seleccionar un Estado (Situacional).'
+      });
+      setTimeout(() => setAlert({ show: false, variant: '', message: '' }), 4000);
+      return;
+    }
 
     try {
       const userId = currentUser?._id || currentUser?.id || currentUser?.sub || 'unknown';

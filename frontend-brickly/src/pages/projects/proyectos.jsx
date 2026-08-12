@@ -7,6 +7,7 @@ import Select from "react-select";
 import diamond from '../../assets/images/iconos/diamond.png';
 import alquiler from '../../assets/images/iconos/alquiler.png';
 import venta    from '../../assets/images/iconos/venta.png';
+import '../../assets/css/propiedades.css';
 import { useT } from '../../hooks/useT';
 import { getProyectosPublicos } from '../../cpanel/services/proyectos';
 import { mapProyectoToCard } from '../../utils/proyectosUtils';
@@ -14,6 +15,8 @@ import { mapProyectoToCard } from '../../utils/proyectosUtils';
 const PRICE_VISUAL_MAX = 20000000;
 const MAX_SIZE_LIMIT = 10000000;
 const PAGE_SIZE = 6;
+const TIPO_PROYECTO_OPCIONES = ['Todos', 'Apartamento', 'Bodega', 'Casa', 'Oficinas'];
+const tipoModeloDelFiltro = (tipo) => (tipo === 'Oficinas' ? 'Oficina' : tipo);
 
 const formatUSDInput = (val) => {
   const num = String(val).replace(/[^0-9]/g, '');
@@ -117,7 +120,8 @@ function Proyectos() {
                 || item.titulo.toLowerCase().includes(filters.search.toLowerCase())
                 || item.ubicacion.toLowerCase().includes(filters.search.toLowerCase());
             const matchesMode = filters.mode === 'Todos' || item.modo === filters.mode;
-            const matchesType = filters.type === 'Todos' || item.tipo === filters.type;
+            const matchesType = filters.type === 'Todos'
+                || (item.modelos || []).some((m) => m.tipo === tipoModeloDelFiltro(filters.type));
             const matchesPrice = item.priceNum >= filters.minPrice && item.priceNum <= filters.maxPrice;
 
             const bedsVal = parseInt(filters.beds);
@@ -407,7 +411,7 @@ function Proyectos() {
                             {filters.type === 'Todos' ? t('Tipo', 'Type') : filters.type}
                         </Dropdown.Toggle>
                         <Dropdown.Menu className="p-2 shadow border-0">
-                            {['Todos', 'Apartamento', 'Bodega'].map(type => (
+                            {TIPO_PROYECTO_OPCIONES.map(type => (
                                 <div key={type} className="px-3 py-1" style={{ cursor: 'pointer' }}
                                     onClick={() => handleSelect('type', type)}>
                                     <Form.Check
@@ -462,15 +466,15 @@ function Proyectos() {
                     )}
 
                     {/* Camas y Baños */}
-                    {filters.type === 'Apartamento' && (
+                    {(filters.type === 'Apartamento' || filters.type === 'Oficinas') && (
                         <Dropdown autoClose="outside" className="d-none d-lg-block">
                             <Dropdown.Toggle variant={(filters.beds !== 'Cualquiera' || filters.baths !== 'Cualquiera') ? 'dark' : 'outline-dark'} style={{ fontSize: '14px' }}>
                                 {filters.beds === 'Cualquiera' && filters.baths === 'Cualquiera'
-                                    ? ((filters.type === 'Oficina' || filters.type === 'Local comercial') ? t('Espacios y Baños', 'Spaces and Bathroom') : filters.type === 'Bodega' ? t('Ambientes', 'Spaces') : t('Camas y Baños', 'Bedrooms and Bathroom'))
-                                    : `${filters.beds} C${filters.type !== 'Bodega' ? `, ${filters.baths} B` : ''}`}
+                                    ? ((filters.type === 'Oficinas' || filters.type === 'Local comercial') ? t('Espacios y Baños', 'Spaces and Bathroom') : filters.type === 'Bodega' ? t('Ambientes', 'Spaces') : t('Camas y Baños', 'Bedrooms and Bathroom'))
+                                    : `${filters.beds} ${filters.type === 'Oficinas' ? 'E' : 'C'}${filters.type !== 'Bodega' ? `, ${filters.baths} B` : ''}`}
                             </Dropdown.Toggle>
                             <Dropdown.Menu className="p-3 shadow border-0" style={{ width: 'fit-content' }}>
-                                <p className="small fw-bold mb-2">{ (filters.type === 'Oficina' || filters.type === 'Local comercial') ? t('Espacios', 'Spaces') : filters.type === 'Bodega' ? t('Ambientes', 'Spaces') : t('Habitaciones', 'Bedrooms') }</p>
+                                <p className="small fw-bold mb-2">{ (filters.type === 'Oficinas' || filters.type === 'Local comercial') ? t('Espacios', 'Spaces') : filters.type === 'Bodega' ? t('Ambientes', 'Spaces') : t('Habitaciones', 'Bedrooms') }</p>
                                 <ButtonGroup size="sm" className="w-100 mb-3">
                                     {['Cualquiera', '1+', '2+', '3+', '4+', '5+'].map((text) => (
                                         <Button key={text} variant={filters.beds === text ? 'dark' : 'outline-dark'} onClick={() => handleSelect('beds', text)}>{text}</Button>
@@ -704,7 +708,7 @@ function Proyectos() {
                         <div className="mb-4">
                             <p className="fw-bold mb-2">Tipo de proyecto</p>
                             <div className="d-flex flex-wrap gap-2">
-                                {['Todos', 'Apartamento', 'Bodega'].map(type => (
+                                {TIPO_PROYECTO_OPCIONES.map(type => (
                                     <Button key={type} size="sm"
                                         variant={filters.type === type ? 'dark' : 'outline-dark'}
                                         onClick={() => handleSelect('type', type)}>{type}</Button>
@@ -739,9 +743,9 @@ function Proyectos() {
                         )}
 
                         {/* Camas */}
-                        {filters.type === 'Apartamento' && (
+                        {(filters.type === 'Apartamento' || filters.type === 'Oficinas') && (
                             <div className="mb-4">
-                                <p className="fw-bold mb-2">{ (filters.type === 'Oficina' || filters.type === 'Local comercial') ? t('Espacios', 'Spaces') : filters.type === 'Bodega' ? t('Ambientes', 'Spaces') : t('Habitaciones', 'Bedrooms') }</p>
+                                <p className="fw-bold mb-2">{ (filters.type === 'Oficinas' || filters.type === 'Local comercial') ? t('Espacios', 'Spaces') : t('Habitaciones', 'Bedrooms') }</p>
                                 <ButtonGroup size="sm" className="w-100">
                                     {['Cualquiera', '1+', '2+', '3+', '4+', '5+'].map(text => (
                                         <Button key={text} variant={filters.beds === text ? 'dark' : 'outline-dark'}
@@ -752,7 +756,7 @@ function Proyectos() {
                         )}
 
                         {/* Baños */}
-                        {filters.type === 'Apartamento' && (
+                        {(filters.type === 'Apartamento' || filters.type === 'Oficinas') && (
                             <div className="mb-4">
                                 <p className="fw-bold mb-2">{t('Baños', 'Baths')}</p>
                                 <ButtonGroup size="sm" className="w-100">

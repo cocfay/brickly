@@ -44,8 +44,11 @@ export const formatGTQ = (val) => {
 export const construirUbicacion = (loc = {}) => {
   const dept = loc.department || loc.departamento || '';
   const muni = loc.municipality || loc.municipio || '';
-  const zona = loc.zone || loc.zona || '';
-  return [dept, muni, zona ? `Zona ${zona}` : ''].filter(Boolean).join(', ');
+  const zonaRaw = loc.zone || loc.zona || '';
+  const zona = zonaRaw
+    ? (String(zonaRaw).toLowerCase().startsWith('zona') ? zonaRaw : `Zona ${zonaRaw}`)
+    : '';
+  return [dept, muni, zona].filter(Boolean).join(', ');
 };
 
 /**
@@ -77,6 +80,8 @@ export const enriquecerModelo = (m) => {
     tipo: m.tipo || 'Apartamento',
     precioDesdeQ: formatGTQ(precioQ),
     precioDesdeUSD: formatUSD(precioUSD),
+    precioDesdeQNum: precioQ,
+    precioDesdeUSDNum: precioUSD,
     tasaUSD: !isNaN(tasa) ? `$${tasa}` : '',
     area: areaStr,
     camas,
@@ -113,9 +118,11 @@ export const mapProyectoToCard = (p) => {
   const modelos = (p.models || []).map(enriquecerModelo);
   const primerModelo = modelos[0] || {};
   const preciosUSD = modelos
-    .map((m) => parseFloat(m.precioDesdeUSD))
+    .map((m) => m.precioDesdeUSDNum)
     .filter((n) => !isNaN(n));
-  const precioUSD = preciosUSD.length ? Math.min(...preciosUSD) : 0;
+  const precioUSD = preciosUSD.length
+    ? Math.min(...preciosUSD)
+    : parseFloat(p.priceFromUSD);
   const loc = p.location || {};
   const dept = loc.department || loc.departamento || '';
   const muni = loc.municipality || loc.municipio || '';
@@ -171,10 +178,10 @@ export const enriquecerProyecto = (p, { otros = [] } = {}) => {
     : [mainImage];
 
   const preciosUSD = modelos
-    .map((m) => parseFloat(m.precioDesdeUSD))
+    .map((m) => m.precioDesdeUSDNum)
     .filter((n) => !isNaN(n));
   const preciosQ = modelos
-    .map((m) => parseFloat(m.precioDesdeQ))
+    .map((m) => m.precioDesdeQNum)
     .filter((n) => !isNaN(n));
   const precioUSD = preciosUSD.length
     ? Math.min(...preciosUSD)
