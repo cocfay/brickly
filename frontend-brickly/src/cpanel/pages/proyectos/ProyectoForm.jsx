@@ -319,6 +319,21 @@ function ProyectoForm({ projectId }) {
     load();
   }, [isEdit, projectId]);
 
+  // Si el estado no habilita la fecha de entrega, se vacía el valor
+  useEffect(() => {
+    const estado = secciones.datosProyecto?.datos?.situacional || '';
+    const habilitado = ESTADOS_CON_ENTREGA.includes(String(estado).toLowerCase());
+    if (!habilitado && secciones.datosProyecto?.datos?.fechaEntrega) {
+      setSecciones(prev => ({
+        ...prev,
+        datosProyecto: {
+          ...prev.datosProyecto,
+          datos: { ...prev.datosProyecto.datos, fechaEntrega: '' }
+        }
+      }));
+    }
+  }, [secciones.datosProyecto?.datos?.situacional, secciones.datosProyecto?.datos?.fechaEntrega]);
+
   const handleChange = (seccionId, campo, value) => {
     setSecciones(prev => {
       const newState = { ...prev };
@@ -495,6 +510,23 @@ function ProyectoForm({ projectId }) {
             />
           );
         }
+      case 'month':
+        return (
+          <Form.Control
+            type="month"
+            value={value}
+            disabled={disabled}
+            onChange={(e) => handleChange(seccionId, campoKey, e.target.value)}
+            onClick={(e) => {
+              if (e.target.disabled || typeof e.target.showPicker !== 'function') return;
+              try {
+                e.target.showPicker();
+              } catch {
+                return;
+              }
+            }}
+          />
+        );
       default:
         return (
           <Form.Control
