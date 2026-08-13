@@ -63,6 +63,9 @@ export class User {
   @Prop({ type: [Types.ObjectId], ref: 'Property', default: [] })
   favorites!: Types.ObjectId[];
 
+  @Prop({ type: [Types.ObjectId], ref: 'Project', default: [] })
+  favoriteProjects!: Types.ObjectId[];
+
   @Prop({type: Boolean, default: true})
   isEnabled?: Boolean;
 

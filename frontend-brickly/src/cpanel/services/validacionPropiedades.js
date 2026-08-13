@@ -1,5 +1,5 @@
 // ─── Visibility rules by property type (misma lógica que en add.jsx/edit.jsx) ───
-function getHiddenFields(type) {
+export function getHiddenFields(type) {
   switch (type) {
     case 'Finca':
     case 'Terreno':

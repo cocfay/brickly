@@ -11,6 +11,8 @@ import '../../assets/css/propiedades.css';
 import { useT } from '../../hooks/useT';
 import { getProyectosPublicos } from '../../cpanel/services/proyectos';
 import { mapProyectoToCard } from '../../utils/proyectosUtils';
+import { useFavoriteProjects } from '../../hooks/useFavoriteProjects';
+import { isAuthenticated } from '../../services/authService';
 
 const PRICE_VISUAL_MAX = 20000000;
 const MAX_SIZE_LIMIT = 10000000;
@@ -48,6 +50,7 @@ const selectStyles = {
 
 function Proyectos() {
     const t = useT();
+    const { isFavorite, toggle: toggleFav, canFavorite } = useFavoriteProjects();
 
     const [filters, setFilters] = useState({
         search: '',
@@ -221,6 +224,9 @@ function Proyectos() {
     };
 
     const isPriceFilterActive = () => filters.minPrice > 0 || filters.maxPrice < PRICE_VISUAL_MAX;
+
+    const isEspacioTipo = filters.type === 'Oficinas' || filters.type === 'Local comercial' || filters.type === 'Casa';
+    const showBedsBaths = filters.type === 'Apartamento' || isEspacioTipo;
 
     const handleShareFilters = () => {
         const params = new URLSearchParams();
@@ -466,15 +472,15 @@ function Proyectos() {
                     )}
 
                     {/* Camas y Baños */}
-                    {(filters.type === 'Apartamento' || filters.type === 'Oficinas') && (
+                    {showBedsBaths && (
                         <Dropdown autoClose="outside" className="d-none d-lg-block">
                             <Dropdown.Toggle variant={(filters.beds !== 'Cualquiera' || filters.baths !== 'Cualquiera') ? 'dark' : 'outline-dark'} style={{ fontSize: '14px' }}>
                                 {filters.beds === 'Cualquiera' && filters.baths === 'Cualquiera'
-                                    ? ((filters.type === 'Oficinas' || filters.type === 'Local comercial') ? t('Espacios y Baños', 'Spaces and Bathroom') : filters.type === 'Bodega' ? t('Ambientes', 'Spaces') : t('Camas y Baños', 'Bedrooms and Bathroom'))
-                                    : `${filters.beds} ${filters.type === 'Oficinas' ? 'E' : 'C'}${filters.type !== 'Bodega' ? `, ${filters.baths} B` : ''}`}
+                                    ? (isEspacioTipo ? t('Espacios y Baños', 'Spaces and Bathroom') : t('Camas y Baños', 'Bedrooms and Bathroom'))
+                                    : `${filters.beds} ${isEspacioTipo ? 'E' : 'C'}${filters.type !== 'Bodega' ? `, ${filters.baths} B` : ''}`}
                             </Dropdown.Toggle>
                             <Dropdown.Menu className="p-3 shadow border-0" style={{ width: 'fit-content' }}>
-                                <p className="small fw-bold mb-2">{ (filters.type === 'Oficinas' || filters.type === 'Local comercial') ? t('Espacios', 'Spaces') : filters.type === 'Bodega' ? t('Ambientes', 'Spaces') : t('Habitaciones', 'Bedrooms') }</p>
+                                <p className="small fw-bold mb-2">{ isEspacioTipo ? t('Espacios', 'Spaces') : filters.type === 'Bodega' ? t('Ambientes', 'Spaces') : t('Habitaciones', 'Bedrooms') }</p>
                                 <ButtonGroup size="sm" className="w-100 mb-3">
                                     {['Cualquiera', '1+', '2+', '3+', '4+', '5+'].map((text) => (
                                         <Button key={text} variant={filters.beds === text ? 'dark' : 'outline-dark'} onClick={() => handleSelect('beds', text)}>{text}</Button>
@@ -743,9 +749,9 @@ function Proyectos() {
                         )}
 
                         {/* Camas */}
-                        {(filters.type === 'Apartamento' || filters.type === 'Oficinas') && (
+                        {showBedsBaths && (
                             <div className="mb-4">
-                                <p className="fw-bold mb-2">{ (filters.type === 'Oficinas' || filters.type === 'Local comercial') ? t('Espacios', 'Spaces') : t('Habitaciones', 'Bedrooms') }</p>
+                                <p className="fw-bold mb-2">{ isEspacioTipo ? t('Espacios', 'Spaces') : t('Habitaciones', 'Bedrooms') }</p>
                                 <ButtonGroup size="sm" className="w-100">
                                     {['Cualquiera', '1+', '2+', '3+', '4+', '5+'].map(text => (
                                         <Button key={text} variant={filters.beds === text ? 'dark' : 'outline-dark'}
@@ -756,7 +762,7 @@ function Proyectos() {
                         )}
 
                         {/* Baños */}
-                        {(filters.type === 'Apartamento' || filters.type === 'Oficinas') && (
+                        {showBedsBaths && (
                             <div className="mb-4">
                                 <p className="fw-bold mb-2">{t('Baños', 'Baths')}</p>
                                 <ButtonGroup size="sm" className="w-100">
@@ -855,7 +861,7 @@ function Proyectos() {
                                                 ) : null}
                                             </div>
                                             <div className="d-flex justify-content-end align-items-center gap-2">
-                                                <div className="favorite-icon unlike" style={{ cursor: 'pointer' }}>
+                                                <div className={`favorite-icon ${isFavorite(item.idRaw) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (isAuthenticated() && !canFavorite) return; toggleFav(item.idRaw); }}>
                                                     <i className="fa-solid fa-heart"></i>
                                                 </div>
                                             </div>

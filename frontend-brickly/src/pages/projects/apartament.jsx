@@ -7,7 +7,7 @@ import 'glightbox/dist/css/glightbox.min.css';
 
 import '../../assets/css/proyectos.css'
 
-import diamond from '../../assets/images/iconos/diamond.png';
+
 import venta   from '../../assets/images/iconos/venta.png';
 import arrow   from '../../assets/images/iconos/arrow.png';
 import tour    from '../../assets/images/iconos/IconoTour.png';
@@ -16,15 +16,30 @@ import { useT } from '../../hooks/useT';
 import { getProyectoById, getProyectosPublicos, sendProyectoLead, registerProyectoCitaClick } from '../../cpanel/services/proyectos';
 import { enriquecerProyecto, MODELO_FALLBACK_IMG } from '../../utils/proyectosUtils';
 import { getModelPath } from '../../utils/projectRoutes';
+import { useFavoriteProjects } from '../../hooks/useFavoriteProjects';
+import { isAuthenticated } from '../../services/authService';
+
+// Determina si un atributo tiene un valor real cargado (no "ninguno", "-", 0, etc.)
+const esValorPresente = (v) => {
+    if (v == null) return false;
+    if (typeof v === 'string') {
+        const t = v.trim().toLowerCase();
+        if (t === '' || t === '—' || t === '-' || t === 'ninguno' || t === 'nunguno' || t === 'none') return false;
+        return true;
+    }
+    if (typeof v === 'number') return v !== 0;
+    if (typeof v === 'boolean') return v !== false;
+    return true;
+};
 
 // Fila tipo "label: valor" para las secciones de datos
 function BulletRow({ label, value }) {
-    if (value == null || value === '' || value === '—') return null;
+    if (!esValorPresente(value)) return null;
     return (
         <Col md={6}>
             <div className="d-flex align-items-center gap-1">
                 <span className="fs-2 lh-1">•</span>
-                <span>{label}: {value || '—'}</span>
+                <span>{label}: {value}</span>
             </div>
         </Col>
     );
@@ -50,6 +65,12 @@ function Apartament({ preview = false }) {
     const [project, setProject] = useState(null);
     const [mainImg, setMainImg] = useState(null);
     const t = useT();
+    const { isFavorite, toggle: toggleFav, canFavorite } = useFavoriteProjects();
+    const handleToggleFav = (e) => {
+        e.stopPropagation();
+        if (isAuthenticated() && !canFavorite) return;
+        toggleFav(project?.idRaw);
+    };
     const requestFieldIds = {
         name: 'project-request-name',
         email: 'project-request-email',
@@ -176,7 +197,7 @@ function Apartament({ preview = false }) {
     const situacional = project.situacional || '';
     const situacionalLabel = situacional ? `APARTAMENTOS EN ${situacional.toUpperCase().replace(/^EN\s+/, '')}` : '';
 
-    const tieneValor = (v) => v != null && v !== '' && v !== '—';
+    const tieneValor = esValorPresente;
     const formatearFechaEntrega = (val) => {
       if (!val) return '';
       const m = String(val).match(/^(\d{4})-(\d{2})/);
@@ -275,7 +296,7 @@ function Apartament({ preview = false }) {
                     onClick={() => openLightbox(mainImg)}
                 >
                     <img src={mainImg} alt="Principal" className="object-fit-cover w-100 border-radius-1 h-100" style={{ display: 'block' }} />
-                    <div className="position-absolute bottom-0 end-0 m-2 favorite-icon unlike" style={{ cursor: 'pointer' }} onClick={e => e.stopPropagation()}>
+                    <div className={`position-absolute bottom-0 end-0 m-2 favorite-icon ${isFavorite(project.idRaw) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={handleToggleFav}>
                         <i className="fa-solid fa-heart"></i>
                     </div>
                     <div
@@ -315,7 +336,7 @@ function Apartament({ preview = false }) {
                     onClick={() => openLightbox(mainImg)}
                 >
                     <img src={mainImg} alt="Principal" className="object-fit-cover w-100 h-100" style={{ display: 'block' }} />
-                    <div className="position-absolute bottom-0 end-0 m-2 favorite-icon unlike" style={{ cursor: 'pointer' }} onClick={e => e.stopPropagation()}>
+                    <div className={`position-absolute bottom-0 end-0 m-2 favorite-icon ${isFavorite(project.idRaw) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={handleToggleFav}>
                         <i className="fa-solid fa-heart"></i>
                     </div>
                     <div
@@ -631,7 +652,7 @@ function Apartament({ preview = false }) {
                                             <img src={diamond} style={{ width: '14px' }} alt="" /> {t('Destacado', 'Featured')}
                                         </div> */}
                                         <div className="d-flex justify-content-end align-items-center gap-2">
-                                            <div className="favorite-icon unlike" style={{ cursor: 'pointer' }}>
+                                            <div className={`favorite-icon ${isFavorite(project.idRaw) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={handleToggleFav}>
                                                 <i className="fa-solid fa-heart"></i>
                                             </div>
                                         </div>

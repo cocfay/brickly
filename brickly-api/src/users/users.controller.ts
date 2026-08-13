@@ -133,6 +133,18 @@ export class UsersController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get('favorites/projects')
+  getFavoriteProjects(@Req() req) {
+    return this.usersService.getFavoriteProjects(req.user.userId);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('favorites/projects/:projectId')
+  toggleFavoriteProject(@Req() req, @Param('projectId') projectId: string) {
+    return this.usersService.toggleFavoriteProject(req.user.userId, projectId);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Get(':id')
   getUserById(@Param('id') id: string) {
     return this.usersService.findById(id);

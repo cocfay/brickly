@@ -59,6 +59,14 @@ const AMENIDADES_MAP = AMENIDADES_ALL.reduce((acc, a) => {
     return acc;
 }, {});
 
+// Alias para "Área de piñatas": el SelectorAmenidades del cpanel genera la key
+// "areadepiatas" (la ñ se elimina), mientras que el slug canónico es
+// "areadepinatas". Se aceptan ambas para mostrarla correctamente en la página.
+const amenidadPinatas = AMENIDADES_ALL.find((a) => slugifyAmenidad(a.nombre) === 'areadepinatas');
+if (amenidadPinatas) {
+    AMENIDADES_MAP['areadepiatas'] = amenidadPinatas;
+}
+
 /**
  * Convierte las claves de amenidades guardadas en BD (generadas por el
  * SelectorAmenidades del cpanel como slug del nombre) en la lista de

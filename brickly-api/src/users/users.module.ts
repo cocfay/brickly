@@ -5,6 +5,7 @@ import { UsersController } from './users.controller';
 import { User, UserSchema } from './user.schema';
 import { Review, ReviewSchema } from '../reviews/schemas/review.schema';
 import { Property, PropertySchema } from '../properties/schemas/property.schema';
+import { Project, ProjectSchema } from '../projects/schemas/project.schema';
 import { Subscription, SubscriptionSchema } from '../subscriptions/schemas/subscription.schema';
 import { ActivityLogsModule } from '../activitylogs/activitylogs.module';
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
@@ -18,6 +19,7 @@ import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
       { name: User.name, schema: UserSchema },
       { name: Review.name, schema: ReviewSchema },
       { name: Property.name, schema: PropertySchema },
+      { name: Project.name, schema: ProjectSchema },
       { name: Subscription.name, schema: SubscriptionSchema },
     ]),
     

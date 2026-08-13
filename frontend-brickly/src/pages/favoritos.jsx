@@ -7,15 +7,14 @@ import alquiler from '../assets/images/iconos/alquiler.png';
 import venta from '../assets/images/iconos/venta.png';
 import space from '../assets/images/iconos/spaces.png';
 import diamond from '../assets/images/iconos/diamond.png';
-import noLike from '../assets/images/iconos/noLike.png';
-import like from '../assets/images/iconos/Like.png';
-import avatar from '../assets/images/iconos/avatar.png';
 
 import { API_URL } from '../services/authService';
-import { toggleFavorite, getFavorites } from '../services/favoritesService';
+import { toggleFavorite, getFavorites, getFavoriteProjects, toggleFavoriteProject } from '../services/favoritesService';
 import { useCurrency } from '../context/CurrencyContext';
 import { getDisplayPrice } from '../utils/priceUtils';
 import { getPropertyPath } from '../utils/propertyRoutes';
+import { getProjectPath } from '../utils/projectRoutes';
+import { mapProyectoToCard } from '../utils/proyectosUtils';
 
 import '../assets/css/favoritos.css';
 
@@ -24,7 +23,9 @@ function Favoritos() {
     const URL = API_URL;
 
     const [favoritos, setFavoritos] = useState([]);
+    const [proyectosFav, setProyectosFav] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadingProyectos, setLoadingProyectos] = useState(true);
     const [filtro, setFiltro] = useState('Todos');
 
     const { currency: currencyMode } = useCurrency();
@@ -51,10 +52,31 @@ function Favoritos() {
         load();
     }, []);
 
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const data = await getFavoriteProjects();
+                setProyectosFav(Array.isArray(data) ? data.map(mapProyectoToCard) : []);
+            } catch (e) {
+                console.error(e);
+            } finally {
+                setLoadingProyectos(false);
+            }
+        };
+        load();
+    }, []);
+
     const handleToggle = async (propertyId) => {
         const result = await toggleFavorite(propertyId);
         if (result !== null && !result.favorite) {
             setFavoritos(prev => prev.filter(p => p._id !== propertyId));
+        }
+    };
+
+    const handleToggleProject = async (projectId) => {
+        const result = await toggleFavoriteProject(projectId);
+        if (result !== null && !result.favorite) {
+            setProyectosFav(prev => prev.filter(p => p.idRaw !== projectId));
         }
     };
 
@@ -243,6 +265,58 @@ function Favoritos() {
                         </div>
                     </div> */}
                 </div>
+            </div>
+
+            {/* ── Proyectos favoritos ── */}
+            <div className="mt-5" style={{ marginBottom: 'clamp(5rem, 10vw, 9rem)' }}>
+                <div style={{ fontSize: 'clamp(24px, 3vw, 40px)' }} className='mb-4'>
+                    <FormattedMessage id='favorite.text6' />
+                </div>
+                {loadingProyectos ? (
+                    <div className="text-center py-5">
+                        <div className="d-flex flex-column gap-3" style={{ maxWidth: '400px', margin: '0 auto' }}>
+                            <div className="placeholder-glow d-flex gap-3">
+                                <div className="placeholder col-4 bg-secondary" style={{ aspectRatio: '4 / 4', borderRadius: '4px' }}></div>
+                                <div className="d-flex flex-column gap-2 flex-grow-1">
+                                    <p className="placeholder col-12 rounded-1" style={{ height: '24px' }}></p>
+                                    <p className="placeholder col-8 rounded-1" style={{ height: '16px' }}></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ) : proyectosFav.length === 0 ? (
+                    <div className="py-5 text-muted"><FormattedMessage id='favorite.text7' /></div>
+                ) : (
+                    <div className="row gy-5">
+                        {proyectosFav.map(item => (
+                            <div key={item.idRaw || item.id} className="col-md-3">
+                                <div className="position-relative d-block">
+                                    <Link to={getProjectPath(item)} className="d-block propiedades-zoom">
+                                        <img src={item.img} className="object-fit-cover w-100 border-radius-1" alt={item.titulo} style={{ aspectRatio: '4 / 4' }} loading="lazy" />
+                                        <div style={{ padding: '5%' }} className='position-absolute top-0 w-100 h-100 d-flex flex-column justify-content-between'>
+                                            <div />
+                                            <div className='d-flex justify-content-end align-items-center gap-2'>
+                                                <div className='favorite-icon like' style={{ cursor: 'pointer' }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleToggleProject(item.idRaw); }}>
+                                                    <i className="fa-solid fa-heart"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                </div>
+                                <Link className="text-body flex-grow-1 d-flex flex-column" to={getProjectPath(item)}>
+                                    <div className='mt-3 d-flex flex-column flex-grow-1'>
+                                        <div className="text-truncate" style={{ fontSize: 'clamp(34px, 6vw, 46px)', fontFamily: 'AppleGaramond' }}>{ item.titulo }</div>
+                                        {item.ubicacion && (
+                                            <div><i className='fa-solid fa-location-dot me-2' style={{ width: 'fit-content' }}></i>{item.ubicacion}</div>
+                                        )}
+                                        <div><FormattedMessage id="home.text9" />: { item.tipo }</div>
+                                        <div className='mt-auto fw-bold fs-4 text-dark'>{ item.precio }</div>
+                                    </div>
+                                </Link>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </Container>
     );

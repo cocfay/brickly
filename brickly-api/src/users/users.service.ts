@@ -4,6 +4,7 @@ import { Connection, Model, Types } from 'mongoose';
 import { User } from './user.schema';
 import { Review } from '../reviews/schemas/review.schema';
 import { Property } from '../properties/schemas/property.schema';
+import { Project } from '../projects/schemas/project.schema';
 import { Subscription } from '../subscriptions/schemas/subscription.schema';
 import * as bcrypt from 'bcrypt';
 import { Role } from '../auth/roles.enum';
@@ -44,6 +45,7 @@ export class UsersService {
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Review.name) private reviewModel: Model<Review>,
     @InjectModel(Property.name) private propertyModel: Model<Property>,
+    @InjectModel(Project.name) private projectModel: Model<Project>,
     @InjectModel(Subscription.name) private subscriptionModel: Model<Subscription>,
     @InjectConnection() private connection: Connection,
     private readonly activityLogsService: ActivityLogsService,
@@ -982,6 +984,34 @@ export class UsersService {
     } else {
       await this.userModel.findByIdAndUpdate(userId, {
         $addToSet: { favorites: propertyId },
+      });
+    }
+
+    return { favorite: !isFavorite };
+  }
+
+  async getFavoriteProjects(userId: string) {
+    const user = await this.userModel.findById(userId);
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+    await user.populate({ path: 'favoriteProjects', model: Project.name });
+    return { favorites: user.favoriteProjects || [] };
+  }
+
+  async toggleFavoriteProject(userId: string, projectId: string) {
+    const user = await this.userModel.findById(userId);
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    const isFavorite = user.favoriteProjects?.some(
+      fav => fav.toString() === projectId
+    );
+
+    if (isFavorite) {
+      await this.userModel.findByIdAndUpdate(userId, {
+        $pull: { favoriteProjects: projectId },
+      });
+    } else {
+      await this.userModel.findByIdAndUpdate(userId, {
+        $addToSet: { favoriteProjects: projectId },
       });
     }
 

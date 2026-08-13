@@ -7,7 +7,7 @@ import SelectorAmenidades from '../../components/SelectorAmenidades';
 import MyTextEditor from '../../components/ckeditor';
 import SelectorGaleriaProyectos from '../../components/SelectorGaleriaProyectos';
 import ModelosProyecto, { modelosValidos, modelosFaltantes, tipoModeloDesdeProyecto } from './ModelosProyecto';
-import { AMENIDADES_PROYECTO } from '../../data/amenites';
+import { getHiddenFields } from '../../services/validacionPropiedades';
 import {
   createProyecto,
   updateProyecto,
@@ -21,6 +21,24 @@ import arrow from '../../../assets/images/iconos/arrow.png';
 
 // Estados que habilitan el campo "Fecha de entrega"
 const ESTADOS_CON_ENTREGA = ['preventa', 'en construcción', 'próximo a entregar'];
+
+// Mapeo de tipo de proyecto → tipo de propiedad (las amenidades generales del
+// proyecto deben ser las mismas que muestra el formulario de Propiedades para
+// el tipo de propiedad equivalente).
+const TIPO_PROYECTO_A_PROPIEDAD = {
+  Condominio: 'Casa',
+  Edificio: 'Apartamento',
+  Bodegas: 'Bodega',
+  Bodega: 'Bodega',
+  'Edificio de oficinas': 'Oficina',
+  'Local comercial': 'Oficina',
+};
+
+// Filtro de amenidades según el tipo de proyecto. null = mostrar todas.
+const amenidadesParaTipoProyecto = (tipoProyecto) => {
+  const tipoPropiedad = TIPO_PROYECTO_A_PROPIEDAD[tipoProyecto] || 'Casa';
+  return getHiddenFields(tipoPropiedad).amenidadesFilter ?? null;
+};
 
 // Definición de secciones con sus campos
 const SECCIONES = {
@@ -158,6 +176,9 @@ function ProyectoForm({ projectId }) {
 
   // tour 360
   const [tour360, setTour360] = useState('');
+
+  // Filtro de amenidades según el tipo de proyecto seleccionado
+  const amenidadesFilter = amenidadesParaTipoProyecto(secciones.datosProyecto?.datos?.type || '');
 
   // refs para precios formateados
   const priceInputRefs = useRef({});
@@ -465,8 +486,8 @@ function ProyectoForm({ projectId }) {
       return (
         <SelectorAmenidades
           value={value}
-          list={AMENIDADES_PROYECTO}
           onChange={(nuevoValor) => handleChange(seccionId, campoKey, nuevoValor)}
+          filter={amenidadesFilter}
         />
       );
     }

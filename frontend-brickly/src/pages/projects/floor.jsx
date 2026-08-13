@@ -15,15 +15,30 @@ import { getProyectoById, sendProyectoLead, registerProyectoCitaClick } from '..
 import { enriquecerProyecto, MODELO_FALLBACK_IMG } from '../../utils/proyectosUtils';
 import { enriquecerAmenidades } from '../../utils/amenidades';
 import { getModelPath } from '../../utils/projectRoutes';
+import { useFavoriteProjects } from '../../hooks/useFavoriteProjects';
+import { isAuthenticated } from '../../services/authService';
+
+// Determina si un atributo tiene un valor real cargado (no "ninguno", "-", 0, etc.)
+const esValorPresente = (v) => {
+    if (v == null) return false;
+    if (typeof v === 'string') {
+        const t = v.trim().toLowerCase();
+        if (t === '' || t === '—' || t === '-' || t === 'ninguno' || t === 'nunguno' || t === 'none') return false;
+        return true;
+    }
+    if (typeof v === 'number') return v !== 0;
+    if (typeof v === 'boolean') return v !== false;
+    return true;
+};
 
 // Fila tipo "label: valor" para las secciones de datos
 function BulletRow({ label, value }) {
-    if (value == null || value === '' || value === '—') return null;
+    if (!esValorPresente(value)) return null;
     return (
         <Col md={6}>
             <div className="d-flex align-items-center gap-1">
                 <span className="fs-2 lh-1">•</span>
-                <span>{label}: {value || '—'}</span>
+                <span>{label}: {value}</span>
             </div>
         </Col>
     );
@@ -39,6 +54,12 @@ function Floor({ preview = false }) {
     const [isLg, setIsLg] = useState(window.innerWidth >= 992);
     const [formStatus, setFormStatus] = useState(null);
     const [sending, setSending] = useState(false);
+    const { isFavorite, toggle: toggleFav, canFavorite } = useFavoriteProjects();
+    const handleToggleFav = (e) => {
+        e.stopPropagation();
+        if (isAuthenticated() && !canFavorite) return;
+        toggleFav(project?.idRaw);
+    };
 
     useEffect(() => {
         const handleResize = () => setIsLg(window.innerWidth >= 992);
@@ -185,7 +206,7 @@ function Floor({ preview = false }) {
     const esOficina = modelo.tipo === 'Oficina';
     const otrosModelos = (project.modelos || []).filter(m => m.modelSlug !== modelSlug);
 
-    const tieneValor = (v) => v != null && v !== '' && v !== '—';
+    const tieneValor = esValorPresente;
 
     const distribFields = esBodega
         ? [
@@ -287,7 +308,7 @@ function Floor({ preview = false }) {
                     onClick={() => openLightbox(mainImg)}
                 >
                     <img src={mainImg} alt="Principal" className="object-fit-cover w-100 border-radius-1 h-100" style={{ display: 'block' }} />
-                    <div className="position-absolute bottom-0 end-0 m-2 favorite-icon unlike" style={{ cursor: 'pointer' }} onClick={e => e.stopPropagation()}>
+                    <div className={`position-absolute bottom-0 end-0 m-2 favorite-icon ${isFavorite(project.idRaw) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={handleToggleFav}>
                         <i className="fa-solid fa-heart"></i>
                     </div>
                     {galeria.length > 1 && (
@@ -329,7 +350,7 @@ function Floor({ preview = false }) {
                     onClick={() => openLightbox(mainImg)}
                 >
                     <img src={mainImg} alt="Principal" className="object-fit-cover w-100 h-100" style={{ display: 'block' }} />
-                    <div className="position-absolute bottom-0 end-0 m-2 favorite-icon unlike" style={{ cursor: 'pointer' }} onClick={e => e.stopPropagation()}>
+                    <div className={`position-absolute bottom-0 end-0 m-2 favorite-icon ${isFavorite(project.idRaw) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={handleToggleFav}>
                         <i className="fa-solid fa-heart"></i>
                     </div>
                     {galeria.length > 1 && (

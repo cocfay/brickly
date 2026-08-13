@@ -135,6 +135,7 @@ export const mapProyectoToCard = (p) => {
   return {
     id: getProjectSlug(p),
     slug: getProjectSlug(p),
+    idRaw: p?._id || '',
     titulo: p.title || '',
     ubicacion: construirUbicacion(loc),
     tipo: p.type || primerModelo.tipo || 'Proyecto',
@@ -194,6 +195,7 @@ export const enriquecerProyecto = (p, { otros = [] } = {}) => {
   return {
     id: getProjectSlug(p),
     slug: getProjectSlug(p),
+    idRaw: p?._id || '',
     titulo: p.title || '',
     ubicacion: construirUbicacion(loc),
     tipo: p.type || primerModelo.tipo || 'Proyecto',
