@@ -377,6 +377,7 @@ function ModeloForm({ modelo, index, tipoModelo, listaAmenidades, onChange, onRe
   };
 
   const distribucion = DISTRIBUCION_POR_TIPO[tipoModelo] || DISTRIBUCION_APARTAMENTO;
+  const ocultaAmenidades = tipoModelo === 'Bodega' || tipoModelo === 'Oficina';
 
   return (
     <Card className="mb-4 shadow-sm rounded-4">
@@ -513,16 +514,20 @@ function ModeloForm({ modelo, index, tipoModelo, listaAmenidades, onChange, onRe
           </Row>
 
           {/* Amenidades del modelo */}
-          <h6 className="fw-bold mt-4 mb-3"><i className="fa-solid fa-umbrella-beach me-2"></i>Amenidades del modelo</h6>
-          <Row>
-            <Col xs={12}>
-              <SelectorAmenidades
-                value={modelo.amenities || {}}
-                list={listaAmenidades}
-                onChange={(amenities) => set({ amenities })}
-              />
-            </Col>
-          </Row>
+          {!ocultaAmenidades && (
+          <>
+            <h6 className="fw-bold mt-4 mb-3"><i className="fa-solid fa-umbrella-beach me-2"></i>Amenidades del modelo</h6>
+            <Row>
+              <Col xs={12}>
+                <SelectorAmenidades
+                  value={modelo.amenities || {}}
+                  list={listaAmenidades}
+                  onChange={(amenities) => set({ amenities })}
+                />
+              </Col>
+            </Row>
+          </>
+          )}
 
           {/* Multimedia */}
           <h6 className="fw-bold mt-4 mb-3"><i className="fa-solid fa-images me-2"></i>Multimedia</h6>

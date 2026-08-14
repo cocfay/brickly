@@ -532,7 +532,7 @@ function Floor({ preview = false }) {
                     )}
 
                     {/* Amenidades del modelo */}
-                    {(modeloAmenidades || []).length > 0 && (
+                    {!esBodega && !esOficina && (modeloAmenidades || []).length > 0 && (
                     <div className="mb-5">
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
                             <i className="fa-sharp fa-regular fa-umbrella-beach"></i> {t('Amenidades del modelo', 'Model amenities')}
