@@ -44,7 +44,7 @@ function Facturacion() {
 
   const InfoColumn = ({ iconClass, label, value, note }) => (
     <Col xs={6} sm={6} lg>
-      <div className="border border-1 rounded-4 p-3 h-100 d-flex flex-column justify-content-center" style={{ minHeight: '150px' }}>
+      <div className="border border-1 rounded-4 p-3 h-100 d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '150px' }}>
         <i className={iconClass || 'fa-regular fa-calendar'} style={{ fontSize: '22px', color: '#026a66' }}></i>
         {label && <div className="text-muted mt-2" style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>}
         <div className="fw-bold mt-1" style={{ fontSize: 'clamp(20px, 1.6vw, 26px)', lineHeight: 1.2 }}>{value}</div>
