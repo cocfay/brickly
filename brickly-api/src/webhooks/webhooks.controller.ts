@@ -4,6 +4,7 @@ import * as crypto from 'crypto';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { UsersService } from '../users/users.service';
 import { PropertiesService } from '../properties/properties.service';
+import { BillingService } from '../billing/billing.service';
 import {
   PlanRoleMap,
   computeExpirationDate,
@@ -15,6 +16,7 @@ export class WebhooksController {
     private subService: SubscriptionsService,
     private userService: UsersService,
     private propertyService: PropertiesService,
+    private billingService: BillingService,
   ) {}
 
   /**
@@ -171,6 +173,22 @@ export class WebhooksController {
             // el id real de la suscripción con el id de este cobro puntual.
             await this.subService.createOrUpdate(subUpdate);
 
+            // Registrar el cobro en el historial de facturación
+            const amountInCents = Number(
+              event.amount_in_cents ??
+                event.checkout?.amount_in_cents ??
+                event.payment_intent?.amount_in_cents ??
+                0,
+            );
+            await this.billingService.registerCharge({
+              userId,
+              plan,
+              amount: amountInCents > 0 ? amountInCents / 100 : undefined,
+              paymentId,
+              status: 'SUCCEEDED',
+              isRenewal,
+            });
+
             console.log(`[Webhooks:${eventType}] ✅ ${isRenewal ? 'Renovación procesada' : 'Rol asignado'} para userId=${userId}, plan=${plan}, nueva expiración=${expiresAt.toISOString()}`);
           } else if (meta.type_send === 'property') {
             await this.propertyService.activateFeatured(meta.thisId, true);
@@ -198,7 +216,6 @@ export class WebhooksController {
         case 'intent.canceled': {
           const meta = event.checkout?.metadata ?? event.subscription?.metadata ?? event.metadata;
           const isRenewal = !event.checkout;
-          console.log(`[Webhooks:${eventType}] Cobro fallido/cancelado. isRenewal=${isRenewal} metadata=`, JSON.stringify(meta));
 
           // Si es un fallo de COBRO RECURRENTE de una suscripción ya activa
           // (sin checkout de por medio): bloqueamos acceso al cpanel pero
@@ -206,6 +223,16 @@ export class WebhooksController {
           // Si es el PRIMER pago (viene de un checkout), el rol nunca se
           // había otorgado, así que no hay nada que revertir.
           if (isRenewal && meta?.type === 'subscription' && meta?.userId) {
+            const paymentId =
+              event.checkout?.id ?? event.payment_intent?.id ?? event.intentable?.id ?? event.id;
+            await this.billingService.registerCharge({
+              userId: meta.userId,
+              plan: meta.plan,
+              amount: undefined,
+              paymentId,
+              status: 'FAILED',
+              isRenewal: true,
+            });
             await this.subService.updateStatus(meta.userId, 'PAST_DUE');
             await this.userService.deactivateSubscription(meta.userId, {
               status: 'PAST_DUE',

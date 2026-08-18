@@ -172,6 +172,10 @@ function Menu({open}){
                         <i className="fa-solid fa-circle-info"></i> Ayuda e información
                     </span>
                 )}
+                <Link to="/cpanel/facturacion" className="d-flex gap-2 align-items-center text-body">
+                    <i className="fa-solid fa-file-invoice-dollar"></i> Cuenta / Facturación
+                    {isActive('/cpanel/facturacion') && <ActiveIcon />}
+                </Link>
                 <Link to="/cpanel/config" className="d-flex gap-2 align-items-center text-body">
                     <i className="fa-solid fa-sliders"></i> Ajustes
                     {isActive('/cpanel/config') && <ActiveIcon />}
