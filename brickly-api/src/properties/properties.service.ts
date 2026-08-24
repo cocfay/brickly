@@ -1508,6 +1508,97 @@ export class PropertiesService {
         };
       }
 
+  async getLocationsTree() {
+    const rows = await this.propertyModel.aggregate([
+      {
+        $match: {
+          status: 'published',
+        },
+      },
+      {
+        $group: {
+          _id: {
+            department: '$location.department',
+            municipality: '$location.municipality',
+            zone: '$location.zone',
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const normalize = (value) => {
+      const str = String(value ?? '').trim();
+      if (!str) return null;
+      return ['ninguno', 'nunguno', 'none'].includes(str.toLowerCase()) ? null : str;
+    };
+
+    type ZoneEntry = { name: string; count: number };
+    type MuniEntry = { name: string; count: number; zones: Map<string, ZoneEntry> };
+    type DeptEntry = { name: string; count: number; municipalities: Map<string, MuniEntry> };
+
+    const departments = new Map<string, DeptEntry>();
+
+    for (const row of rows) {
+      const department = normalize(row._id.department);
+      if (!department) continue;
+
+      const municipality = normalize(row._id.municipality);
+      const zone = normalize(row._id.zone);
+      const count = row.count || 0;
+
+      let deptEntry = departments.get(department);
+      if (!deptEntry) {
+        deptEntry = {
+          name: department,
+          count: 0,
+          municipalities: new Map<string, MuniEntry>(),
+        };
+        departments.set(department, deptEntry);
+      }
+      deptEntry.count += count;
+
+      if (!municipality) continue;
+
+      let muniEntry = deptEntry.municipalities.get(municipality);
+      if (!muniEntry) {
+        muniEntry = {
+          name: municipality,
+          count: 0,
+          zones: new Map<string, ZoneEntry>(),
+        };
+        deptEntry.municipalities.set(municipality, muniEntry);
+      }
+      muniEntry.count += count;
+
+      if (!zone) continue;
+
+      let zoneEntry = muniEntry.zones.get(zone);
+      if (!zoneEntry) {
+        zoneEntry = { name: zone, count: 0 };
+        muniEntry.zones.set(zone, zoneEntry);
+      }
+      zoneEntry.count += count;
+    }
+
+    const sortByName = (a, b) =>
+      a.name.localeCompare(b.name, 'es', { numeric: true });
+
+    return Array.from(departments.values())
+      .sort(sortByName)
+      .map((dept) => ({
+        name: dept.name,
+        count: dept.count,
+        municipalities: Array.from(dept.municipalities.values())
+          .sort(sortByName)
+          .map((muni) => ({
+            name: muni.name,
+            count: muni.count,
+            zones: Array.from(muni.zones.values()).sort(sortByName),
+          })),
+      }));
+  }
+
   async disablePropertiesByPlan(userId: string) {
     const mainUserIdObj = new Types.ObjectId(userId);
     const subUsers = await this.userModel.find(

@@ -201,3 +201,9 @@ PropertySchema.index(
 );
 PropertySchema.index({ status: 1, userId: 1 });
 PropertySchema.index({ status: 1, agents: 1 });
+PropertySchema.index({
+  status: 1,
+  'location.department': 1,
+  'location.municipality': 1,
+  'location.zone': 1,
+});

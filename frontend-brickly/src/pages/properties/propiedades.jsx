@@ -22,6 +22,7 @@ import { API_URL, isAuthenticated } from '../../services/authService';
 import { useT } from '../../hooks/useT';
 import { fetchPropertiesPage, fetchAllPages } from '../../utils/fetchAll';
 import { getPropertyRanges } from '../../services/propertyRanges';
+import { getLocationCatalog } from '../../services/locationCatalog';
 import { getPropertyPath } from '../../utils/propertyRoutes';
 
 import '../../assets/css/propiedades.css';
@@ -301,6 +302,17 @@ function Propiedades() {
     };
     loadRanges();
   }, [currencyMode]);
+
+  // Catálogo de ubicaciones (árbol depto→muni→zona con conteos) desde endpoint liviano.
+  // Si falla, queda en null y las opciones caen al método anterior (derivar de propiedades cargadas).
+  const [locationCatalog, setLocationCatalog] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    getLocationCatalog().then((data) => {
+      if (!cancelled && data) setLocationCatalog(data);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   // Mapa de opciones de ordenamiento a parámetros del backend
   const sortOptionToOrderby = (option) => {
@@ -603,13 +615,38 @@ function Propiedades() {
   // Función para filtrar valores inválidos de ubicación (Ninguno, nungino, none)
   const isValidLocation = (val) => val && !['ninguno', 'nunguno', 'none'].includes(val.toLowerCase());
 
-  // Opciones de ubicación derivadas de propiedades cargadas
-  const deptOptions = [...new Set(propiedades.map(p => p.location?.department).filter(isValidLocation))].sort().map(d => ({ value: d, label: d }));
-  const muniOptions = filters.department
+  // Opciones de ubicación derivadas de propiedades cargadas (fallback si el catálogo no está disponible)
+  const legacyDeptOptions = [...new Set(propiedades.map(p => p.location?.department).filter(isValidLocation))].sort().map(d => ({ value: d, label: d }));
+  const legacyMuniOptions = filters.department
     ? [...new Set(propiedades.filter(p => p.location?.department === filters.department).map(p => p.location?.municipality).filter(isValidLocation))].sort().map(m => ({ value: m, label: m }))
     : [];
-  const zoneOptions = filters.municipality
+  const legacyZoneOptions = filters.municipality
     ? [...new Set(propiedades.filter(p => p.location?.department === filters.department && p.location?.municipality === filters.municipality).map(p => p.location?.zone).filter(isValidLocation))].sort().map(z => ({ value: z, label: z }))
+    : [];
+
+  // Opciones desde el catálogo completo (solo ubicaciones con ≥1 propiedad publicada)
+  const catalogDeptEntry = locationCatalog && filters.department
+    ? locationCatalog.find(d => d.name === filters.department)
+    : null;
+  const catalogDeptOptions = locationCatalog
+    ? locationCatalog.map(d => ({ value: d.name, label: d.name }))
+    : null;
+  const catalogMuniOptions = locationCatalog && filters.department
+    ? (catalogDeptEntry?.municipalities || []).map(m => ({ value: m.name, label: m.name }))
+    : null;
+  const catalogMuniEntry = catalogDeptEntry && filters.municipality
+    ? (catalogDeptEntry.municipalities || []).find(m => m.name === filters.municipality)
+    : null;
+  const catalogZoneOptions = locationCatalog && filters.department && filters.municipality
+    ? (catalogMuniEntry?.zones || []).map(z => ({ value: z.name, label: z.name }))
+    : null;
+
+  const deptOptions = catalogDeptOptions ?? legacyDeptOptions;
+  const muniOptions = filters.department
+    ? (catalogMuniOptions ?? legacyMuniOptions)
+    : [];
+  const zoneOptions = filters.municipality
+    ? (catalogZoneOptions ?? legacyZoneOptions)
     : [];
 
   const formatCurrencyShort = (value) => {

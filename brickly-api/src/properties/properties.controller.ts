@@ -104,6 +104,11 @@ export class PropertiesController {
     return this.propertiesService.getPriceRange();
   }
 
+  @Get('locations')
+  getLocations() {
+    return this.propertiesService.getLocationsTree();
+  }
+
   
 
   @Get(':id')

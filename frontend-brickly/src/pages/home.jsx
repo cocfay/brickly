@@ -60,7 +60,8 @@ import { getLogoUrl } from '../services/logoService'
 import { useFavorites } from '../hooks/useFavorites'
 import StarRating from '../components/StarRating';
 import { cleanExpiredFeatured } from '../services/cleanExpiredFeatured';
-import { fetchAllPages, fetchPropertiesByPriceRange, fetchPropertiesByLocation } from '../utils/fetchAll';
+import { fetchAllPages, fetchPropertiesByPriceRange, } from '../utils/fetchAll';
+import { getLocationCatalog } from '../services/locationCatalog';
 import { registerWSClick } from '../services/countWS';
 import { getAgencyProfilePath, getUserProfilePath } from '../utils/profileRoutes';
 import { getPropertyPath } from '../utils/propertyRoutes';
@@ -343,18 +344,41 @@ function Home() {
   const [locationCounts, setLocationCounts] = useState(locationConfigs.map(() => 0));
   const [locationCountsLoaded, setLocationCountsLoaded] = useState(false);
 
-  // Cargar contadores de ubicación desde la API con filtros de ubicación
+  // Cargar contadores de ubicación desde el catálogo liviano (1 request con caché)
+  // en lugar de descargar todas las propiedades por cada ubicación
   useEffect(() => {
     const loadLocationCounts = async () => {
       try {
-        const results = await Promise.all([
-          fetchPropertiesByLocation(API_URL, { department: 'Guatemala', zone: 'Zona 10' }).catch(() => []),
-          fetchPropertiesByLocation(API_URL, { department: 'Sacatepéquez', municipality: 'Antigua Guatemala' }).catch(() => []),
-          fetchPropertiesByLocation(API_URL, { department: 'Guatemala', zone: 'Zona 14' }).catch(() => []),
-          fetchPropertiesByLocation(API_URL, { department: 'Escuintla' }).catch(() => []),
-          fetchPropertiesByLocation(API_URL, { department: 'Guatemala', zone: 'Zona 16' }).catch(() => []),
-        ]);
-        setLocationCounts(results.map(data => data.length));
+        const catalog = await getLocationCatalog();
+
+        if (!catalog) return; // fallo: los contadores quedan en 0 (mismo comportamiento que hoy)
+
+        const resolveCount = (cfgFilters) => {
+          const dept = catalog.find(d => d.name === cfgFilters.department);
+          if (!dept) return 0;
+
+          if (!cfgFilters.municipality && !cfgFilters.zone) return dept.count;
+
+          const munis = cfgFilters.municipality
+            ? (dept.municipalities || []).filter(m => m.name === cfgFilters.municipality)
+            : (dept.municipalities || []);
+
+          if (cfgFilters.municipality && munis.length === 0) return 0;
+
+          if (!cfgFilters.zone) {
+            return munis.reduce((sum, m) => sum + (m.count || 0), 0);
+          }
+
+          let total = 0;
+          for (const m of munis) {
+            for (const z of (m.zones || [])) {
+              if (z.name === cfgFilters.zone) total += z.count || 0;
+            }
+          }
+          return total;
+        };
+
+        setLocationCounts(locationConfigs.map(cfg => resolveCount(cfg.filters)));
       } catch (e) {
         console.error('Error cargando contadores de ubicación:', e);
       } finally {
@@ -362,7 +386,7 @@ function Home() {
       }
     };
     loadLocationCounts();
-  }, []);
+  }, [locationConfigs]);
 
   // Rangos fijos: base USD, GTQ = USD * 7.8
   const TC = 7.8; // tipo de cambio aproximado
