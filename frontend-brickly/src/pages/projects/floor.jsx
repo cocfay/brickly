@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { FormattedMessage } from "react-intl";
 import GLightbox from 'glightbox';
 import 'glightbox/dist/css/glightbox.min.css';
+import '../../assets/css/glightbox-custom.css';
 
 import tour    from '../../assets/images/iconos/IconoTour.png';
 import arrow   from '../../assets/images/iconos/arrow.png';

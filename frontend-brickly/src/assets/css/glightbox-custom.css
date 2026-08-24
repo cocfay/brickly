@@ -51,3 +51,39 @@
     height: 40px;
   }
 }
+
+/* GLightbox: Ajuste correcto de imágenes muy grandes */
+/* Por defecto GLightbox usa object-fit: cover (recorta la imagen) y max de 100vh/100vw */
+/* (la imagen tapa flechas y botón de cerrar). Esto fuerza a mostrar la imagen completa */
+/* y con margen para que los controles sigan accesibles */
+
+.glightbox-container .gslide-image img,
+.glightbox-container .desc-top .gslide-image img,
+.glightbox-container .desc-bottom .gslide-image img,
+.glightbox-container .desc-left .gslide-image img,
+.glightbox-container .desc-right .gslide-image img {
+  object-fit: contain !important;
+  width: auto !important;
+  height: auto !important;
+  max-width: calc(100vw - 110px);
+  max-height: calc(100vh - 30px);
+}
+
+/* Sin zoom activo, mantener centrado dentro del contenedor */
+.glightbox-container .gslide-image {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+/* En móviles dejar margen solo lateral (flechas más angostas) */
+@media screen and (max-width: 769px) {
+  .glightbox-container .gslide-image img,
+  .glightbox-container .desc-top .gslide-image img,
+  .glightbox-container .desc-bottom .gslide-image img,
+  .glightbox-container .desc-left .gslide-image img,
+  .glightbox-container .desc-right .gslide-image img {
+    max-width: calc(100vw - 90px);
+    max-height: calc(100dvh - 24px);
+  }
+}
