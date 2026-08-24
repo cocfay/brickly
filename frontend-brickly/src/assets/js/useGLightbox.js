@@ -7,6 +7,17 @@ const useGLightbox = (options = {}, deps = []) => {
   const lightboxRef = useRef(null);
 
   useEffect(() => {
+    // Quitar el foco del trigger antes de abrir el lightbox:
+    // GLightbox marca #root con aria-hidden y el navegador bloquea la
+    // aplicación si un elemento enfocado queda dentro (advertencia a11y).
+    const blurTrigger = (e) => {
+      const trigger = e.target && e.target.closest ? e.target.closest('a.glightbox') : null;
+      if (trigger && typeof trigger.blur === 'function') {
+        trigger.blur();
+      }
+    };
+    document.addEventListener('click', blurTrigger, true);
+
     const init = () => {
       if (lightboxRef.current) {
         lightboxRef.current.destroy();
@@ -28,6 +39,7 @@ const useGLightbox = (options = {}, deps = []) => {
 
     return () => {
       clearTimeout(timer);
+      document.removeEventListener('click', blurTrigger, true);
       if (lightboxRef.current) {
         lightboxRef.current.destroy();
         lightboxRef.current = null;

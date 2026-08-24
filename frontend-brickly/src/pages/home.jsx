@@ -1051,6 +1051,7 @@ function Home() {
                                 }));
                                 const currentUrl = preview ? preview : URL + '/' + item.media.photos[0].path;
                                 const startAt = photos.findIndex(p => p.href === currentUrl);
+                                if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
                                 const lb = GLightbox({
                                   elements: photos,
                                   startAt: startAt >= 0 ? startAt : 0,

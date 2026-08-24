@@ -171,6 +171,7 @@ function Apartament({ preview = false }) {
         const galeria = project ? project.imagenesGaleria : [];
         const elements = galeria.map(img => ({ href: img, type: 'image' }));
         const startAt = galeria.indexOf(startImg);
+        if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
         const lb = GLightbox({
             elements,
             startAt: startAt >= 0 ? startAt : 0,
