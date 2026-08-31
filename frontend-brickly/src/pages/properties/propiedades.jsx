@@ -877,7 +877,7 @@ function Propiedades() {
     <>
         <SEO
           title="Propiedades"
-          description="Explora nuestra amplia selección de propiedades en venta y alquiler en Guatemala. Casas, apartamentos, terrenos, oficinas y más. Filtra por precio, ubicación y tipo."
+          description="Explora las mejores propiedades en venta y alquiler en todo Guatemala. Casas, apartamentos, terrenos, oficinas y proyectos. Filtra por precio y ubicación."
           url="https://www.bricklyhomes.com/propiedades"
         />
         <Container>

@@ -6,6 +6,7 @@ import { CreatePropertyDto } from './dto/create-property.dto';
 import { UpdatePropertyDto } from './dto/update-property.dto';
 import { Types } from 'mongoose';
 import { User } from '../users/user.schema';
+import { Role } from '../auth/roles.enum';
 import { ContactService } from '../contact/contact.service';
 import { ActivityLogsService } from '../activitylogs/activitylogs.service';
 
@@ -276,6 +277,467 @@ export class PropertiesService {
       { $inc: { clickCounter: 1 } },
       { new: true }
     );
+  }
+
+  async trackPropertyView(userId: string, propertyId: string) {
+    const property = await this.propertyModel.findById(propertyId);
+    if (!property) throw new NotFoundException('Property not found');
+
+    const user = await this.userModel.findById(userId);
+    if (!user) throw new NotFoundException('User not found');
+
+    if (!Array.isArray(user.roles) || !user.roles.includes(Role.CLIENTE)) {
+      return { tracked: false, reason: 'usuario no es cliente' };
+    }
+
+    const lastNewsletterPropertyId = user.lastNewsletterProperty
+      ? user.lastNewsletterProperty.toString()
+      : null;
+
+    const newsletterRecommendationSent =
+      lastNewsletterPropertyId === propertyId
+        ? user.newsletterRecommendationSent ?? false
+        : false;
+
+    await this.userModel.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          lastViewedProperty: new Types.ObjectId(propertyId),
+          lastViewedAt: new Date(),
+          newsletterRecommendationSent,
+        },
+      },
+      { new: true },
+    );
+
+    return { tracked: true, newsletterRecommendationSent };
+  }
+
+  async sendRecommendationNewsletters() {
+    const pendingUsers = await this.userModel.find({
+      roles: 'cliente',
+      isEnabled: { $ne: false },
+      lastViewedProperty: { $exists: true, $ne: null },
+      newsletterRecommendationSent: false,
+    });
+
+    let enviados = 0;
+    let errores = 0;
+    const erroresDetalle: string[] = [];
+    const enviadosDetalle: { email: string; messageId?: string; status?: number }[] = [];
+
+    for (const user of pendingUsers) {
+      try {
+        const viewed = await this.propertyModel.findById(user.lastViewedProperty);
+
+        if (!viewed || viewed.status !== 'published') {
+          await this.userModel.findByIdAndUpdate(user._id, {
+            $set: {
+              newsletterRecommendationSent: true,
+              newsletterRecommendationSentAt: new Date(),
+              lastNewsletterProperty: user.lastViewedProperty,
+            },
+          });
+          continue;
+        }
+
+        const zone = viewed.location?.zone as string | undefined;
+
+        let recommended: any[] = [];
+        if (zone) {
+          recommended = await this.propertyModel
+            .find({
+              _id: { $ne: viewed._id },
+              status: 'published',
+              'location.zone': zone,
+            })
+            .limit(4)
+            .lean();
+        }
+
+        if (recommended.length < 4) {
+          const excludeIds = [
+            viewed._id,
+            ...recommended.map((r) => r._id),
+          ];
+          const missing = 4 - recommended.length;
+          const extra = await this.propertyModel
+            .find({
+              _id: { $nin: excludeIds },
+              status: 'published',
+            })
+            .limit(missing)
+            .lean();
+          recommended = [...recommended, ...extra];
+        }
+
+        const html = this.recommendationNewsletterHtml({
+          user,
+          viewed,
+          recommended,
+          zone,
+        });
+
+        const sent = await this.ContactService.sendEmail({
+          emailTo: user.email,
+          name: user.name,
+          subject: `Viste una propiedad en ${zone || 'tu zona'}, te recomendamos estas opciones`,
+          html,
+        });
+
+        if (!sent.ok) {
+          throw new Error('El envío del correo no fue confirmado');
+        }
+
+        enviadosDetalle.push({
+          email: user.email,
+          messageId: sent.messageId,
+          status: sent.status,
+        });
+
+        await this.userModel.findByIdAndUpdate(user._id, {
+          $set: {
+            newsletterRecommendationSent: true,
+            newsletterRecommendationSentAt: new Date(),
+            lastNewsletterProperty: viewed._id,
+          },
+        });
+
+        enviados++;
+      } catch (error: any) {
+        errores++;
+        erroresDetalle.push(`${user.email}: ${error?.message || error}`);
+      }
+    }
+
+    return {
+      total: pendingUsers.length,
+      enviados,
+      errores,
+      erroresDetalle,
+      enviadosDetalle,
+    };
+  }
+
+  async debugRecommendationNewsletters() {
+    const pendingFilter = {
+      roles: 'cliente',
+      isEnabled: { $ne: false },
+      lastViewedProperty: { $exists: true, $ne: null },
+      newsletterRecommendationSent: false,
+    };
+
+    const users = await this.userModel
+      .find(
+        { roles: 'cliente' },
+        {
+          email: 1,
+          name: 1,
+          isEnabled: 1,
+          roles: 1,
+          lastViewedProperty: 1,
+          lastViewedAt: 1,
+          lastNewsletterProperty: 1,
+          newsletterRecommendationSent: 1,
+          newsletterRecommendationSentAt: 1,
+        },
+      )
+      .lean();
+
+    return {
+      filtroPendientes: pendingFilter,
+      totalClientes: users.length,
+      usuarios: users.map((u) => ({
+        ...u,
+        coincidiriaEnvio: !(
+          u.isEnabled === false ||
+          !u.lastViewedProperty ||
+          u.newsletterRecommendationSent === true
+        ),
+      })),
+    };
+  }
+
+  private absoluteAsset(path?: string) {
+    if (!path) return '';
+    if (/^https?:\/\//.test(path)) return path;
+    return `https://ws-identity.bricklyhomes.com/${path.replace(/^\/+/, '')}`;
+  }
+
+  private propertyLink(property: any) {
+    return `https://www.bricklyhomes.com/propiedades/${property.propertySlug || property._id}`;
+  }
+
+  private propertyPrice(property: any) {
+    const market = property.market || {};
+    if (market.priceUSD) return `$${Number(market.priceUSD).toLocaleString('en-US')}`;
+    if (market.price) return `Q${Number(market.price).toLocaleString('en-US')}`;
+    return 'Consultar precio';
+  }
+
+  private static readonly REC_ICONS = {
+    bed: 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzExMSI+PHBhdGggZD0iTTMgMTh2LTVhMiAyIDAgMCAxIDItMmgxNGEyIDIgMCAwIDEgMiAydjVoLTJ2LTJINXYySDN6bTItOHYxaDE0di0xSDV6Ii8+PGNpcmNsZSBjeD0iNyIgY3k9IjEyIiByPSIxLjYiLz48L3N2Zz4=',
+    bath: 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzExMSI+PHBhdGggZD0iTTQgMTJoMTZ2MWE0IDQgMCAwIDEtNCA0SDhhNCA0IDAgMCAxLTQtNHYtMXptMSAxYTMgMyAwIDAgMCAzIDNoOGEzIDMgMCAwIDAgMy0zSDV6Ii8+PHBhdGggZD0iTTYgNmEyIDIgMCAwIDEgMi0yYy40IDAgLjguMSAxLjEuM0w4IDZhMSAxIDAgMCAwLS45LS45eiIvPjwvc3ZnPg==',
+    car: 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzExMSI+PHBhdGggZD0iTTUgMTFsMS41LTQuNkEyIDIgMCAwIDEgOC40IDVoNy4yYTIgMiAwIDAgMSAxLjkgMS40TDE5IDExYTIgMiAwIDAgMSAyIDJ2NGgtMmEyIDIgMCAxIDEtNCAwSDlhMiAyIDAgMSAxLTQgMEgzdi00YTIgMiAwIDAgMSAyLTJ6bTItMWgxMGwtLjctMi4yYS42LjYgMCAwIDAtLjYtLjRIOC4zYS42LjYgMCAwIDAtLjYuNEw3IDEweiIvPjwvc3ZnPg==',
+    pin: 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik0xMiAyMXMtNy02LjEtNy0xMWE3IDcgMCAxIDEgMTQgMGMwIDQuOS03IDExLTcgMTF6Ii8+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMCIgcj0iMi41IiBmaWxsPSIjMTExIi8+PC9zdmc+',
+    home: 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik0zIDEwLjUgMTIgM2w5IDcuNVYyMGExIDEgMCAwIDEtMSAxaC01di02aC02djZINGExIDEgMCAwIDEtMS0xdi05LjV6Ii8+PC9zdmc+',
+    expand: 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjIuNCI+PHBhdGggZD0iTTcgMTcgMTcgN005IDdoOHY4Ii8+PC9zdmc+',
+  };
+
+  private recommendationIcon(b64: string, size = 14) {
+    return `<img src="data:image/svg+xml;base64,${b64}" alt="" width="${size}" height="${size}" style="width:${size}px; height:${size}px; vertical-align:-2px; display:inline-block; border:0;">`;
+  }
+
+  private recommendationDescriptionBlock(p: any, titleSize = '20px', truncate = false) {
+    const icon = this.recommendationIcon;
+    const title = p.market?.title || 'Propiedad';
+    const link = this.propertyLink(p);
+    const loc = p.location || {};
+    const layout = p.layout || {};
+    const dim = p.dimensions || {};
+
+    const truncateStyle = truncate ? ' white-space:nowrap; overflow:hidden; text-overflow:ellipsis;' : '';
+
+    const locParts: string[] = [];
+    if (loc.department && String(loc.department).toLowerCase() !== 'ninguno') locParts.push(loc.department);
+    if (loc.municipality && String(loc.municipality).toLowerCase() !== 'ninguno') locParts.push(loc.municipality);
+    if (loc.zone && String(loc.zone).toLowerCase() !== 'ninguno') locParts.push(`Zona ${loc.zone}`);
+    const locationText = locParts.join(', ');
+
+    const bedrooms = layout.bedrooms || 0;
+    const bathrooms = (layout.bathrooms || 0) + (layout.halfBathrooms || 0);
+    const parking = layout.parkingSpots || 0;
+    const landM2 = dim.landM2 || 0;
+    const landV2 = dim.landV2 || 0;
+
+    const specs: string[] = [];
+    if (bedrooms > 0) specs.push(`<span style="display:inline-block; margin-right:12px;">${icon(PropertiesService.REC_ICONS.bed)}<span style="vertical-align:2px; margin-left:5px; color:#333333;">${bedrooms}</span></span>`);
+    if (bathrooms > 0) specs.push(`<span style="display:inline-block; margin-right:12px;">${icon(PropertiesService.REC_ICONS.bath)}<span style="vertical-align:2px; margin-left:5px; color:#333333;">${bathrooms}</span></span>`);
+    if (parking > 0) specs.push(`<span style="display:inline-block; margin-right:12px;">${icon(PropertiesService.REC_ICONS.car)}<span style="vertical-align:2px; margin-left:5px; color:#333333;">${parking}</span></span>`);
+    if (landM2 > 0) specs.push(`<span style="display:inline-block;">${icon(PropertiesService.REC_ICONS.car)}<span style="vertical-align:2px; margin-left:5px; color:#333333;">${landM2}m²</span></span>`);
+    else if (landV2 > 0) specs.push(`<span style="display:inline-block;">${icon(PropertiesService.REC_ICONS.car)}<span style="vertical-align:2px; margin-left:5px; color:#333333;">${landV2}v²</span></span>`);
+    const specsHtml = specs.length ? `<div style="margin:9px 0 0 0; font-size:13px; line-height:18px; color:#333333;">${specs.join('')}</div>` : '';
+
+    const modeBadge = p.market?.mode
+      ? p.market.mode === 'Venta'
+        ? `<span style="display:inline-block; background-color:#111111; color:#ffffff; font-size:12px; font-weight:600; padding:3px 14px; border-radius:4px; line-height:16px;">Venta</span>`
+        : p.market.mode === 'Alquiler'
+          ? `<span style="display:inline-block; background-color:#B65740; color:#ffffff; font-size:12px; font-weight:600; padding:3px 14px; border-radius:4px; line-height:16px;">Alquiler</span>`
+          : ''
+      : '';
+
+    return `
+                <a href="${link}" target="_blank" style="text-decoration:none;">
+                  <p style="margin:0; font-family:'Apple Garamond',Georgia,serif; font-size:${titleSize}; line-height:28px; font-weight:700; color:#111111;${truncateStyle}">${title}</p>
+                </a>
+                ${locationText ? `<p style="margin:6px 0 0 0; font-size:13px; line-height:18px; color:#555555;">${icon(PropertiesService.REC_ICONS.pin, 13)}<span style="vertical-align:1px; margin-left:4px;">${locationText}</span></p>` : ''}
+                ${p.market?.type ? `<p style="margin:4px 0 0 0; font-size:13px; line-height:18px; color:#555555;">Tipo: ${p.market.type}</p>` : ''}
+                ${specsHtml}
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top:10px;">
+                  <tr>
+                    <td align="left" style="font-size:16px; font-weight:700; color:#111111; line-height:22px;">${this.propertyPrice(p)}</td>
+                    <td align="right">
+                      ${p.market?.mode ? `<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="display:inline-block;"><tr><td>${modeBadge}</td></tr></table>` : ''}
+                    </td>
+                  </tr>
+                </table>
+              `;
+  }
+
+  private recommendationCardHtml(p: any) {
+    const photo = this.absoluteAsset(
+      p.media?.photos?.find((pp: any) => pp.isMain)?.path ||
+        p.media?.photos?.[0]?.path,
+    );
+    const title = p.market?.title || 'Propiedad';
+    const link = this.propertyLink(p);
+
+    const featuredHtml = p.featured?.isActive
+      ? `<div style="position:absolute; top:10px; left:10px; background-color:#000000c7; color:#ffffff; font-size:12px; font-weight:600; padding:4px 12px; border-radius:20px; line-height:16px;"><span style="color:#FFC94D; margin-right:6px;">&#9670;</span>Destacada</div>`
+      : '';
+
+    return `
+            <div class="col-50" style="display:inline-block; width:100%; max-width:252px; vertical-align:top; font-size:0; text-align:left; margin-right:22px; margin-bottom:34px;">
+              <div style="position:relative; border-radius:16px; overflow:hidden; font-size:14px;">
+                <a href="${link}" target="_blank">
+                  <img src="${photo}" alt="${title}" width="270" style="width:100%; display:block; border:0; border-radius:16px; aspect-ratio:1/1; object-fit:cover;">
+                </a>
+                ${featuredHtml}
+                <div style="position:absolute; right:10px; bottom:10px; width:28px; height:28px; background-color:#ffffff; border-radius:50%; text-align:center; line-height:28px;">${this.recommendationIcon(PropertiesService.REC_ICONS.expand, 14)}</div>
+              </div>
+              <div style="padding-top:12px; font-size:14px;">
+                ${this.recommendationDescriptionBlock(p, '20px', true)}
+              </div>
+            </div>
+          `;
+  }
+
+  private recommendationNewsletterHtml(data: {
+    user: any;
+    viewed: any;
+    recommended: any[];
+    zone?: string;
+  }) {
+    const { user, viewed, recommended, zone } = data;
+
+    const viewedPhoto = this.absoluteAsset(
+      viewed.media?.photos?.find((p: any) => p.isMain)?.path ||
+        viewed.media?.photos?.[0]?.path,
+    );
+    const viewedTitle = viewed.market?.title || 'Propiedad';
+    const viewedLink = this.propertyLink(viewed);
+
+    const cards = recommended
+      .map((p) => this.recommendationCardHtml(p))
+      .join('');
+
+    return `
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Te recomendamos propiedades - Brickly Homes</title>
+          <style>
+              @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700&display=swap');
+
+              @media screen and (max-width: 600px) {
+                  .wrapper { width: 100% !important; max-width: 100% !important; }
+                  .col-50 { width: 100% !important; max-width: 100% !important; display: block !important; margin-right: 0 !important; }
+                  .col-33 { width: 100% !important; max-width: 100% !important; display: block !important; margin-bottom: 30px !important; }
+                  .hide-mobile { display: none !important; }
+                  .padding-mobile { padding: 25px 20px !important; }
+                  .text-center-mobile { text-align: center !important; }
+                  .img-full { width: 100% !important; height: auto !important; }
+                  .no-border-mobile { border: none !important; }
+              }
+              @media (prefers-color-scheme: dark) {
+                  .logo-dark { display: none !important; }
+                  .logo-light { display: block !important; }
+              }
+              [data-ogsc] .logo-dark { display: none !important; }
+              [data-ogsc] .logo-light { display: block !important; }
+              [data-ogsb] .logo-dark { display: none !important; }
+              [data-ogsb] .logo-light { display: block !important; }
+          </style>
+          </head>
+      <body style="margin:0; padding:0; background-color:#ffffff; font-family:'Plus Jakarta Sans', system-ui, Arial, sans-serif; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
+
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" width="600" class="wrapper" style="margin:0 auto; background-color:#ffffff; width:600px; max-width:600px;">
+
+              <!-- HEADER -->
+              <tr>
+                  <td style="padding: 25px 20px;">
+                      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                          <tr>
+                              <td align="left">
+                                  <a href="https://www.bricklyhomes.com" target="_blank">
+                                      <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-dark">
+                                      <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_blanco.png" alt="Brickly Homes" width="150" style="display:none; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-light">
+                                  </a>
+                              </td>
+                              <td align="right" style="vertical-align: middle;">
+                                  <img src="https://www.bricklyhomes.com/newsletters/iconos/newsletter.png" alt="Contacto" width="24" height="24" style="display:block; border:0;">
+                              </td>
+                          </tr>
+                      </table>
+                  </td>
+              </tr>
+
+              <!-- PROPIEDAD VISTA -->
+              <tr>
+                  <td style="padding: 0 20px 35px 20px;">
+                      <div style="background-color:#f8f9fa; border-radius: 24px; overflow: hidden; font-size: 0; max-width: 560px;">
+                          <div style="display: block; width: 100%; max-width: 560px; font-size: 14px;">
+                              <img src="${viewedPhoto}" alt="${viewedTitle}" class="img-full" style="display:block; width:100%; height:auto; border:0;">
+                          </div>
+                          <div class="padding-mobile" style="padding: 25px 25px 30px 25px; font-size: 14px;">
+                              <p style="margin: 0 0 12px 0; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #999999; font-weight: 700;">${zone ? `Viste esta propiedad en la Zona ${zone}` : 'Viste esta propiedad'}</p>
+                              ${this.recommendationDescriptionBlock(viewed, '26px', false)}
+                              <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin-top:16px;">
+                                  <tr>
+                                      <td align="center" style="background-color: #000000; border-radius: 20px;">
+                                          <a href="${viewedLink}" target="_blank" style="padding: 12px 35px; display: block; font-size: 14px; font-weight: bold; color: #ffffff; text-decoration: none;">Ver propiedad</a>
+                                      </td>
+                                  </tr>
+                              </table>
+                          </div>
+                      </div>
+                      </td>
+              </tr>
+
+              <!-- TÍTULO RECOMENDADAS -->
+              <tr>
+                  <td align="center" style="padding: 15px 20px 30px 20px;">
+                      <h2 style="margin: 0; font-size: 24px; line-height: 30px; color: #111111; font-weight: 700;">Te recomendamos estas propiedades${zone ? `<br />en la Zona ${zone}` : ''}</h2>
+                  </td>
+              </tr>
+
+              <!-- LISTA DE RECOMENDADAS -->
+              <tr>
+                  <td style="padding: 0 20px 40px 20px; font-size: 0;">
+                      ${cards}
+                      </td>
+              </tr>
+
+              <!-- CTA -->
+              <tr>
+                  <td align="center" style="padding: 10px 20px 45px 20px; border-bottom: 1px solid #eeeeee;">
+                      <h2 style="margin: 0 0 10px 0; font-size: 24px; line-height: 28px; color: #111111; font-weight: 700;">¿Listo para encontrar tu próximo hogar?</h2>
+                      <p style="margin: 0 0 25px 0; font-size: 14px; line-height: 20px; color: #555555; max-width: 440px;">Explora más opciones que se ajustan a ti desde nuestra plataforma.</p>
+
+                      <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                          <tr>
+                              <td align="center" style="background-color: #000000; border-radius: 20px;">
+                                  <a href="https://www.bricklyhomes.com/propiedades" target="_blank" style="padding: 12px 35px; display: block; font-size: 14px; font-weight: bold; color: #ffffff; text-decoration: none;">Explorar más propiedades</a>
+                              </td>
+                          </tr>
+                      </table>
+                  </td>
+              </tr>
+
+              <!-- FOOTER -->
+              <tr>
+                  <td style="background-color: #1a2129; padding: 40px 20px;">
+                      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                          <tr>
+                              <td style="font-size: 0;">
+                                  <div class="col-50 text-center-mobile" style="display: inline-block; width: 100%; max-width: 280px; vertical-align: middle; margin-bottom: 20px;">
+                                      <a href="https://www.bricklyhomes.com" target="_blank">
+                                          <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_blanco.png" alt="Brickly Homes" width="130" style="border:0; display: inline-block;">
+                                      </a>
+                                  </div>
+
+                                  <div class="col-50 text-center-mobile" style="display: inline-block; width: 100%; max-width: 280px; vertical-align: middle; text-align: right; margin-bottom: 20px;">
+                                      <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="display:inline-block;">
+                                          <tr>
+                                              <td style="padding: 0 10px;"><a href="https://www.facebook.com/profile.php?id=61588999228778" target="_blank"><img src="https://www.bricklyhomes.com/newsletters/iconos/FB.png" alt="Facebook" width="20" height="20"></a></td>
+                                              <td style="padding: 0 10px;"><a href="https://wa.me/50237649719?text=%C2%A1Hola!%20Deseo%20contactar%20a%20un%20asesor." target="_blank"><img src="https://www.bricklyhomes.com/newsletters/iconos/WS.png" alt="WhatsApp" width="20" height="20"></a></td>
+                                              <td style="padding: 0 10px;"><a href="https://www.instagram.com/bricklyoficial/" target="_blank"><img src="https://www.bricklyhomes.com/newsletters/iconos/IG.png" alt="Instagram" width="20" height="20"></a></td>
+                                              <td style="padding: 0 10px;"><a href="https://www.linkedin.com/company/bricklygt/" target="_blank"><img src="https://www.bricklyhomes.com/newsletters/iconos/IN.png" alt="LinkedIn" width="20" height="20"></a></td>
+                                              <td style="padding: 0 10px;"><a href="https://www.tiktok.com/@bricklyhomes?_r=1&_t=ZP-95NIrCBiYAQ" target="_blank"><img src="https://www.bricklyhomes.com/newsletters/iconos/TT.png" alt="TikTok" width="20" height="20"></a></td>
+                                          </tr>
+                                      </table>
+                                  </div>
+
+                                  </td>
+                          </tr>
+                          <tr>
+                              <td align="center" style="border-top: 1px solid #2d3743; padding-top: 25px; font-size: 12px; color: #a0aec0; line-height: 18px;">
+                                  <p style="margin: 0 0 10px 0;">© Brickly. Todos los derechos reservados</p>
+                                  <p style="margin: 0;">¿No quieres recibir más correos? <a href="#" style="color:#ffffff; text-decoration:underline;">Darse de baja</a></p>
+                              </td>
+                          </tr>
+                      </table>
+                  </td>
+              </tr>
+
+          </table>
+
+      </body>
+      </html>
+    `;
   }
 
   async activateFeatured(propertyId: string, isActive: boolean, userId?: string) {

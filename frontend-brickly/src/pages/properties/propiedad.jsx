@@ -12,7 +12,7 @@ import StarRating from '../../components/StarRating';
 
 import { getPropiedades, getPropiedadById } from '../../cpanel/services/propiedades';
 import { getUsers } from '../../services/listUsers';
-import { getCurrentUser, API_URL, isAuthenticated } from '../../services/authService';
+import { getCurrentUser, getToken, API_URL, isAuthenticated } from '../../services/authService';
 import { checkAssignmentEligibility, createAssignmentRequest } from '../../services/assignmentRequestService';
 import { amenitiesMap } from '../../cpanel/data/amenites'
 import ContactForm from '../../components/ContactForm';
@@ -87,6 +87,16 @@ function Propiedad() {
         fetch(`${API_URL}/properties/${data._id}/visit`, { method: 'POST' })
             .then(() => localStorage.setItem(visitKey, '1'))
             .catch(e => console.error('Error registrando visita', e))
+    }, [data?._id])
+
+    useEffect(() => {
+        if (!data?._id) return
+        if (!isAuthenticated()) return
+        const token = getToken()
+        fetch(`${API_URL}/properties/${data._id}/track-view`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+        }).catch(e => console.error('Error registrando vista de cliente', e))
     }, [data?._id])
 
     useEffect(()  => {

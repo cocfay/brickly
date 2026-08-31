@@ -3,11 +3,31 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 import fs from 'fs'
 
-
-
+// Lee variables de un archivo .env (sin depender del orden de precedencia de Vite)
+function readEnvFile(file) {
+  const result = {}
+  if (!fs.existsSync(file)) return result
+  const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/)
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+    const eq = trimmed.indexOf('=')
+    if (eq < 1) continue
+    const key = trimmed.slice(0, eq).trim()
+    let value = trimmed.slice(eq + 1).trim()
+    if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1)
+    if (value.startsWith("'") && value.endsWith("'")) value = value.slice(1, -1)
+    result[key] = value
+  }
+  return result
+}
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '')
+  let env = loadEnv(mode, process.cwd(), '')
+  // En producción, .env (config de producción) tiene prioridad sobre .env.local (dev)
+  if (mode === 'production') {
+    env = { ...env, ...readEnvFile(path.resolve(process.cwd(), '.env')) }
+  }
   const basePath = env.VITE_BASE_PATH || '/'
   // Normalizar: asegurar que empiece con / y no termine con /
   const normalizedBase = '/' + basePath.replace(/^\/+|\/+$/g, '')

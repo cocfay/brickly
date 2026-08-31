@@ -2,11 +2,7 @@
   RewriteEngine On
 
   # RewriteBase dinámico: /brickly/ en producción, / en local
-  RewriteCond %{HTTP_HOST} ^(localhost|127\.0\.0\.1) [NC]
-  RewriteRule ^ - [E=BASE:/]
-  RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1) [NC]
-  RewriteRule ^ - [E=BASE:/brickly/]
-  RewriteBase /
+  RewriteBase /brickly/
 
   # Si la ruta comienza con api/, redirigir al archivo PHP correspondiente
   RewriteRule ^api/upload-logo$ api/upload-logo.php [L,QSA]

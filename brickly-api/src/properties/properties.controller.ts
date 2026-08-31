@@ -111,6 +111,18 @@ export class PropertiesController {
 
   
 
+  @Get('newsletter/recommendations')
+  sendRecommendationNewsletters() {
+    return this.propertiesService.sendRecommendationNewsletters();
+  }
+
+  @Get('newsletter/recommendations/debug')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN)
+  debugRecommendationNewsletters() {
+    return this.propertiesService.debugRecommendationNewsletters();
+  }
+
   @Get(':id')
   //@UseGuards(AuthGuard('jwt'), RolesGuard)
   //@Roles(Role.ADMIN,Role.DESARROLLADORA,Role.AGENCIA)
@@ -279,6 +291,12 @@ export class PropertiesController {
   async incrementClicks(@Param('id') id: string) {
     await this.propertiesService.incrementClicks(id);
     return { success: true };
+  }
+
+  @Post(':id/track-view')
+  @UseGuards(AuthGuard('jwt'))
+  async trackView(@Param('id') id: string, @Req() req) {
+    return this.propertiesService.trackPropertyView(req.user.userId, id);
   }
   
   @Get('metricas/:id')

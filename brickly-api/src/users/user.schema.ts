@@ -113,6 +113,21 @@ export class User {
 
   @Prop({ type: Date, required: false })
   verifyAccountCodeExpires?: Date;
+
+  @Prop({ type: Types.ObjectId, ref: 'Property', default: null })
+  lastViewedProperty?: Types.ObjectId;
+
+  @Prop({ type: Date, required: false })
+  lastViewedAt?: Date;
+
+  @Prop({ type: Types.ObjectId, ref: 'Property', default: null })
+  lastNewsletterProperty?: Types.ObjectId;
+
+  @Prop({ type: Boolean, default: false })
+  newsletterRecommendationSent?: boolean;
+
+  @Prop({ type: Date, required: false })
+  newsletterRecommendationSentAt?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -29,3 +29,8 @@ users_response.json
 .cache/
 .vite/
 coverage/
+
+# Local development helpers
+start-local.cmd
+*.log
+.mongo/

@@ -1910,35 +1910,52 @@ export class ContactService {
   }
 
   public async sendEmail(data: { emailTo:string, name:string, subject:string, html:string }) {
-    try {
-      await axios.post(
-        this.API_URL,
-        {
-          sender: {
-            email: this.EMAIL_SENDER,
-            name: 'Brickly Homes',
+      try {
+        const resp = await axios.post(
+          this.API_URL,
+          {
+            sender: {
+              email: this.EMAIL_SENDER,
+              name: 'Brickly Homes',
+            },
+            to: [{
+                  email: data.emailTo,
+                  name: `${data.name}`,
+              },],
+            subject: `${data.subject}`,
+            htmlContent: `${data.html}`,
           },
-          to: [{
-                email: data.emailTo,
-                name: `${data.name}`,
-            },],
-          subject: `${data.subject}`,
-          htmlContent: `${data.html}`,
-        },
-        {
-          headers: {
-            'api-key': process.env.BREVO_API_KEY,
-            'Content-Type': 'application/json',
+          {
+            headers: {
+              'api-key': process.env.BREVO_API_KEY,
+              'Content-Type': 'application/json',
+            },
           },
-        },
-      );
-    } catch (error) {
-        if (axios.isAxiosError(error)) {
-            console.error(error.response?.data);
-        } else {
-            console.error(error);
-        }
-    }
+        );
+
+        console.log('[sendEmail] Brevo aceptó el correo', {
+          emailTo: data.emailTo,
+          subject: data.subject,
+          status: resp.status,
+          messageId: resp.data?.messageId ?? resp.data?.messageIds ?? null,
+        });
+
+        return {
+          ok: true,
+          status: resp.status,
+          messageId: resp.data?.messageId ?? resp.data?.messageIds ?? null,
+        };
+      } catch (error) {
+        const brevoInfo = axios.isAxiosError(error)
+          ? { status: error.response?.status, data: error.response?.data, mensaje: error.message }
+          : String(error);
+        console.error('[sendEmail] Brevo rechazó el correo', {
+          emailTo: data.emailTo,
+          subject: data.subject,
+          brevoInfo,
+        });
+        throw new Error(`Brevo rechazó el envío a ${data.emailTo}: ${JSON.stringify(brevoInfo)}`);
+      }
   }
 
   public async sendProjectLeadEmails(data: {
