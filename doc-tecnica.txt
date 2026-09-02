@@ -1,0 +1,9 @@
+Para comprimir:
+tar -cvf brickly-api.tar brickly-api/
+
+Revisar el WS:
+https://ws-identity.bricklyhomes.com/properties
+
+Revisar log
+docker-compose logs
+docker-compose logs -f nestjs

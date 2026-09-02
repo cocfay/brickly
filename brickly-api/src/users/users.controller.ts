@@ -46,6 +46,20 @@ export class UsersController {
     return this.usersService.findAll(query);
   }
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN)
+  @Get('report/agencies')
+  agenciesReport() {
+    return this.usersService.agenciesReport();
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN)
+  @Get('report/agents')
+  agentsReport() {
+    return this.usersService.agentsReport();
+  }
+
   @Get('profile/:slug')
   getUserByProfileSlug(@Param('slug') slug: string) {
     return this.usersService.findByProfileSlug(slug);

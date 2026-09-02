@@ -86,6 +86,9 @@ const CpSolicitudes = lazy(() => import('./cpanel/pages/solicitudes/index.jsx'))
 const CpRetryPayment = lazy(() => import('./cpanel/pages/retry-payment/index.jsx'));
 const CpFacturacion = lazy(() => import('./cpanel/pages/facturacion/index.jsx'));
 const CpReporteVentas = lazy(() => import('./cpanel/pages/reportes/ventas.jsx'));
+const CpReporteProyectos = lazy(() => import('./cpanel/pages/reportes/proyectos.jsx'));
+const CpReporteAgencias = lazy(() => import('./cpanel/pages/reportes/agencias.jsx'));
+const CpReporteAgentes = lazy(() => import('./cpanel/pages/reportes/agentes.jsx'));
 
 // Componente de carga mientras se descarga el chunk
 function PageLoader() {
@@ -189,6 +192,9 @@ const App = () => {
               <Route path="retry-payment" element={<CpRetryPayment />} />
               <Route path="facturacion" element={<CpFacturacion />} />
               <Route path="reportes/ventas" element={<CpReporteVentas />} />
+              <Route path="reportes/proyectos" element={<CpReporteProyectos />} />
+              <Route path="reportes/agencias" element={<CpReporteAgencias />} />
+              <Route path="reportes/agentes" element={<CpReporteAgentes />} />
             </Route>
 
           </Routes>

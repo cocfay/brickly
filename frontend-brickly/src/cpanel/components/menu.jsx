@@ -170,6 +170,18 @@ function Menu({open}){
                                     <i className="fa-solid fa-dollar-sign"></i> Ventas
                                     {isActive('/cpanel/reportes/ventas') && <ActiveIcon />}
                                 </Link>
+                                <Link to="/cpanel/reportes/proyectos" className="d-flex gap-2 align-items-center text-body">
+                                    <i className="fa-solid fa-building"></i> Proyectos
+                                    {isActive('/cpanel/reportes/proyectos') && <ActiveIcon />}
+                                </Link>
+                                <Link to="/cpanel/reportes/agencias" className="d-flex gap-2 align-items-center text-body">
+                                    <i className="fa-solid fa-people-group"></i> Agencias
+                                    {isActive('/cpanel/reportes/agencias') && <ActiveIcon />}
+                                </Link>
+                                <Link to="/cpanel/reportes/agentes" className="d-flex gap-2 align-items-center text-body">
+                                    <i className="fa-solid fa-user-tie"></i> Agentes
+                                    {isActive('/cpanel/reportes/agentes') && <ActiveIcon />}
+                                </Link>
                             </div>
                         )}
                     </div>

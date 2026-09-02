@@ -6,6 +6,7 @@ import { Review } from '../reviews/schemas/review.schema';
 import { Property } from '../properties/schemas/property.schema';
 import { Project } from '../projects/schemas/project.schema';
 import { Subscription } from '../subscriptions/schemas/subscription.schema';
+import { Leadform } from '../contact/schemas/leadform.schema';
 import * as bcrypt from 'bcrypt';
 import { Role } from '../auth/roles.enum';
 import { ActivityLogsService } from '../activitylogs/activitylogs.service';
@@ -47,6 +48,7 @@ export class UsersService {
     @InjectModel(Property.name) private propertyModel: Model<Property>,
     @InjectModel(Project.name) private projectModel: Model<Project>,
     @InjectModel(Subscription.name) private subscriptionModel: Model<Subscription>,
+    @InjectModel(Leadform.name) private leadformModel: Model<Leadform>,
     @InjectConnection() private connection: Connection,
     private readonly activityLogsService: ActivityLogsService,
     private readonly subService: SubscriptionsService,
@@ -1296,4 +1298,171 @@ export class UsersService {
     return { ...user, profileSlug };
   }
 
+  /**
+   * Reporte de agencias (solo admin).
+   * Para cada agencia calcula: propiedades totales/publicadas (propias + de sus
+   * agentes vía parentId), número de agentes, proyectos y leads (leadforms de
+   * sus agentes), además de los datos de suscripción y verificación.
+   */
+  async agenciesReport() {
+    const agencies = await this.userModel
+      .find({ roles: Role.AGENCIA } as any)
+      .select(
+        'name email phone avatar isEnabled accessBlocked ' +
+          'subscriptionPlan subscriptionStatus subscription_expire ' +
+          'featured_user verifyAccount clickCounter ' +
+          'ratingAverage ratingCount',
+      );
+
+    const rows = await Promise.all(
+      agencies.map(async (a) => {
+        const agencyId = a._id as Types.ObjectId;
+        const agents = await this.userModel
+          .find({ parentId: agencyId })
+          .select('_id')
+          .lean();
+        const agentIds = agents.map((u) => u._id as Types.ObjectId);
+        const allIds = [agencyId, ...agentIds];
+
+        const [totalProperties, totalPublished, projectsCount, leadsCount] =
+          await Promise.all([
+            this.propertyModel.countDocuments({ userId: { $in: allIds } }),
+            this.propertyModel.countDocuments({
+              userId: { $in: allIds },
+              status: 'published',
+            }),
+            this.projectModel.countDocuments({ userId: agencyId }),
+            this.leadformModel.countDocuments({
+              agentId: { $in: allIds },
+            }),
+          ]);
+
+        return {
+          id: a._id,
+          name: a.name || '',
+          email: a.email || '',
+          phone: a.phone || '',
+          avatar: a.avatar || '',
+          isEnabled: a.isEnabled !== false,
+          accessBlocked: Boolean(a.accessBlocked),
+          subscriptionPlan: a.subscriptionPlan || '',
+          subscriptionStatus: a.subscriptionStatus || 'INACTIVE',
+          subscriptionExpire: a.subscription_expire || null,
+          featured: Boolean(a.featured_user),
+          verified: Boolean(a.verifyAccount),
+          clicks: Number(a.clickCounter) || 0,
+          ratingAverage: Number(a.ratingAverage) || 0,
+          ratingCount: Number(a.ratingCount) || 0,
+          totalProperties,
+          totalPublished,
+          agentsCount: agentIds.length,
+          projectsCount,
+          leadsCount,
+        };
+      }),
+    );
+
+    return {
+      summary: {
+        totalAgencies: rows.length,
+        totalActive: rows.filter(
+          (r) => r.subscriptionStatus === 'ACTIVE',
+        ).length,
+        totalFeatured: rows.filter((r) => r.featured).length,
+        totalVerified: rows.filter((r) => r.verified).length,
+        totalProperties: rows.reduce(
+          (acc, r) => acc + r.totalProperties,
+          0,
+        ),
+        totalPublished: rows.reduce((acc, r) => acc + r.totalPublished, 0),
+        totalAgents: rows.reduce((acc, r) => acc + r.agentsCount, 0),
+        totalProjects: rows.reduce((acc, r) => acc + r.projectsCount, 0),
+        totalLeads: rows.reduce((acc, r) => acc + r.leadsCount, 0),
+      },
+      agencies: rows,
+    };
+  }
+
+  /**
+   * Reporte de agentes (solo admin).
+   * Para cada agente incluye: agencia padre, propiedades propias,
+   * leads recibidos, clics, reseñas y estado de suscripción.
+   */
+  async agentsReport() {
+    const agents = await this.userModel
+      .find({ roles: Role.AGENTE } as any)
+      .select(
+        'name email phone avatar parentId isEnabled accessBlocked ' +
+          'subscriptionPlan subscriptionStatus subscription_expire ' +
+          'featured_user agentInfo clickCounter ' +
+          'ratingAverage ratingCount',
+      )
+      .sort({ createdAt: -1 });
+
+    const rows = await Promise.all(
+      agents.map(async (a) => {
+        const agentId = a._id as Types.ObjectId;
+
+        const [totalProperties, totalPublished, leadsCount, projectsCount] =
+          await Promise.all([
+            this.propertyModel.countDocuments({ userId: agentId }),
+            this.propertyModel.countDocuments({
+              userId: agentId,
+              status: 'published',
+            }),
+            this.leadformModel.countDocuments({ agentId }),
+            this.projectModel.countDocuments({ userId: agentId }),
+          ]);
+
+        const agency = a.parentId
+          ? await this.userModel
+              .findById(a.parentId)
+              .select('name email')
+              .lean()
+          : null;
+
+        return {
+          id: a._id,
+          name: a.name || '',
+          email: a.email || '',
+          phone: a.phone || '',
+          avatar: a.avatar || '',
+          agency: agency
+            ? { id: agency._id, name: agency.name || '', email: agency.email || '' }
+            : null,
+          isEnabled: a.isEnabled !== false,
+          accessBlocked: Boolean(a.accessBlocked),
+          subscriptionPlan: a.subscriptionPlan || '',
+          subscriptionStatus: a.subscriptionStatus || 'INACTIVE',
+          subscriptionExpire: a.subscription_expire || null,
+          featured: Boolean(a.featured_user),
+          verified: Boolean((a as any).agentInfo?.verified),
+          clicks: Number(a.clickCounter) || 0,
+          ratingAverage: Number(a.ratingAverage) || 0,
+          ratingCount: Number(a.ratingCount) || 0,
+          totalProperties,
+          totalPublished,
+          leadsCount,
+          projectsCount,
+        };
+      }),
+    );
+
+    return {
+      summary: {
+        totalAgents: rows.length,
+        totalEnabled: rows.filter((r) => r.isEnabled).length,
+        totalWithProperties: rows.filter((r) => r.totalProperties > 0).length,
+        totalWithPublished: rows.filter((r) => r.totalPublished > 0).length,
+        totalWithLeads: rows.filter((r) => r.leadsCount > 0).length,
+        totalVerified: rows.filter((r) => r.verified).length,
+        totalFeatured: rows.filter((r) => r.featured).length,
+        totalProperties: rows.reduce((acc, r) => acc + r.totalProperties, 0),
+        totalPublished: rows.reduce((acc, r) => acc + r.totalPublished, 0),
+        totalLeads: rows.reduce((acc, r) => acc + r.leadsCount, 0),
+      },
+      agencies: [...new Set(rows.map((r) => r.agency?.name).filter(Boolean))],
+      agents: rows,
+    };
+  }
 }

@@ -78,6 +78,13 @@ export class ProjectsController {
     return this.projectsService.findByUser(userId);
   }
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN)
+  @Get('report/by-developer')
+  projectsByDeveloperReport() {
+    return this.projectsService.projectsByDeveloperReport();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.projectsService.findOne(id);

@@ -7,6 +7,7 @@ import { Review, ReviewSchema } from '../reviews/schemas/review.schema';
 import { Property, PropertySchema } from '../properties/schemas/property.schema';
 import { Project, ProjectSchema } from '../projects/schemas/project.schema';
 import { Subscription, SubscriptionSchema } from '../subscriptions/schemas/subscription.schema';
+import { Leadform, LeadformSchema } from '../contact/schemas/leadform.schema';
 import { ActivityLogsModule } from '../activitylogs/activitylogs.module';
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 
@@ -21,6 +22,7 @@ import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
       { name: Property.name, schema: PropertySchema },
       { name: Project.name, schema: ProjectSchema },
       { name: Subscription.name, schema: SubscriptionSchema },
+      { name: Leadform.name, schema: LeadformSchema },
     ]),
     
   ],

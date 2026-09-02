@@ -58,6 +58,80 @@ export class ProjectsService {
     return this.projectModel.find({ userId });
   }
 
+  /**
+   * Reporte de proyectos agrupado por desarrolladora (solo admin).
+   * Los proyectos sin `desarrolladora.nombre` se agrupan en "(sin desarrolladora)".
+   */
+  async projectsByDeveloperReport() {
+    const projects = await this.projectModel
+      .find({})
+      .select(
+        'title type mode situacional unidades priceFromQ priceFromUSD rate ' +
+          'fechaEntrega location desarrolladora status createdAt models',
+      )
+      .sort({ createdAt: -1 });
+
+    const SIN_DESA = '(sin desarrolladora)';
+
+    const groupsMap = new Map<string, any[]>();
+    projects.forEach((p) => {
+      const name =
+        p.desarrolladora?.nombre?.trim() || SIN_DESA;
+      if (!groupsMap.has(name)) groupsMap.set(name, []);
+      groupsMap.get(name)!.push(p);
+    });
+
+    const groups = [...groupsMap.entries()]
+      .map(([desarrolladora, items]) => ({
+        desarrolladora,
+        isSinDesarrolladora: desarrolladora === SIN_DESA,
+        total: items.length,
+        totalUnidades: items.reduce(
+          (acc, p) => acc + (Number(p.unidades) || 0),
+          0,
+        ),
+        projects: items.map((p) => ({
+          id: p._id,
+          title: p.title || '',
+          type: p.type || '',
+          mode: p.mode || '',
+          situacional: p.situacional || '',
+          unidades: p.unidades ?? null,
+          priceFromQ: p.priceFromQ ?? null,
+          priceFromUSD: p.priceFromUSD ?? null,
+          rate: p.rate ?? null,
+          fechaEntrega: p.fechaEntrega || '',
+          department: p.location?.department || p.location?.departamento || '',
+          municipality:
+            p.location?.municipality || p.location?.municipio || '',
+          zone: p.location?.zone || p.location?.zona || '',
+          status: p.status || '',
+          modelCount: Array.isArray(p.models) ? p.models.length : 0,
+          createdAt: p.createdAt,
+        })),
+      }))
+      .sort(
+        (a, b) =>
+          Number(b.isSinDesarrolladora) - Number(a.isSinDesarrolladora) ||
+          b.total - a.total ||
+          a.desarrolladora.localeCompare(b.desarrolladora),
+      );
+
+    return {
+      summary: {
+        totalProjects: projects.length,
+        totalDevelopers: groups.filter((g) => !g.isSinDesarrolladora).length,
+        totalSinDesarrolladora:
+          groups.find((g) => g.isSinDesarrolladora)?.total || 0,
+        totalUnidades: groups.reduce(
+          (acc, g) => acc + (g.totalUnidades || 0),
+          0,
+        ),
+      },
+      groups,
+    };
+  }
+
   async findOne(id: string) {
     let project = await this.projectModel.findOne({
       projectSlug: this.normalizeProjectSlug(id),
