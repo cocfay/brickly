@@ -316,11 +316,11 @@ export class PropertiesService {
 
   async sendRecommendationNewsletters() {
     const pendingUsers = await this.userModel.find({
-      roles: 'cliente',
+      roles: 'cliente' as any,
       isEnabled: { $ne: false },
       lastViewedProperty: { $exists: true, $ne: null },
       newsletterRecommendationSent: false,
-    });
+    } as any);
 
     let enviados = 0;
     let errores = 0;
@@ -430,7 +430,7 @@ export class PropertiesService {
 
     const users = await this.userModel
       .find(
-        { roles: 'cliente' },
+        { roles: 'cliente' as any },
         {
           email: 1,
           name: 1,
@@ -1401,7 +1401,7 @@ export class PropertiesService {
     // =========================
 
     const totalAgencies = await this.userModel.countDocuments({
-          roles: 'agencia',
+          roles: 'agencia' as any,
         });
 
     // =========================
@@ -1409,7 +1409,7 @@ export class PropertiesService {
     // =========================
 
     const totalAgents = await this.userModel.countDocuments({
-          roles: 'agente',
+          roles: 'agente' as any,
         });
 
     // =========================
@@ -1417,7 +1417,7 @@ export class PropertiesService {
     // =========================
 
     const totalAgentsVerified = await this.userModel.countDocuments({
-          roles: 'agente',
+          roles: 'agente' as any,
           "agentInfo.verified": true
         });
  
@@ -1427,7 +1427,7 @@ export class PropertiesService {
     //==========================
 
     const totalAgentsFeatured = await this.userModel.countDocuments({
-          roles: 'agente',
+          roles: 'agente' as any,
           featured_expire: {
               $gt: new Date(),
             },
@@ -1439,7 +1439,7 @@ export class PropertiesService {
     //==========================
 
     const totalAgenciesFeatured =await this.userModel.countDocuments({
-          roles: 'agencia',
+          roles: 'agencia' as any,
           featured_expire: {
               $gt: new Date(),
             },
