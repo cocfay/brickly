@@ -274,7 +274,7 @@ function Floor({ preview = false }) {
                 <div className="d-flex justify-content-between align-items-lg-end flex-column flex-lg-row gap-3">
                     <div className="d-flex flex-wrap flex-column align-items-start gap-2 mt-3">
                         <div style={{ fontSize: 'clamp(28px, 4vw, 50px)', fontFamily: 'AppleGaramond', lineHeight: 1.1 }}>
-                            {titulo}
+                            {modelo.nombre}
                         </div>
                         <div className="d-flex align-items-center gap-1" style={{ fontSize: '20px' }}>
                             <i className="fa-solid fa-location-dot me-1"></i>
@@ -287,9 +287,6 @@ function Floor({ preview = false }) {
                         </div>
                     </div>
                     <div className="d-flex flex-column align-items-lg-end gap-2 text-lg-end">
-                        <div className="lh-1" style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontFamily: 'AppleGaramond' }}>
-                            {modelo.nombre}
-                        </div>
                         {modelo.tour360 ? (
                             <a href={modelo.tour360} className="d-flex align-items-center gap-2 text-body text-decoration-none" style={{ fontSize: '16px', border: '1px solid black', borderRadius: '999px', padding: '8px 20px' }}>
                                 <img src={tour} alt="tour" style={{ width: '24px' }} />
@@ -325,11 +322,12 @@ function Floor({ preview = false }) {
                 </div>
                 {/* Thumbnails derecha */}
                 <div className="d-flex flex-column gap-2" style={{ width: '32%', flexShrink: 0 }}>
-                    {galeria.slice(1, 4).map((img, i) => (
+                    {galeria.slice(1, 3).map((img, i) => (
                         <div
                             key={i}
                             onClick={() => { setMainImg(img); openLightbox(img); }}
                             style={{
+                                position: 'relative',
                                 flex: 1,
                                 minHeight: 0,
                                 borderRadius: '10px',
@@ -339,6 +337,15 @@ function Floor({ preview = false }) {
                             }}
                         >
                             <img src={img} alt="" className="object-fit-cover w-100 h-100" style={{ display: 'block' }} />
+                            {i === 1 && galeria.length > 3 && (
+                                <div
+                                    className="position-absolute d-flex align-items-center gap-2"
+                                    style={{ bottom: '12px', left: '12px', backgroundColor: '#ffffffdd', borderRadius: '20px', padding: '4px 14px', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
+                                    onClick={e => { e.stopPropagation(); setMainImg(galeria[2]); openLightbox(galeria[2]); }}
+                                >
+                                    <i className="fa-regular fa-image"></i> +{galeria.length - 3} Fotos
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
@@ -367,11 +374,12 @@ function Floor({ preview = false }) {
                 </div>
                 {/* Thumbnails debajo */}
                 <div className="d-flex gap-2">
-                    {galeria.slice(1, 4).map((img, i) => (
+                    {galeria.slice(1, 3).map((img, i) => (
                         <div
                             key={i}
                             onClick={() => { setMainImg(img); openLightbox(img); }}
                             style={{
+                                position: 'relative',
                                 flex: 1,
                                 borderRadius: '10px',
                                 overflow: 'hidden',
@@ -381,6 +389,15 @@ function Floor({ preview = false }) {
                             }}
                         >
                             <img src={img} alt="" className="object-fit-cover w-100 h-100" style={{ display: 'block' }} />
+                            {i === 1 && galeria.length > 3 && (
+                                <div
+                                    className="position-absolute bottom-0 start-0 end-0 d-flex align-items-center justify-content-center gap-2 text-white"
+                                    style={{ backgroundColor: '#000000aa', borderRadius: '0 0 10px 10px', padding: '10px 14px', fontSize: '14px', fontWeight: 500, cursor: 'zoom-in' }}
+                                    onClick={e => { e.stopPropagation(); setMainImg(galeria[2]); openLightbox(galeria[2]); }}
+                                >
+                                    <i className="fa-regular fa-image"></i> +{galeria.length - 3} Fotos
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>

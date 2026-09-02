@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { Container, Accordion, Row, Col, Form, Button, Alert, Badge } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import esLocale from 'date-fns/locale/es';
 import SelectoresUbicacion from '../../components/SelectoresUbicacion';
 import SelectorMapaDropdown from '../../components/SelectorMapaDropdown';
 import SelectorAmenidades from '../../components/SelectorAmenidades';
@@ -8,6 +11,7 @@ import MyTextEditor from '../../components/ckeditor';
 import SelectorGaleriaProyectos from '../../components/SelectorGaleriaProyectos';
 import ModelosProyecto, { modelosValidos, modelosFaltantes, tipoModeloDesdeProyecto } from './ModelosProyecto';
 import { getHiddenFields } from '../../services/validacionPropiedades';
+import { amenitiesList } from '../../data/amenites';
 import {
   createProyecto,
   updateProyecto,
@@ -18,9 +22,6 @@ import {
 import { getCurrentUser } from '../../../services/authService';
 import { getLogoUrl } from '../../../services/logoService';
 import arrow from '../../../assets/images/iconos/arrow.png';
-
-// Estados que habilitan el campo "Fecha de entrega"
-const ESTADOS_CON_ENTREGA = ['preventa', 'en construcción', 'próximo a entregar'];
 
 // Mapeo de tipo de proyecto → tipo de propiedad (las amenidades generales del
 // proyecto deben ser las mismas que muestra el formulario de Propiedades para
@@ -35,7 +36,26 @@ const TIPO_PROYECTO_A_PROPIEDAD = {
 };
 
 // Filtro de amenidades según el tipo de proyecto. null = mostrar todas.
+const getKeyFromAmenidad = (name) =>
+  String(name)
+    .toLowerCase()
+    .replace(/[áéíóú]/g, (c) => ({ á: 'a', é: 'e', í: 'i', ó: 'o', ú: 'u' }[c] || c))
+    .replace(/[^a-z0-9]+/g, '');
+
+// Amenidades a ocultar en el bloque "Amenidades del proyecto" según el tipo.
+const AMENIDADES_PROYECTO_OCULTAS_POR_TIPO = {
+  Edificio: ['walkincloset'],
+  Condominio: ['walkincloset'],
+};
+
 const amenidadesParaTipoProyecto = (tipoProyecto) => {
+  const ocultas = AMENIDADES_PROYECTO_OCULTAS_POR_TIPO[tipoProyecto];
+  if (ocultas && ocultas.length > 0) {
+    // Mostrar todas las amenidades excepto las ocultas para este tipo
+    return amenitiesList
+      .map(getKeyFromAmenidad)
+      .filter((key) => key && !ocultas.includes(key));
+  }
   const tipoPropiedad = TIPO_PROYECTO_A_PROPIEDAD[tipoProyecto] || 'Casa';
   return getHiddenFields(tipoPropiedad).amenidadesFilter ?? null;
 };
@@ -61,12 +81,9 @@ const SECCIONES = {
         col: 2,
         options: ['Venta', 'Alquiler']
       },
-      priceFromQ: { type: 'priceQ', label: 'Precio desde (Q) *', col: 3 },
-      rate: { type: 'number', label: 'Tasa dólar *', col: 2 },
-      priceFromUSD: { type: 'priceUSD', label: 'Precio desde ($) *', col: 3 },
       description: { type: 'textarea', label: 'Descripción del proyecto *', col: 12, opcional: false },
       devNombre: { type: 'text', label: 'Nombre de la empresa *', col: 4, opcional: false },
-      situacional: { type: 'select', label: 'Estado *', col: 4, opcional: false, options: ['EN VENTA', 'PREVENTA', 'En construcción', 'Próximo a entregar', 'Terminado'] },
+      situacional: { type: 'select', label: 'Estado *', col: 4, opcional: false, options: ['En venta', 'Preventa', 'En construcción', 'Próximo a entregar', 'Terminado'] },
       fechaEntrega: { type: 'month', label: 'Fecha de entrega', col: 4, opcional: true },
       unidades: { type: 'number', label: 'Cantidad de unidades', col: 4, opcional: true }
     }
@@ -340,47 +357,10 @@ function ProyectoForm({ projectId }) {
     load();
   }, [isEdit, projectId]);
 
-  // Si el estado no habilita la fecha de entrega, se vacía el valor
-  useEffect(() => {
-    const estado = secciones.datosProyecto?.datos?.situacional || '';
-    const habilitado = ESTADOS_CON_ENTREGA.includes(String(estado).toLowerCase());
-    if (!habilitado && secciones.datosProyecto?.datos?.fechaEntrega) {
-      setSecciones(prev => ({
-        ...prev,
-        datosProyecto: {
-          ...prev.datosProyecto,
-          datos: { ...prev.datosProyecto.datos, fechaEntrega: '' }
-        }
-      }));
-    }
-  }, [secciones.datosProyecto?.datos?.situacional, secciones.datosProyecto?.datos?.fechaEntrega]);
-
   const handleChange = (seccionId, campo, value) => {
     setSecciones(prev => {
       const newState = { ...prev };
       const newDatos = { ...newState[seccionId].datos, [campo]: value };
-
-      // Cálculo bidireccional de precios en la sección de datos
-      if (seccionId === 'datosProyecto') {
-        const priceQ = parseFloat(campo === 'priceFromQ' ? value : newDatos.priceFromQ);
-        const priceUSD = parseFloat(campo === 'priceFromUSD' ? value : newDatos.priceFromUSD);
-        const tasa = parseFloat(campo === 'rate' ? value : (newDatos.rate || 7.5));
-
-        if ((campo === 'priceFromQ' || campo === 'rate') && !isNaN(priceQ) && !isNaN(tasa) && tasa > 0) {
-          newDatos.priceFromUSD = Math.round(priceQ / tasa);
-        } else if (campo === 'priceFromUSD' && !isNaN(priceUSD) && !isNaN(tasa) && tasa > 0) {
-          newDatos.priceFromQ = Math.round(priceUSD * tasa);
-        }
-
-        setTimeout(() => {
-          if (priceInputRefs.current.priceFromQ && campo !== 'priceFromQ') {
-            priceInputRefs.current.priceFromQ.value = formatGTQ(newDatos.priceFromQ);
-          }
-          if (priceInputRefs.current.priceFromUSD && campo !== 'priceFromUSD') {
-            priceInputRefs.current.priceFromUSD.value = formatUSD(newDatos.priceFromUSD);
-          }
-        }, 0);
-      }
 
       const campoConfig = SECCIONES[seccionId].campos[campo];
       const esRequerido = campoConfig?.type !== 'hidden' &&
@@ -532,22 +512,34 @@ function ProyectoForm({ projectId }) {
           );
         }
       case 'month':
-        return (
-          <Form.Control
-            type="month"
-            value={value}
-            disabled={disabled}
-            onChange={(e) => handleChange(seccionId, campoKey, e.target.value)}
-            onClick={(e) => {
-              if (e.target.disabled || typeof e.target.showPicker !== 'function') return;
-              try {
-                e.target.showPicker();
-              } catch {
-                return;
+        {
+          const valorDate = value
+            ? new Date(`${value}-01`)
+            : null;
+          return (
+            <DatePicker
+              selected={valorDate}
+              onChange={(date) =>
+                handleChange(
+                  seccionId,
+                  campoKey,
+                  date
+                    ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+                    : ''
+                )
               }
-            }}
-          />
-        );
+              dateFormat="MMMM yyyy"
+              showMonthYearPicker
+              showFullMonthYearPicker
+              locale={esLocale}
+              disabled={disabled}
+              placeholderText="Seleccione mes y año"
+              className="form-control"
+              style={{ width: '100%' }}
+              isClearable
+            />
+          );
+        }
       default:
         return (
           <Form.Control
@@ -929,13 +921,11 @@ function ProyectoForm({ projectId }) {
                       }
 
                       if (campoKey === 'fechaEntrega' && seccionId === 'datosProyecto') {
-                        const estado = secciones.datosProyecto.datos.situacional || '';
-                        const habilitado = ESTADOS_CON_ENTREGA.includes(String(estado).toLowerCase());
                         return (
                           <Col key={campoKey} xl={campoConfig.col} lg={campoConfig.col === 12 ? 12 : 6} md={campoConfig.col === 12 ? 12 : 6}>
                             <Form.Group>
                               <Form.Label>{campoConfig.label}</Form.Label>
-                              {renderCampo(seccionId, campoKey, campoConfig, !habilitado)}
+                              {renderCampo(seccionId, campoKey, campoConfig)}
                             </Form.Group>
                           </Col>
                         );

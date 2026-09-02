@@ -4,6 +4,7 @@ import {
   BillingCharge,
   BillingChargeSchema,
 } from './schemas/billing-charge.schema';
+import { User, UserSchema } from '../users/user.schema';
 import { BillingService } from './billing.service';
 import { BillingController } from './billing.controller';
 
@@ -13,6 +14,10 @@ import { BillingController } from './billing.controller';
       {
         name: BillingCharge.name,
         schema: BillingChargeSchema,
+      },
+      {
+        name: User.name,
+        schema: UserSchema,
       },
     ]),
   ],

@@ -210,7 +210,9 @@ export const getLogoUrl = (logoPath) => {
   // Agregar timestamp para evitar caché del navegador
   const timestamp = Date.now();
   const separator = logoPath.includes('?') ? '&' : '?';
-  return `${baseUrl}/${logoPath}${separator}_t=${timestamp}`;
+  // Unir base + ruta evitando doble slash cuando logoPath ya es absoluta (/uploads/...)
+  const joined = `${baseUrl.replace(/\/+$/, '')}/${logoPath.replace(/^\/+/, '')}`;
+  return `${joined}${separator}_t=${timestamp}`;
 };
 
 

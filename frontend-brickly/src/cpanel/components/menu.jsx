@@ -13,6 +13,7 @@ function Menu({open}){
     const [profileOk, setProfileOk] = useState(true);
     const [prePublishedCount, setPrePublishedCount] = useState({ propiedades: 0, proyectos: 0 });
     const [showHelpModal, setShowHelpModal] = useState(false);
+    const [reportesOpen, setReportesOpen] = useState(false);
 
     useEffect(() => {
         const updateProfileState = () => {
@@ -151,6 +152,27 @@ function Menu({open}){
                         <i className="fa-solid fa-check-circle"></i> Verificación
                         {isActive('/cpanel/verificacion') && <ActiveIcon />}
                     </Link>
+                }
+                {user?.roles?.includes("admin") &&
+                    <div className="d-flex flex-column">
+                        <div
+                            className="d-flex gap-2 align-items-center text-body"
+                            style={{ cursor: 'pointer', userSelect: 'none' }}
+                            onClick={() => setReportesOpen(o => !o)}
+                        >
+                            <i className="fa-solid fa-chart-pie"></i> Reportes
+                            <i className={`fa-solid ${reportesOpen || isActive('/cpanel/reportes') ? 'fa-chevron-up' : 'fa-chevron-down'} ms-auto`} style={{ fontSize: '11px' }}></i>
+                            {isActive('/cpanel/reportes') && <ActiveIcon />}
+                        </div>
+                        {(reportesOpen || isActive('/cpanel/reportes')) && (
+                            <div className="d-flex flex-column ms-3 mt-2 gap-2" style={{ borderLeft: '1px solid #ddd', paddingLeft: '12px' }}>
+                                <Link to="/cpanel/reportes/ventas" className="d-flex gap-2 align-items-center text-body">
+                                    <i className="fa-solid fa-dollar-sign"></i> Ventas
+                                    {isActive('/cpanel/reportes/ventas') && <ActiveIcon />}
+                                </Link>
+                            </div>
+                        )}
+                    </div>
                 }
                 {/* <Link to="/cpanel/metricas" className="d-flex gap-2 align-items-center text-body">
                     <i className="fa-solid fa-chart-mixed"></i> Métricas

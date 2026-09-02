@@ -171,9 +171,12 @@ export const enriquecerProyecto = (p, { otros = [] } = {}) => {
   const est = p.estructura || {};
 
   const mainImage = resolverImagen(p.mainImage, PROYECTO_FALLBACK_IMG);
+  const rutaLimpia = (u = '') => (typeof u === 'string' ? u.split('?')[0].replace(/\/+$/, '') : '');
+  const mainImageLimpia = rutaLimpia(p.mainImage);
   const imagenes = (p.images || [])
     .map((img) => resolverImagen(img))
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((_, i) => rutaLimpia((p.images || [])[i]) !== mainImageLimpia);
   const imagenesGaleria = imagenes.length
     ? [mainImage, ...imagenes]
     : [mainImage];

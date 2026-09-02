@@ -34,3 +34,6 @@ coverage/
 start-local.cmd
 *.log
 .mongo/
+
+# Uploads (archivos subidos por usuarios)
+frontend-brickly/uploads/

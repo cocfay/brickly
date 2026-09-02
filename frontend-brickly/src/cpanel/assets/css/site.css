@@ -28,6 +28,8 @@
 
 .cpanel-layout .ck.ck-content.ck-editor__editable.ck-rounded-corners.ck-editor__editable_inline {
     min-height: 180px;
+    cursor: text;
+    user-select: text;
 }
 
 /* Dropdown items activos en filtros de propiedades */
@@ -449,4 +451,22 @@
     .cpanel-layout .cpanel-mobile-filters-actions .btn {
         width: 100%;
     }
+}
+
+/* ─── React datepicker (mes y año) ─── */
+.cpanel-layout .react-datepicker-wrapper,
+.cpanel-layout .react-datepicker__input-container {
+    display: block !important;
+    width: 100% !important;
+}
+
+.cpanel-layout .react-datepicker-wrapper .react-datepicker__input-container input {
+    width: 100%;
+    height: calc(1.5em + 0.75rem + 2px);
+    color: #000;
+}
+
+.cpanel-layout .react-datepicker__close-icon::after {
+    background-color: #000;
+    color: #fff;
 }

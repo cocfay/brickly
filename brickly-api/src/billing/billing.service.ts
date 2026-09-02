@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { BillingCharge } from './schemas/billing-charge.schema';
+import { User } from '../users/user.schema';
 
 /**
  * Nombres legibles y precios (en GTQ) de los planes de suscripción.
@@ -52,6 +53,7 @@ export class BillingService {
 
   constructor(
     @InjectModel(BillingCharge.name) private model: Model<BillingCharge>,
+    @InjectModel(User.name) private userModel: Model<User>,
   ) {}
 
   getPlanLabel(plan?: string): string {
@@ -80,6 +82,12 @@ export class BillingService {
           : 0;
 
     try {
+      const user = await this.userModel
+        .findById(data.userId)
+        .select('name email')
+        .lean()
+        .catch(() => null);
+
       const charge = await this.model.create({
         userId: new Types.ObjectId(data.userId),
         plan: data.plan,
@@ -90,6 +98,8 @@ export class BillingService {
         chargedAt: data.chargedAt ?? new Date(),
         paymentId: data.paymentId,
         isRenewal: data.isRenewal ?? false,
+        userName: user?.name,
+        userEmail: user?.email,
       });
       this.logger.log(
         `Cobro registrado userId=${data.userId} plan=${data.plan} monto=${amount} status=${data.status}`,
@@ -109,5 +119,89 @@ export class BillingService {
       .find({ userId: new Types.ObjectId(userId) })
       .sort({ chargedAt: -1 })
       .lean();
+  }
+
+  /**
+   * Reporte de ventas para administradores, basado en BillingCharge.
+   * Devuelve: cargos individuales (con datos del usuario) y resumenes
+   * agregados (totales, KPI, ventas por plan y por mes).
+   */
+  async salesReport(options?: { from?: string; to?: string }) {
+    const query: Record<string, any> = {};
+    if (options?.from || options?.to) {
+      query.chargedAt = {};
+      if (options.from) query.chargedAt.$gte = new Date(options.from);
+      if (options.to) query.chargedAt.$lte = new Date(options.to);
+    }
+
+    const charges = await this.model.find(query).sort({ chargedAt: -1 }).lean();
+
+    const enriched = charges.map((c) => ({
+      _id: c._id,
+      userId: c.userId?.toString(),
+      userName: c.userName,
+      userEmail: c.userEmail,
+      plan: c.plan,
+      description: c.description,
+      amount: Number(c.amount || 0),
+      currency: c.currency,
+      status: c.status,
+      chargedAt: c.chargedAt,
+      isRenewal: !!c.isRenewal,
+      paymentId: c.paymentId,
+    }));
+
+    const succeeded = enriched.filter((c) => c.status === 'SUCCEEDED');
+    const failed = enriched.filter((c) => c.status === 'FAILED');
+
+    const totalRevenue = succeeded.reduce((sum, c) => sum + c.amount, 0);
+    const totalCharges = enriched.length;
+    const totalSales = succeeded.length;
+    const totalFailed = failed.length;
+    const renewals = succeeded.filter((c) => c.isRenewal).length;
+    const newSales = totalSales - renewals;
+
+    const byPlan = new Map<string, { count: number; revenue: number }>();
+    for (const c of succeeded) {
+      const key = c.description || `Suscripción ${c.plan}`;
+      const entry = byPlan.get(key) || { count: 0, revenue: 0 };
+      entry.count += 1;
+      entry.revenue += c.amount;
+      byPlan.set(key, entry);
+    }
+    const salesByPlan = Array.from(byPlan.entries()).map(([plan, v]) => ({
+      plan,
+      count: v.count,
+      revenue: v.revenue,
+    }));
+
+    const byMonth = new Map<string, { count: number; revenue: number }>();
+    for (const c of succeeded) {
+      if (!c.chargedAt) continue;
+      const d = new Date(c.chargedAt);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const entry = byMonth.get(key) || { count: 0, revenue: 0 };
+      entry.count += 1;
+      entry.revenue += c.amount;
+      byMonth.set(key, entry);
+    }
+    const salesByMonth = Array.from(byMonth.entries())
+      .sort((a, b) => (a[0] < b[0] ? -1 : 1))
+      .map(([month, v]) => ({ month, count: v.count, revenue: v.revenue }));
+
+    return {
+      summary: {
+        totalRevenue,
+        totalCharges,
+        totalSales,
+        totalFailed,
+        renewals,
+        newSales,
+        currency: 'GTQ',
+      },
+      charges: enriched,
+      salesByPlan,
+      salesByMonth,
+    };
   }
 }

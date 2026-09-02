@@ -21,6 +21,9 @@ export class Project {
   @Prop()
   date_project?: Date;
 
+  @Prop({ type: String })
+  fechaEntrega?: string;
+
   // URL amigable única para visualización pública
   @Prop({ type: String, required: false, unique: true, sparse: true })
   projectSlug?: string;

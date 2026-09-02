@@ -29,6 +29,10 @@ export class CreateProjectDto {
 
   @IsOptional()
   @IsString()
+  fechaEntrega?: string;
+
+  @IsOptional()
+  @IsString()
   projectSlug?: string;
 
   @IsOptional()

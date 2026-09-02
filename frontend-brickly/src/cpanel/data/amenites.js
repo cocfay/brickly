@@ -22,6 +22,7 @@ export const AMENIDADES_PROYECTO = [
 
 // Amenidades de MODELOS (apartamento)
 export const AMENIDADES_MODELO = [
+  "Walk-in closet",
   "Balcón",
   "Aire acondicionado",
   "AIRBNB friendly",
@@ -52,6 +53,7 @@ export const amenitiesList = [...AMENIDADES_PROYECTO, ...AMENIDADES_MODELO];
 
 // Amenidades de MODELOS tipo CASA (condominio)
 export const AMENIDADES_CASA = [
+  "Walk-in closet",
   "Acabados de lujo",
   "Piscina",
   "Jacuzzi / Spa",

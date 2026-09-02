@@ -6,8 +6,6 @@ import banner from './../assets/images/imagenes_de_fondo/banner_asociados.webp'
 import banner_movil from './../assets/images/imagenes_de_fondo/banner_asociados_movil.webp'
 import diamond from './../assets/images/iconos/diamond.png';
 import gpi from './../assets/images/iconos/gpi.png';
-import d from './../assets/images/iconos/desar.png'
-import a from './../assets/images/iconos/agen_imo.png'
 import  './../assets/css/asociados.css'
 
 import { FormattedMessage } from 'react-intl';
@@ -24,7 +22,6 @@ function Associates() {
   const sortSelectId = 'associates-sort-order';
   const [agencies, setAgencies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filtro, setFiltro] = useState('Todos');
   const [orden, setOrden] = useState('destacadas');
 
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
@@ -51,11 +48,7 @@ function Associates() {
 
   // Filtrar y ordenar
   const filtered = agencies
-    .filter(a => {
-      if (filtro === 'Todos') return true;
-      if (filtro === 'Agencias') return true; // por ahora solo hay agencias
-      return true;
-    })
+    .filter(() => true)
     .sort((a, b) => {
       const aPropCount = getPropCount(a);
       const bPropCount = getPropCount(b);
@@ -103,62 +96,6 @@ function Associates() {
           </div>
       </div>
       <Container style={{ marginTop: 'clamp(2rem, 3vw, 4rem)', marginBottom: 'clamp(2rem, 5vw, 5rem)' }}>
-
-        <div className='d-flex d-lg-none gap-3 gap-lg-5 justify-content-center align-items-stretch flex-wrap'>
-            <Button
-              variant="light"
-              className={`border-dark ${filtro === 'Todos' ? 'bg-dark text-white' : ''}`}
-              style={{ minWidth: 'clamp(146px, 3vw, 231.30px)', fontSize: 'clamp(12px, 3vw, 16px)' }}
-              onClick={() => { setFiltro('Todos'); setVisibleCount(ITEMS_PER_PAGE); }}
-            >
-              <FormattedMessage id='associate.text4' />
-            </Button>
-            <Button
-              variant="light"
-              className={`d-flex align-items-center justify-content-center gap-3 border-dark ${filtro === 'Desarrolladoras' ? 'bg-dark text-white' : ''}`}
-              style={{ minWidth: 'clamp(146px, 3vw, 231.30px)', fontSize: 'clamp(12px, 3vw, 16px)' }}
-              onClick={() => { setFiltro('Desarrolladoras'); setVisibleCount(ITEMS_PER_PAGE); }}
-            >
-              <img src={d} alt="icons" style={{ width: '35px', fontSize: 'clamp(12px, 3vw, 16px)' }} className='d-none d-md-flex' />
-              <FormattedMessage id='associate.text5' />
-            </Button>
-            <Button
-              variant="light"
-              className={`d-flex align-items-center justify-content-center gap-3 border-dark ${filtro === 'Agencias' ? 'bg-dark text-white' : ''}`}
-              style={{ minWidth: 'clamp(146px, 3vw, 231.30px)', fontSize: 'clamp(12px, 3vw, 16px)' }}
-              onClick={() => { setFiltro('Agencias'); setVisibleCount(ITEMS_PER_PAGE); }}
-            >
-              <img src={a} alt="icons" style={{ width: '35px' }} className='d-none d-md-flex' />
-              <FormattedMessage id='associate.text6' />
-            </Button>
-        </div>
-
-        <div className='d-none d-lg-flex justify-content-between mx-auto align-items-stretch border-bottom border-dark navAssociates' style={{ fontSize: 'clamp(16px, 3vw, 20px)', width: 'min(800px, 100%)' }}>
-            <div
-              className={`d-flex align-items-center justify-content-center gap-3 px-4 ${filtro === 'Todos' ? 'active' : ''}`}
-              style={{ minHeight: '43px', cursor: 'pointer' }}
-              onClick={() => { setFiltro('Todos'); setVisibleCount(ITEMS_PER_PAGE); }}
-            >
-              <FormattedMessage id='associate.text4' />
-            </div>
-            <div
-              className={`d-flex align-items-center justify-content-center gap-3 px-4 ${filtro === 'Desarrolladoras' ? 'active' : ''}`}
-              style={{ minHeight: '43px', cursor: 'pointer' }}
-              onClick={() => { setFiltro('Desarrolladoras'); setVisibleCount(ITEMS_PER_PAGE); }}
-            >
-              <img src={d} alt="icons" style={{ width: '35px' }} className='d-none d-md-flex' />
-              <FormattedMessage id='associate.text5' />
-            </div>
-            <div
-              className={`d-flex align-items-center justify-content-center gap-3 px-4 ${filtro === 'Agencias' ? 'active' : ''}`}
-              style={{ minHeight: '43px', cursor: 'pointer' }}
-              onClick={() => { setFiltro('Agencias'); setVisibleCount(ITEMS_PER_PAGE); }}
-            >
-              <img src={a} alt="icons" style={{ width: '35px' }} className='d-none d-md-flex' />
-              <FormattedMessage id='associate.text6' />
-            </div>
-        </div>
-
 
         <div className="d-flex justify-content-lg-end flex-column flex-lg-row gap-4 align-items-center mt-4 mt-lg-5">
             <div className='d-flex gap-3 align-items-baseline'>

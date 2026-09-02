@@ -11,6 +11,12 @@ export class BillingCharge {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
   userId: Types.ObjectId;
 
+  @Prop({ type: String })
+  userName?: string;
+
+  @Prop({ type: String })
+  userEmail?: string;
+
   @Prop()
   plan: string;
 

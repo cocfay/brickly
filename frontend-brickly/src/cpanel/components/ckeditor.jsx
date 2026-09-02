@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 
 import {
@@ -62,13 +63,33 @@ class AutoCapitalize extends Plugin {
 }
 
 function MyTextEditor({ value = '', onChange }) {
+    const editorRef = useRef(null);
+    const prevValueRef = useRef(value);
+
+    // Sincroniza el contenido del editor SOLO cuando el valor cambia desde afuera
+    // (ej. al cargar datos en modo edición), y no por la propia edición del usuario.
+    useEffect(() => {
+        if (editorRef.current && value !== prevValueRef.current) {
+            if (editorRef.current.getData() !== value) {
+                editorRef.current.setData(value);
+            }
+            prevValueRef.current = value;
+        }
+    }, [value]);
+
     return (
         <div>
             <CKEditor
                 editor={ClassicEditor}
                 data={value}
+                onReady={(editor) => {
+                    editorRef.current = editor;
+                    prevValueRef.current = value;
+                }}
                 onChange={(event, editor) => {
-                    if (onChange) onChange(editor.getData());
+                    const data = editor.getData();
+                    prevValueRef.current = data;
+                    if (onChange) onChange(data);
                 }}
                 config={{
                     licenseKey: 'GPL',

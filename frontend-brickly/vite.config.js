@@ -159,6 +159,7 @@ export default defineConfig(({ mode }) => {
 
               let userId = ''
               let projectId = ''
+              let modelId = ''
               const files = []
 
               for (const part of parts) {
@@ -186,6 +187,7 @@ export default defineConfig(({ mode }) => {
                     const value = part.substring(contentStart, contentEnd).trim()
                     if (name === 'userId') userId = value
                     if (name === 'projectId') projectId = value
+                    if (name === 'modelId') modelId = value
                   }
                 }
               }
@@ -207,15 +209,29 @@ export default defineConfig(({ mode }) => {
               const result = {
                 mainImage: null,
                 mobileImage: null,
-                images: []
+                images: [],
+                models: {}
               }
 
               let imgIndex = 0
+              const modelFiles = {}
 
               for (const file of files) {
                 let ext = path.extname(file.filename).toLowerCase()
                 if (!['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif'].includes(ext)) {
                   ext = '.jpg'
+                }
+
+                // Fotos de un MODELO (subidas con uploadModeloFotos)
+                if (file.fieldname === 'fotos[]') {
+                  if (!modelFiles[modelId]) modelFiles[modelId] = []
+                  const filePrefixM = `${projectId || userId}_${modelId || 'model'}`
+                  const destFileName = `${filePrefixM}_${modelFiles[modelId].length}${ext}`
+                  const destPath = path.join(destDir, destFileName)
+                  fs.writeFileSync(destPath, file.buffer)
+                  const publicPath = `/uploads/proye_arqui/${userId}/${destFileName}`
+                  modelFiles[modelId].push(publicPath)
+                  continue
                 }
 
                 let destFileName
@@ -240,6 +256,10 @@ export default defineConfig(({ mode }) => {
                   result.images.push(publicPath)
                 }
               }
+
+              Object.entries(modelFiles).forEach(([mid, paths]) => {
+                result.models[mid] = paths
+              })
 
 
               res.setHeader('Content-Type', 'application/json')

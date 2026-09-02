@@ -488,7 +488,7 @@ function About() {
                 )}
             </Row>
             {hasMore && (
-              <div className="d-flex justify-content-center" style={{ marginBottom: 'clamp(3rem, 6vw, 6rem)' }}>
+              <div className="d-flex justify-content-center" style={{ marginTop: 'clamp(2rem, 4vw, 4rem)', marginBottom: 'clamp(3rem, 6vw, 6rem)' }}>
                 <button className="link-more-black d-flex align-items-center gap-2" onClick={handleLoadMore} style={{ background: 'none', cursor: 'pointer' }}>
                   {t('Ver más', 'View more')} <i className="fa-solid fa-angle-right"></i>
                 </button>
