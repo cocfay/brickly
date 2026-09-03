@@ -605,7 +605,7 @@ function Apartament({ preview = false }) {
                                 </div>
                                 <div className="d-flex justify-content-md-end flex-column">
                                     <div className='mb-2 lh-1' style={{ fontSize: '16px' }}><FormattedMessage id="home.text12" /></div>
-                                    <a href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa el proyecto ${project.titulo}, Necesito una cita para más información.`)}`} target='_blank' className="rounded-1 text-center border-0 py-1" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box', padding: '2px 8px', fontSize: '13px' }} rel="noreferrer" aria-label="Agendar una cita para información del proyecto" onClick={handleCitaClick}><i className="fa-brands fa-whatsapp me-2" aria-hidden="true"></i> <FormattedMessage id="home.text13" /></a>
+                                    <a href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa la propiedad ${project.titulo} que vi en Brickly Homes.`)}`} target='_blank' className="rounded-1 text-center border-0 py-1" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box', padding: '2px 8px', fontSize: '13px' }} rel="noreferrer" aria-label="Agendar una cita para información del proyecto" onClick={handleCitaClick}><i className="fa-brands fa-whatsapp me-2" aria-hidden="true"></i> <FormattedMessage id="home.text13" /></a>
                                 </div>
                             </div>
                             <br />
@@ -741,7 +741,7 @@ function Apartament({ preview = false }) {
                 </div>
             </div>
             <a
-                href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa el proyecto ${project.titulo}, Necesito una cita para más información`)}`}
+                href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa la propiedad ${project.titulo} que vi en Brickly Homes.`)}`}
                 target="_blank"
                 rel="noreferrer"
                 className="brickly-bar-btn"
