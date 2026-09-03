@@ -895,18 +895,21 @@ function Proyectos() {
                                         </div>
 
                                         {/* Precio + modo */}
-                                        <div className="mt-auto fw-bold fs-4 text-dark d-flex align-items-center gap-4">
-                                            {item.precio}
-                                            <div className="d-flex align-items-center gap-2">
-                                                <img src={isVenta ? venta : alquiler} alt="modo" style={{ width: '20px' }} />
-                                                <div
-                                                    className={`${isVenta ? 'bg-dark' : ''} rounded-1 px-4 py-0 text-white fw-lighter`}
-                                                    style={{ fontSize: '16px', ...(!isVenta && { backgroundColor: '#B65740' }) }}
-                                                >
-                                                    {isVenta
-                                                        ? <FormattedMessage id="favorite.text3" />
-                                                        : <FormattedMessage id="favorite.text4" />
-                                                    }
+                                        <div className="mt-auto">
+                                            <div className="text-muted" style={{ fontSize: '13px' }}>Desde</div>
+                                            <div className="fw-bold fs-4 text-dark d-flex align-items-center gap-4">
+                                                {item.precio}
+                                                <div className="d-flex align-items-center gap-2">
+                                                    <img src={isVenta ? venta : alquiler} alt="modo" style={{ width: '20px' }} />
+                                                    <div
+                                                        className={`${isVenta ? 'bg-dark' : ''} rounded-1 px-4 py-0 text-white fw-lighter`}
+                                                        style={{ fontSize: '16px', ...(!isVenta && { backgroundColor: '#B65740' }) }}
+                                                    >
+                                                        {isVenta
+                                                            ? <FormattedMessage id="favorite.text3" />
+                                                            : <FormattedMessage id="favorite.text4" />
+                                                        }
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
