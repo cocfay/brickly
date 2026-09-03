@@ -150,12 +150,6 @@ function Apartament({ preview = false }) {
         scrollRef.current.scrollLeft = dragState.current.scrollLeft - walk;
     };
 
-    const scrollModelos = (dir) => {
-        const el = scrollRef.current;
-        if (!el) return;
-        el.scrollBy({ left: dir * (el.clientWidth * 0.8), behavior: 'smooth' });
-    };
-
     const updateModelosProgress = () => {
         const el = scrollRef.current;
         if (!el) return;
@@ -264,17 +258,17 @@ function Apartament({ preview = false }) {
                             <span style={{ fontSize: '16px' }}><strong>Tasa ($):</strong> {project.tasaUSD}</span> */}
                         </div>
                     </div>
-                    <div className="d-flex flex-column align-items-center gap-4 me-lg-5 mt-5">
-                        <div style={{ border: '1px solid black' }} className="py-2 px-4 rounded-4">{situacionalLabel}</div>
+                    <div className="d-flex flex-column align-items-center gap-3 me-lg-5 mt-4">
+                        <div style={{ border: '1px solid black' }} className="py-1 px-3 rounded-4" >{situacionalLabel}</div>
                         {/* Desktop: 3 items en fila */}
-                        <div className="d-none d-lg-flex align-items-center justify-content-center gap-5 mb-3" style={{ fontSize: '1.5rem' }}>
+                        <div className="d-none d-lg-flex align-items-center justify-content-center gap-4 mb-2" style={{ fontSize: '1.15rem' }}>
                             {tieneValor(project.estructura.niveles) && <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>{project.estructura.niveles} Niveles</div>}
                             {project.unidades ? (<>
-                                <div style={{ width: '1px', height: '24px', backgroundColor: '#ccc' }}></div>
+                                <div style={{ width: '1px', height: '18px', backgroundColor: '#ccc' }}></div>
                                 <div className="d-flex align-items-center gap-2"><i className="fa-sharp fa-light fa-block"></i>{project.unidades} Unidades</div>
                             </>) : null}
                             {project.fechaEntrega ? (<>
-                                <div style={{ width: '1px', height: '24px', backgroundColor: '#ccc' }}></div>
+                                <div style={{ width: '1px', height: '18px', backgroundColor: '#ccc' }}></div>
                                 <div className="d-flex align-items-center gap-2"><i className="fa-regular fa-calendar"></i>Entrega: {formatearFechaEntrega(project.fechaEntrega)}</div>
                             </>) : null}
                         </div>
@@ -283,7 +277,7 @@ function Apartament({ preview = false }) {
                             <div className="d-flex align-items-center justify-content-center gap-4 mb-3">
                                 {tieneValor(project.estructura.niveles) && <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>{project.estructura.niveles} Niveles</div>}
                                 {project.unidades ? (<>
-                                    <div style={{ width: '1px', height: '24px', backgroundColor: '#ccc' }}></div>
+                                    <div style={{ width: '1px', height: '18px', backgroundColor: '#ccc' }}></div>
                                     <div className="d-flex align-items-center gap-2"><i className="fa-sharp fa-light fa-block"></i>{project.unidades} Unidades</div>
                                 </>) : null}
                             </div>
@@ -295,8 +289,8 @@ function Apartament({ preview = false }) {
                         </div>
                         {/* Tour 360 */}
                         {project.tour360 ? (
-                        <a href={project.tour360} className="d-flex align-items-center gap-2 text-body text-decoration-none" style={{ fontSize: '16px', border: '1px solid black', borderRadius: '999px', padding: '8px 20px' }}>
-                            <img src={tour} alt="tour" style={{ width: '24px' }} />
+                        <a href={project.tour360} className="d-flex align-items-center gap-2 text-body text-decoration-none" style={{ fontSize: '14px', border: '1px solid black', borderRadius: '999px', padding: '6px 16px' }}>
+                            <img src={tour} alt="tour" style={{ width: '18px' }} />
                             Tour 360
                         </a>
                         ) : null}
@@ -501,34 +495,6 @@ function Apartament({ preview = false }) {
                             <i className="fa-thin fa-diagram-lean-canvas"></i> {t('Modelos disponibles', 'Available models')}
                         </div>
                         <div className="position-relative">
-                            <button
-                                type="button"
-                                aria-label="Anterior"
-                                onClick={() => scrollModelos(-1)}
-                                className="modelos-nav-btn prev"
-                                style={{
-                                    position: 'absolute', left: '-18px', top: '40%', zIndex: 2,
-                                    width: '36px', height: '36px', borderRadius: '50%', border: '1px solid #ddd',
-                                    background: '#fff', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)', cursor: 'pointer',
-                                }}
-                            >
-                                <i className="fa-solid fa-chevron-left"></i>
-                            </button>
-                            <button
-                                type="button"
-                                aria-label="Siguiente"
-                                onClick={() => scrollModelos(1)}
-                                className="modelos-nav-btn next"
-                                style={{
-                                    position: 'absolute', right: '-18px', top: '40%', zIndex: 2,
-                                    width: '36px', height: '36px', borderRadius: '50%', border: '1px solid #ddd',
-                                    background: '#fff', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)', cursor: 'pointer',
-                                }}
-                            >
-                                <i className="fa-solid fa-chevron-right"></i>
-                            </button>
                         <div
                             className="scroll-moderno-horizontal"
                             ref={scrollRef}
