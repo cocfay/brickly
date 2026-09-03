@@ -292,6 +292,14 @@ function Apartament({ preview = false }) {
             </div>
 
             {/* ── Galería ── */}
+            {project.tour360 ? (
+            <div className="d-flex justify-content-end mb-2">
+                <a href={project.tour360} target="_blank" rel="noopener noreferrer" className="d-flex align-items-center gap-2 text-body text-decoration-none" style={{ fontSize: '14px', border: '1px solid black', borderRadius: '999px', padding: '6px 16px' }}>
+                    <img src={tour} alt="tour" style={{ width: '18px' }} />
+                    Tour 360
+                </a>
+            </div>
+            ) : null}
             {isLg ? (
             <div className="d-flex gap-2 mb-5" style={{ height: 'clamp(400px, 55vw, 600px)' }}>
                 {/* Imagen principal */}
@@ -304,19 +312,6 @@ function Apartament({ preview = false }) {
                     <div className={`position-absolute bottom-0 end-0 m-2 favorite-icon ${isFavorite(project.idRaw) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={handleToggleFav}>
                         <i className="fa-solid fa-heart"></i>
                     </div>
-                    {project.tour360 ? (
-                    <a
-                        href={project.tour360}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="position-absolute d-flex align-items-center gap-2 text-body text-decoration-none"
-                        style={{ top: '12px', right: '12px', backgroundColor: '#ffffffdd', borderRadius: '999px', padding: '6px 14px', fontSize: '13px', fontWeight: 500, zIndex: 2 }}
-                        onClick={e => e.stopPropagation()}
-                    >
-                        <img src={tour} alt="tour" style={{ width: '18px' }} />
-                        Tour 360
-                    </a>
-                    ) : null}
                 </div>
                 {/* Thumbnails derecha */}
                 <div className="d-flex flex-column gap-2" style={{ width: '32%', flexShrink: 0 }}>
@@ -360,19 +355,6 @@ function Apartament({ preview = false }) {
                     <div className={`position-absolute bottom-0 end-0 m-2 favorite-icon ${isFavorite(project.idRaw) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={handleToggleFav}>
                         <i className="fa-solid fa-heart"></i>
                     </div>
-                    {project.tour360 ? (
-                    <a
-                        href={project.tour360}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="position-absolute d-flex align-items-center gap-2 text-body text-decoration-none"
-                        style={{ top: '12px', right: '12px', backgroundColor: '#ffffffdd', borderRadius: '999px', padding: '6px 14px', fontSize: '13px', fontWeight: 500, zIndex: 2 }}
-                        onClick={e => e.stopPropagation()}
-                    >
-                        <img src={tour} alt="tour" style={{ width: '18px' }} />
-                        Tour 360
-                    </a>
-                    ) : null}
                 </div>
                 {/* Thumbnails debajo */}
                 <div className="d-flex gap-2">
