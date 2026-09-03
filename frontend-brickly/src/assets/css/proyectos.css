@@ -61,6 +61,16 @@
   scrollbar-width: auto;
 }
 
+.modelos-nav-btn {
+  display: flex !important;
+  opacity: 1;
+  transition: background 0.2s, color 0.2s;
+}
+.modelos-nav-btn:hover {
+  background: #000 !important;
+  color: #fff !important;
+}
+
 /* ─── Barra flotante móvil: Comercializado por + Agendar cita ─── */
 .brickly-fixed-bar {
     display: none;

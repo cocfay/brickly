@@ -148,6 +148,12 @@ function Apartament({ preview = false }) {
         scrollRef.current.scrollLeft = dragState.current.scrollLeft - walk;
     };
 
+    const scrollModelos = (dir) => {
+        const el = scrollRef.current;
+        if (!el) return;
+        el.scrollBy({ left: dir * (el.clientWidth * 0.8), behavior: 'smooth' });
+    };
+
     useEffect(() => {
         if (id) {
             let active = true;
@@ -484,6 +490,35 @@ function Apartament({ preview = false }) {
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
                             <i className="fa-thin fa-diagram-lean-canvas"></i> {t('Modelos disponibles', 'Available models')}
                         </div>
+                        <div className="position-relative">
+                            <button
+                                type="button"
+                                aria-label="Anterior"
+                                onClick={() => scrollModelos(-1)}
+                                className="modelos-nav-btn prev"
+                                style={{
+                                    position: 'absolute', left: '-18px', top: '40%', zIndex: 2,
+                                    width: '36px', height: '36px', borderRadius: '50%', border: '1px solid #ddd',
+                                    background: '#fff', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)', cursor: 'pointer',
+                                }}
+                            >
+                                <i className="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <button
+                                type="button"
+                                aria-label="Siguiente"
+                                onClick={() => scrollModelos(1)}
+                                className="modelos-nav-btn next"
+                                style={{
+                                    position: 'absolute', right: '-18px', top: '40%', zIndex: 2,
+                                    width: '36px', height: '36px', borderRadius: '50%', border: '1px solid #ddd',
+                                    background: '#fff', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)', cursor: 'pointer',
+                                }}
+                            >
+                                <i className="fa-solid fa-chevron-right"></i>
+                            </button>
                         <div
                             className="scroll-moderno-horizontal"
                             ref={scrollRef}
@@ -527,6 +562,7 @@ function Apartament({ preview = false }) {
                                     </Link>
                                 </div>
                             ))}
+                        </div>
                         </div>
                     </div>
 
