@@ -407,7 +407,7 @@ function Floor({ preview = false }) {
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
                             <i className="fa-sharp fa-regular fa-building fs-2"></i> {t('Descripción del modelo', 'Model description')}
                         </div>
-                        <div style={{ lineHeight: 1.8 }} dangerouslySetInnerHTML={{ __html: (modelo.descripcion || '').replace(/\n/g, '<br/>') }} />
+                        <div style={{ lineHeight: 1.8, marginBottom: '24px' }} dangerouslySetInnerHTML={{ __html: (modelo.descripcion || '').replace(/\n/g, '<br/>') }} />
 
                         {/* Iconos principales */}
                         {(modelo.camas > 0 || modelo.banos > 0 || modelo.parqueo > 0 || tieneValor(modelo.area)) && (

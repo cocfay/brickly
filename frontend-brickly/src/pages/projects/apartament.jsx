@@ -405,7 +405,7 @@ function Apartament({ preview = false }) {
                         <div className="d-flex align-items-center gap-2 mb-3 fs-3">
                             <i className="fa-sharp fa-regular fa-building fs-2"></i> {t('Descripción del edificio', 'Building description')}
                         </div>
-                        <div style={{ lineHeight: 1.8 }} dangerouslySetInnerHTML={{ __html: (project.descripcion || '').replace(/\n/g, '<br/>') }} />
+                        <div style={{ lineHeight: 1.8, marginBottom: '24px' }} dangerouslySetInnerHTML={{ __html: (project.descripcion || '').replace(/\n/g, '<br/>') }} />
 
                         {/* Iconos principales */}
                         {(project.camas > 0 || project.banos > 0 || project.parqueo > 0 || tieneValor(project.area)) && (
