@@ -311,13 +311,6 @@ function Apartament({ preview = false }) {
                     <div className={`position-absolute bottom-0 end-0 m-2 favorite-icon ${isFavorite(project.idRaw) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={handleToggleFav}>
                         <i className="fa-solid fa-heart"></i>
                     </div>
-                    <div
-                        className="position-absolute d-flex align-items-center gap-2"
-                        style={{ bottom: '12px', left: '12px', backgroundColor: '#ffffffdd', borderRadius: '20px', padding: '4px 14px', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
-                        onClick={e => { e.stopPropagation(); openLightbox(mainImg); }}
-                    >
-                        <i className="fa-regular fa-image"></i> +{project.imagenesThumbs.length} Fotos
-                    </div>
                 </div>
                 {/* Thumbnails derecha */}
                 <div className="d-flex flex-column gap-2" style={{ width: '32%', flexShrink: 0 }}>
@@ -326,6 +319,7 @@ function Apartament({ preview = false }) {
                             key={i}
                             onClick={() => openLightbox(img)}
                             style={{
+                                position: 'relative',
                                 flex: 1,
                                 minHeight: 0,
                                 borderRadius: '10px',
@@ -335,6 +329,15 @@ function Apartament({ preview = false }) {
                             }}
                         >
                             <img src={img} alt="" className="object-fit-cover w-100 h-100" style={{ display: 'block' }} />
+                            {i === project.imagenesThumbs.length - 1 && (
+                                <div
+                                    className="position-absolute d-flex align-items-center gap-2"
+                                    style={{ bottom: '12px', left: '12px', backgroundColor: '#ffffffdd', borderRadius: '20px', padding: '4px 14px', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
+                                    onClick={e => { e.stopPropagation(); openLightbox(img); }}
+                                >
+                                    <i className="fa-regular fa-image"></i> +{project.imagenesThumbs.length} Fotos
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
@@ -351,13 +354,6 @@ function Apartament({ preview = false }) {
                     <div className={`position-absolute bottom-0 end-0 m-2 favorite-icon ${isFavorite(project.idRaw) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={handleToggleFav}>
                         <i className="fa-solid fa-heart"></i>
                     </div>
-                    <div
-                        className="position-absolute d-flex align-items-center gap-2"
-                        style={{ bottom: '12px', left: '12px', backgroundColor: '#ffffffdd', borderRadius: '20px', padding: '4px 14px', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
-                        onClick={e => { e.stopPropagation(); openLightbox(mainImg); }}
-                    >
-                        <i className="fa-regular fa-image"></i> +{project.imagenesThumbs.length} Fotos
-                    </div>
                 </div>
                 {/* Thumbnails debajo */}
                 <div className="d-flex gap-2">
@@ -366,6 +362,7 @@ function Apartament({ preview = false }) {
                             key={i}
                             onClick={() => openLightbox(img)}
                             style={{
+                                position: 'relative',
                                 flex: 1,
                                 borderRadius: '10px',
                                 overflow: 'hidden',
@@ -375,6 +372,15 @@ function Apartament({ preview = false }) {
                             }}
                         >
                             <img src={img} alt="" className="object-fit-cover w-100 h-100" style={{ display: 'block' }} />
+                            {i === project.imagenesThumbs.length - 1 && (
+                                <div
+                                    className="position-absolute d-flex align-items-center gap-2"
+                                    style={{ bottom: '8px', left: '6px', backgroundColor: '#ffffffdd', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 500, cursor: 'pointer' }}
+                                    onClick={e => { e.stopPropagation(); openLightbox(img); }}
+                                >
+                                    <i className="fa-regular fa-image"></i> +{project.imagenesThumbs.length} Fotos
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
