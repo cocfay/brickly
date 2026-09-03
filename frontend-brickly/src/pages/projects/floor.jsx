@@ -313,15 +313,6 @@ function Floor({ preview = false }) {
                     <div className={`position-absolute bottom-0 end-0 m-2 favorite-icon ${isFavorite(project.idRaw) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={handleToggleFav}>
                         <i className="fa-solid fa-heart"></i>
                     </div>
-                    {galeria.length > 1 && (
-                    <div
-                        className="position-absolute d-flex align-items-center gap-2"
-                        style={{ bottom: '12px', left: '12px', backgroundColor: '#ffffffdd', borderRadius: '20px', padding: '4px 14px', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
-                        onClick={e => { e.stopPropagation(); openLightbox(mainImg); }}
-                    >
-                        <i className="fa-regular fa-image"></i> +{galeria.length - 1} Fotos
-                    </div>
-                    )}
                 </div>
                 {/* Thumbnails derecha */}
                 <div className="d-flex flex-column gap-2" style={{ width: '32%', flexShrink: 0 }}>
@@ -365,15 +356,6 @@ function Floor({ preview = false }) {
                     <div className={`position-absolute bottom-0 end-0 m-2 favorite-icon ${isFavorite(project.idRaw) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={handleToggleFav}>
                         <i className="fa-solid fa-heart"></i>
                     </div>
-                    {galeria.length > 1 && (
-                    <div
-                        className="position-absolute d-flex align-items-center gap-2"
-                        style={{ bottom: '12px', left: '12px', backgroundColor: '#ffffffdd', borderRadius: '20px', padding: '4px 14px', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
-                        onClick={e => { e.stopPropagation(); openLightbox(mainImg); }}
-                    >
-                        <i className="fa-regular fa-image"></i> +{galeria.length - 1} Fotos
-                    </div>
-                    )}
                 </div>
                 {/* Thumbnails debajo */}
                 <div className="d-flex gap-2">
