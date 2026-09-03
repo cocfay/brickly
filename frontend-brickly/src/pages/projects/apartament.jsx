@@ -332,7 +332,7 @@ function Apartament({ preview = false }) {
                             {i === project.imagenesThumbs.length - 1 && (
                                 <div
                                     className="position-absolute d-flex align-items-center gap-2"
-                                    style={{ bottom: '12px', left: '12px', backgroundColor: '#ffffffdd', borderRadius: '20px', padding: '4px 14px', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
+                                    style={{ bottom: '12px', right: '12px', backgroundColor: '#ffffffdd', borderRadius: '20px', padding: '4px 14px', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
                                     onClick={e => { e.stopPropagation(); openLightbox(img); }}
                                 >
                                     <i className="fa-regular fa-image"></i> +{project.imagenesThumbs.length} Fotos
@@ -375,7 +375,7 @@ function Apartament({ preview = false }) {
                             {i === project.imagenesThumbs.length - 1 && (
                                 <div
                                     className="position-absolute d-flex align-items-center gap-2"
-                                    style={{ bottom: '8px', left: '6px', backgroundColor: '#ffffffdd', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 500, cursor: 'pointer' }}
+                                    style={{ bottom: '8px', right: '6px', backgroundColor: '#ffffffdd', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 500, cursor: 'pointer' }}
                                     onClick={e => { e.stopPropagation(); openLightbox(img); }}
                                 >
                                     <i className="fa-regular fa-image"></i> +{project.imagenesThumbs.length} Fotos

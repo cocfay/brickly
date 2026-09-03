@@ -334,7 +334,7 @@ function Floor({ preview = false }) {
                             {i === 1 && galeria.length > 3 && (
                                 <div
                                     className="position-absolute d-flex align-items-center gap-2"
-                                    style={{ bottom: '12px', left: '12px', backgroundColor: '#ffffffdd', borderRadius: '20px', padding: '4px 14px', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
+                                    style={{ bottom: '12px', right: '12px', backgroundColor: '#ffffffdd', borderRadius: '20px', padding: '4px 14px', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
                                     onClick={e => { e.stopPropagation(); setMainImg(galeria[2]); openLightbox(galeria[2]); }}
                                 >
                                     <i className="fa-regular fa-image"></i> +{galeria.length - 3} Fotos
@@ -376,8 +376,8 @@ function Floor({ preview = false }) {
                             <img src={img} alt="" className="object-fit-cover w-100 h-100" style={{ display: 'block' }} />
                             {i === 1 && galeria.length > 3 && (
                                 <div
-                                    className="position-absolute bottom-0 start-0 end-0 d-flex align-items-center justify-content-center gap-2 text-white"
-                                    style={{ backgroundColor: '#000000aa', borderRadius: '0 0 10px 10px', padding: '10px 14px', fontSize: '14px', fontWeight: 500, cursor: 'zoom-in' }}
+                                    className="position-absolute d-flex align-items-center gap-2"
+                                    style={{ bottom: '8px', right: '6px', backgroundColor: '#ffffffdd', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 500, cursor: 'pointer' }}
                                     onClick={e => { e.stopPropagation(); setMainImg(galeria[2]); openLightbox(galeria[2]); }}
                                 >
                                     <i className="fa-regular fa-image"></i> +{galeria.length - 3} Fotos
