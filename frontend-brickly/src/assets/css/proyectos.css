@@ -71,6 +71,27 @@
   color: #fff !important;
 }
 
+.modelos-scrollbar {
+  position: relative;
+  height: 6px;
+  background: #e9e9e9;
+  border-radius: 10px;
+  margin-top: 14px;
+  cursor: pointer;
+}
+.modelos-scrollbar-thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #777;
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+.modelos-scrollbar-thumb:hover {
+  background: #444;
+}
+
 /* ─── Barra flotante móvil: Comercializado por + Agendar cita ─── */
 .brickly-fixed-bar {
     display: none;

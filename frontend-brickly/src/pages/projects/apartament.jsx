@@ -49,6 +49,8 @@ function BulletRow({ label, value }) {
 function Apartament({ preview = false }) {
     const { id } = useParams();
     const [isLg, setIsLg] = useState(window.innerWidth >= 992);
+    const [scrollProgress, setScrollProgress] = useState(0);
+    const modelosBarRef = useRef(null);
 
     // Rutas adaptadas al contexto: preview (cpanel) vs público
     const toInicio = preview ? '/cpanel' : '/';
@@ -152,6 +154,14 @@ function Apartament({ preview = false }) {
         const el = scrollRef.current;
         if (!el) return;
         el.scrollBy({ left: dir * (el.clientWidth * 0.8), behavior: 'smooth' });
+    };
+
+    const updateModelosProgress = () => {
+        const el = scrollRef.current;
+        if (!el) return;
+        const max = el.scrollWidth - el.clientWidth;
+        const p = max > 0 ? el.scrollLeft / max : 0;
+        setScrollProgress(p);
     };
 
     useEffect(() => {
@@ -522,6 +532,7 @@ function Apartament({ preview = false }) {
                         <div
                             className="scroll-moderno-horizontal"
                             ref={scrollRef}
+                            onScroll={updateModelosProgress}
                             onMouseDown={handleMouseDown}
                             onMouseLeave={handleMouseLeave}
                             onMouseUp={handleMouseUp}
@@ -563,6 +574,24 @@ function Apartament({ preview = false }) {
                                 </div>
                             ))}
                         </div>
+                        </div>
+
+                        {/* Barra de desplazamiento horizontal */}
+                        <div className="modelos-scrollbar" onClick={(e) => {
+                            const el = scrollRef.current;
+                            const bar = e.currentTarget;
+                            if (!el || !bar) return;
+                            const rect = bar.getBoundingClientRect();
+                            const ratio = (e.clientX - rect.left) / rect.width;
+                            const max = el.scrollWidth - el.clientWidth;
+                            el.scrollLeft = max * ratio;
+                            updateModelosProgress();
+                        }}>
+                            <div
+                                ref={modelosBarRef}
+                                className="modelos-scrollbar-thumb"
+                                style={{ width: '16%', marginLeft: `calc(${scrollProgress * 100}% * (1 - 0.16))` }}
+                            ></div>
                         </div>
                     </div>
 
