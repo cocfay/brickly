@@ -47,7 +47,7 @@ function HomeMenu() {
               <Nav.Link as={NavLink} to="propiedades"><FormattedMessage id='link.text1' /></Nav.Link>
               {/* <Nav.Link as={NavLink} to="arquitectos"><FormattedMessage id='link.text2' /></Nav.Link> */}
               <Nav.Link as={NavLink} to="proyectos"><FormattedMessage id='link.text3' /></Nav.Link>
-              <Nav.Link as={NavLink} to="/agentes"><FormattedMessage id='link.text4' /></Nav.Link>
+              {/* <Nav.Link as={NavLink} to="/agentes"><FormattedMessage id='link.text4' /></Nav.Link> */}
               <Nav.Link as={NavLink} to="/asociados"><FormattedMessage id='link.text5' /></Nav.Link>
               <Nav.Link as={NavLink} to="precios"><FormattedMessage id='link.text6' /></Nav.Link>
               <Nav.Link href="https://www.bricklyhomes.com/blog" target="_blank" rel="noreferrer">BLOG</Nav.Link>

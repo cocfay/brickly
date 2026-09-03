@@ -23,7 +23,7 @@ function SimpleMenu() {
             <Nav.Link as={NavLink} to="propiedades" className='text-dark'><FormattedMessage id='link.text1' /></Nav.Link>
             {/* <Nav.Link as={NavLink} to="arquitectos" className='text-dark'><FormattedMessage id='link.text2' /></Nav.Link> */}
             <Nav.Link as={NavLink} to="proyectos" className='text-dark'><FormattedMessage id='link.text3' /></Nav.Link>
-            <Nav.Link as={NavLink} to="/agentes" className='text-dark'><FormattedMessage id='link.text4' /></Nav.Link>
+            {/* <Nav.Link as={NavLink} to="/agentes" className='text-dark'><FormattedMessage id='link.text4' /></Nav.Link> */}
             <Nav.Link as={NavLink} to="/asociados" className='text-dark'><FormattedMessage id='link.text5' /></Nav.Link>
             <Nav.Link as={NavLink} to="precios" className='text-dark'><FormattedMessage id='link.text6' /></Nav.Link>
             <Nav.Link href="https://www.bricklyhomes.com/blog" target="_blank" rel="noreferrer" className='text-dark'>BLOG</Nav.Link>

@@ -97,7 +97,7 @@ function Layout() {
                   <Link to="/propiedades" className='text-decoration-none text-white'><FormattedMessage id='link.text1' /></Link>
                   {/* <Link to="/arquitectos" className='text-decoration-none text-white'><FormattedMessage id='link.text2' /></Link> */}
                   <Link to="proyectos" className='text-decoration-none text-white'><FormattedMessage id='link.text3' /></Link>
-                  <Link to="/agentes" className='text-decoration-none text-white'><FormattedMessage id='link.text4' /></Link>
+                  {/* <Link to="/agentes" className='text-decoration-none text-white'><FormattedMessage id='link.text4' /></Link> */}
                   <Link to="/asociados" className='text-decoration-none text-white'><FormattedMessage id='link.text5' /></Link>
                   <Link to="/precios" className='text-decoration-none text-white'><FormattedMessage id='link.text6' /></Link>
                   <a href="https://www.bricklyhomes.com/blog" target="_blank" rel="noreferrer" className='text-decoration-none text-white'>BLOG</a>
