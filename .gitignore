@@ -37,3 +37,4 @@ start-local.cmd
 
 # Uploads (archivos subidos por usuarios)
 frontend-brickly/uploads/
+brickly-api.tar
