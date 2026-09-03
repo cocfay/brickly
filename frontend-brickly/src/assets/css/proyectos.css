@@ -32,29 +32,33 @@
   overflow-y: hidden;
   display: flex;
   gap: 1rem;
-  padding-bottom: 8px;
+  padding-bottom: 12px;
   
   &::-webkit-scrollbar {
-    height: 6px;
+    height: 10px;
   }
   
   &::-webkit-scrollbar-track {
-    background: transparent;
+    background: #e9e9e9;
+    border-radius: 10px;
   }
   
   &::-webkit-scrollbar-thumb {
-    background: #c9c9c9;
+    background: #a0a0a0;
     border-radius: 10px;
     transition: background 0.2s;
   }
   
   &:hover::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
+    background: #5a5a5a;
   }
   
   &::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.4);
+    background: #333;
   }
+  
+  scrollbar-color: #a0a0a0 #e9e9e9;
+  scrollbar-width: auto;
 }
 
 /* ─── Barra flotante móvil: Comercializado por + Agendar cita ─── */
