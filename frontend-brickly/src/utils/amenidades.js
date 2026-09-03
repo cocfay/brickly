@@ -2,6 +2,7 @@
 // edificio: true  → aplica SOLO al edificio (se marca con * en la UI)
 // edificio: false → es amenidad de los apartamentos
 export const AMENIDADES_ALL = [
+    { key: 'walkincloset',       nombre: 'Walk-in closet',                        edificio: false },
     { key: 'balcon',             nombre: 'Balcón',                                 edificio: false },
     { key: 'aire',               nombre: 'Aire acondicionado',                     edificio: false },
     { key: 'airbnb',             nombre: 'AIRBNB friendly',                        edificio: false },
