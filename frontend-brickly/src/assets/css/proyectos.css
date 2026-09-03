@@ -28,7 +28,7 @@
 
 /* ── Scroll horizontal estilo scroll-moderno ── */
 .scroll-moderno-horizontal {
-  overflow-x: auto;
+  overflow-x: scroll;
   overflow-y: hidden;
   display: flex;
   gap: 1rem;
