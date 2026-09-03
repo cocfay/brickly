@@ -46,7 +46,7 @@ function HomeMenu() {
             <Nav className='d-flex gap-lg-0 gap-xl-2 align-items-center' style={{ fontSize: 'clamp(10px, 1vw, 14px)' }}>
               <Nav.Link as={NavLink} to="propiedades"><FormattedMessage id='link.text1' /></Nav.Link>
               {/* <Nav.Link as={NavLink} to="arquitectos"><FormattedMessage id='link.text2' /></Nav.Link> */}
-              {/* <Nav.Link as={NavLink} to="/proyectos"><FormattedMessage id='link.text3' /></Nav.Link> */}
+              <Nav.Link as={NavLink} to="proyectos"><FormattedMessage id='link.text3' /></Nav.Link>
               <Nav.Link as={NavLink} to="/agentes"><FormattedMessage id='link.text4' /></Nav.Link>
               <Nav.Link as={NavLink} to="/asociados"><FormattedMessage id='link.text5' /></Nav.Link>
               <Nav.Link as={NavLink} to="precios"><FormattedMessage id='link.text6' /></Nav.Link>

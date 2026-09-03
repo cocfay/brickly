@@ -22,7 +22,7 @@ function SimpleMenu() {
           <Nav className='d-flex gap-lg-0 gap-xl-2 align-items-center' style={{ fontSize: 'clamp(10px, 1vw, 14px)' }}>
             <Nav.Link as={NavLink} to="propiedades" className='text-dark'><FormattedMessage id='link.text1' /></Nav.Link>
             {/* <Nav.Link as={NavLink} to="arquitectos" className='text-dark'><FormattedMessage id='link.text2' /></Nav.Link> */}
-            {/* <Nav.Link as={NavLink} to="/proyectos" className='text-dark'><FormattedMessage id='link.text3' /></Nav.Link> */}
+            <Nav.Link as={NavLink} to="proyectos" className='text-dark'><FormattedMessage id='link.text3' /></Nav.Link>
             <Nav.Link as={NavLink} to="/agentes" className='text-dark'><FormattedMessage id='link.text4' /></Nav.Link>
             <Nav.Link as={NavLink} to="/asociados" className='text-dark'><FormattedMessage id='link.text5' /></Nav.Link>
             <Nav.Link as={NavLink} to="precios" className='text-dark'><FormattedMessage id='link.text6' /></Nav.Link>

@@ -96,7 +96,7 @@ function Layout() {
                 <div className="d-flex justify-content-between align-items-start flex-column flex-xl-row gap-2">
                   <Link to="/propiedades" className='text-decoration-none text-white'><FormattedMessage id='link.text1' /></Link>
                   {/* <Link to="/arquitectos" className='text-decoration-none text-white'><FormattedMessage id='link.text2' /></Link> */}
-                  {/* <Link to="/proyectos" className='text-decoration-none text-white'><FormattedMessage id='link.text3' /></Link> */}
+                  <Link to="proyectos" className='text-decoration-none text-white'><FormattedMessage id='link.text3' /></Link>
                   <Link to="/agentes" className='text-decoration-none text-white'><FormattedMessage id='link.text4' /></Link>
                   <Link to="/asociados" className='text-decoration-none text-white'><FormattedMessage id='link.text5' /></Link>
                   <Link to="/precios" className='text-decoration-none text-white'><FormattedMessage id='link.text6' /></Link>
