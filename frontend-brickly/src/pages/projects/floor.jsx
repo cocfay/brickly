@@ -569,7 +569,7 @@ function Floor({ preview = false }) {
                                 </div>
                                 <div className="d-flex justify-content-md-end flex-column">
                                     <div className='mb-2 lh-1' style={{ fontSize: '16px' }}><FormattedMessage id="home.text12" /></div>
-                                    <a href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa la propiedad ${modelo.nombre} que vi en Brickly Homes.`)}`} target="_blank" className="rounded-1 text-center border-0 py-1" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box', padding: '2px 8px', fontSize: '13px' }} rel="noreferrer" aria-label="Agendar una cita para información del modelo" onClick={handleCitaClick}>
+                                    <a href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa la propiedad ${modelo.nombre} que vi en Brickly Homes. Quisiera contactar con un asesor para recibir más información.`)}`} target="_blank" className="rounded-1 text-center border-0 py-1" style={{ backgroundColor: 'black', color: 'white', boxSizing: 'border-box', padding: '2px 8px', fontSize: '13px' }} rel="noreferrer" aria-label="Agendar una cita para información del modelo" onClick={handleCitaClick}>
                                         <i className="fa-brands fa-whatsapp me-2"></i><FormattedMessage id="home.text13" />
                                     </a>
                                 </div>
@@ -690,7 +690,7 @@ function Floor({ preview = false }) {
                 </div>
             </div>
             <a
-                href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa la propiedad ${modelo.nombre} que vi en Brickly Homes.`)}`}
+                href={`https://wa.me/50237649719?text=${encodeURIComponent(`Me interesa la propiedad ${modelo.nombre} que vi en Brickly Homes. Quisiera contactar con un asesor para recibir más información.`)}`}
                 target="_blank"
                 rel="noreferrer"
                 className="brickly-bar-btn"
