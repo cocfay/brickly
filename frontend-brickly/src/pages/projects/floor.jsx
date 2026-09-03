@@ -281,9 +281,12 @@ function Floor({ preview = false }) {
                             {ubicacion}
                         </div>
                         <div style={{ fontSize: '20px' }}>Tipo: {modelo.tipo}</div>
-                        <div className="d-flex align-items-center gap-3 flex-wrap">
-                            <span className="fw-bold" style={{ fontSize: 'clamp(22px, 3vw, 30px)' }}>{modelo.precioDesdeUSD}</span>
-                            <div className='d-flex align-items-center gap-2'><img src={venta} alt="icons" style={{ width: '20px' }} /> <div className="bg-dark rounded-1 px-4 py-0 text-white fw-lighter" style={{ fontSize: '16px' }}>{project.modo}</div></div>
+                        <div>
+                            <div className="text-muted" style={{ fontSize: '14px' }}>Desde</div>
+                            <div className="d-flex align-items-center gap-3 flex-wrap">
+                                <span className="fw-bold" style={{ fontSize: 'clamp(22px, 3vw, 30px)' }}>{modelo.precioDesdeUSD}</span>
+                                <div className='d-flex align-items-center gap-2'><img src={venta} alt="icons" style={{ width: '20px' }} /> <div className="bg-dark rounded-1 px-4 py-0 text-white fw-lighter" style={{ fontSize: '16px' }}>{project.modo}</div></div>
+                            </div>
                         </div>
                     </div>
                     <div className="d-flex flex-column align-items-lg-end gap-2 text-lg-end">
