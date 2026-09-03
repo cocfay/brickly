@@ -539,7 +539,7 @@ function Apartament({ preview = false }) {
                         <div className="d-flex flex-wrap gap-2">
                             {amenidades.map((a, i) => (
                                 <span key={i} className="border border-black rounded-pill px-3 py-2" style={{ color: '#333', fontWeight: 400 }}>
-                                    {a.nombre}{a.edificio ? ' *' : ''}
+                                    {a.nombre}
                                 </span>
                             ))}
                         </div>
