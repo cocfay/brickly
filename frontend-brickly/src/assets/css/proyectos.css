@@ -61,16 +61,6 @@
   scrollbar-width: auto;
 }
 
-.modelos-nav-btn {
-  display: flex !important;
-  opacity: 1;
-  transition: background 0.2s, color 0.2s;
-}
-.modelos-nav-btn:hover {
-  background: #000 !important;
-  color: #fff !important;
-}
-
 .modelos-scrollbar {
   position: relative;
   height: 6px;
