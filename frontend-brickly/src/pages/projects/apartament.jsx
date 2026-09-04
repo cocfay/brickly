@@ -207,7 +207,7 @@ function Apartament({ preview = false }) {
 
     const amenidades = project.amenidades || [];
     const situacional = project.situacional || '';
-    const situacionalLabel = situacional ? `APARTAMENTOS EN ${situacional.toUpperCase().replace(/^EN\s+/, '')}` : '';
+    const situacionalLabel = /construcción|construccion/i.test(situacional) ? '' : (situacional ? `APARTAMENTOS EN ${situacional.toUpperCase().replace(/^EN\s+/, '')}` : '');
 
     const tieneValor = esValorPresente;
     const formatearFechaEntrega = (val) => {
