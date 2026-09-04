@@ -207,7 +207,16 @@ function Apartament({ preview = false }) {
 
     const amenidades = project.amenidades || [];
     const situacional = project.situacional || '';
-    const situacionalLabel = /construcción|construccion/i.test(situacional) ? '' : (situacional ? `APARTAMENTOS EN ${situacional.toUpperCase().replace(/^EN\s+/, '')}` : '');
+    const etiquetasSituacion = {
+      'en venta': 'APARTAMENTOS EN VENTA',
+      'preventa': 'APARTAMENTOS EN PREVENTA',
+      'en construcción': 'APARTAMENTOS EN CONSTRUCCION',
+      'en construccion': 'APARTAMENTOS EN CONSTRUCCION',
+      'próximo a entregar': 'PROXIMO A ENTREGAR',
+      'proximo a entregar': 'PROXIMO A ENTREGAR',
+      'terminado': 'APARTAMENTO TERMINADO',
+    };
+    const situacionalLabel = etiquetasSituacion[situacional.toLowerCase()] || '';
 
     const tieneValor = esValorPresente;
     const formatearFechaEntrega = (val) => {
