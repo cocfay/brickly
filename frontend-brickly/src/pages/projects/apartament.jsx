@@ -207,11 +207,7 @@ function Apartament({ preview = false }) {
 
     const amenidades = project.amenidades || [];
     const situacional = project.situacional || '';
-    const situacionalLabel = situacional
-      ? situacional.toLowerCase().includes('preventa')
-        ? 'APARTAMENTOS PROXIMOS A ENTREGAR'
-        : `APARTAMENTOS EN ${situacional.toUpperCase().replace(/^EN\s+/, '')}`
-      : '';
+    const situacionalLabel = situacional ? `APARTAMENTOS EN ${situacional.toUpperCase().replace(/^EN\s+/, '')}` : '';
 
     const tieneValor = esValorPresente;
     const formatearFechaEntrega = (val) => {
