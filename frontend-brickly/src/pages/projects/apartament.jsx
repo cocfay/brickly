@@ -247,7 +247,7 @@ function Apartament({ preview = false }) {
             <div className="mb-4">
 
                 {/* Precio + badges */}
-                <div className="d-flex justify-content-between align-items-lg-end flex-column flex-lg-row">
+                <div className="d-flex justify-content-between align-items-lg-center flex-column flex-lg-row">
                     <div className="d-flex flex-wrap flex-column align-items-start gap-2 mt-3">
                         <div style={{ fontSize: 'clamp(28px, 4vw, 50px)', fontFamily: 'AppleGaramond', lineHeight: 1.1 }}>
                             {project.titulo}
@@ -267,7 +267,7 @@ function Apartament({ preview = false }) {
                             <span style={{ fontSize: '16px' }}><strong>Tasa ($):</strong> {project.tasaUSD}</span> */}
                         </div>
                     </div>
-                    <div className="d-flex flex-column align-items-center gap-3 me-lg-5 mt-4">
+                    <div className="d-flex flex-column align-items-center gap-3 me-lg-5 mt-lg-0 mt-4">
                         <div style={{ border: '1px solid black' }} className="py-1 px-3 rounded-4" >{situacionalLabel}</div>
                         {/* Desktop: 3 items en fila */}
                         <div className="d-none d-lg-flex align-items-center justify-content-center gap-4 mb-2" style={{ fontSize: '1.15rem' }}>
