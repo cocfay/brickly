@@ -246,31 +246,32 @@ function Apartament({ preview = false }) {
             {/* Header */}
             <div className="mb-4">
 
-                {/* Precio + badges */}
-                <div className="d-flex justify-content-between align-items-lg-center flex-column flex-lg-row">
-                    <div className="d-flex flex-wrap flex-column align-items-start gap-2 mt-3">
-                        <div style={{ fontSize: 'clamp(28px, 4vw, 50px)', fontFamily: 'AppleGaramond', lineHeight: 1.1 }}>
-                            {project.titulo}
+                {/* Header */}
+                <div className="mb-4">
+
+                    {/* Fila superior: título / ubicación / tipo + badge de estado */}
+                    <div className="d-flex justify-content-between align-items-start flex-column flex-lg-row">
+                        <div className="d-flex flex-wrap flex-column align-items-start gap-2 mt-3">
+                            <div style={{ fontSize: 'clamp(28px, 4vw, 50px)', fontFamily: 'AppleGaramond', lineHeight: 1.1 }}>
+                                {project.titulo}
+                            </div>
+                            <div className="" style={{ fontSize: '20px' }}>
+                                <i className="fa-solid fa-location-dot me-1"></i>{project.ubicacion}
+                            </div>
+                            <div style={{ fontSize: '20px' }}>Tipo: {project.tipo}</div>
                         </div>
-                        <div className="" style={{ fontSize: '20px' }}>
-                            <i className="fa-solid fa-location-dot me-1"></i>{project.ubicacion}
+                        <div className="me-lg-5 mt-3 mt-lg-0">
+                            <div style={{ border: '1px solid black' }} className="py-1 px-3 rounded-4" >{situacionalLabel}</div>
                         </div>
-                        <div style={{ fontSize: '20px' }}>Tipo: {project.tipo}</div>
+                    </div>
+
+                    {/* Fila inferior: precio + stats */}
+                    <div className="d-flex justify-content-between align-items-center flex-column flex-lg-row gap-3 mt-4">
                         <div className="d-flex align-items-center gap-3 flex-wrap">
                             <span className="fw-bold" style={{ fontSize: 'clamp(22px, 3vw, 30px)' }}>{project.precioDesdeUSD}</span>
                             <div className='d-flex align-items-center gap-2'><img src={venta} alt="icons" style={{ width: '20px' }} /> <div className= "bg-dark rounded-1 px-4 py-0 text-white fw-lighter" style={{ fontSize: '16px' }}>{project.modo}</div></div>
                         </div>
-                        {/* Precio desde Q + Tasa */}
-                        <div className="d-flex align-items-center gap-3 flex-wrap mt-1">
-                            {/* <span style={{ fontSize: '16px' }}><strong>{t('Precio desde', 'Starting from')} (Q):</strong> {project.precioDesdeQ}</span>
-                            <span style={{ width: '1px', height: '18px', backgroundColor: '#ccc' }}></span>
-                            <span style={{ fontSize: '16px' }}><strong>Tasa ($):</strong> {project.tasaUSD}</span> */}
-                        </div>
-                    </div>
-                    <div className="d-flex flex-column align-items-center gap-3 me-lg-5 mt-lg-0 mt-4">
-                        <div style={{ border: '1px solid black' }} className="py-1 px-3 rounded-4" >{situacionalLabel}</div>
-                        {/* Desktop: 3 items en fila */}
-                        <div className="d-none d-lg-flex align-items-center justify-content-center gap-4 mb-2" style={{ fontSize: '1.15rem' }}>
+                        <div className="d-none d-lg-flex align-items-center justify-content-center gap-4">
                             {tieneValor(project.estructura.niveles) && <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>{project.estructura.niveles} Niveles</div>}
                             {project.unidades ? (<>
                                 <div style={{ width: '1px', height: '18px', backgroundColor: '#ccc' }}></div>
@@ -281,21 +282,22 @@ function Apartament({ preview = false }) {
                                 <div className="d-flex align-items-center gap-2"><i className="fa-regular fa-calendar"></i>Entrega: {formatearFechaEntrega(project.fechaEntrega)}</div>
                             </>) : null}
                         </div>
-                        {/* Móvil/tablet: 2 columnas */}
-                        <div className="d-lg-none w-100">
-                            <div className="d-flex align-items-center justify-content-center gap-4 mb-3">
-                                {tieneValor(project.estructura.niveles) && <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>{project.estructura.niveles} Niveles</div>}
-                                {project.unidades ? (<>
-                                    <div style={{ width: '1px', height: '18px', backgroundColor: '#ccc' }}></div>
-                                    <div className="d-flex align-items-center gap-2"><i className="fa-sharp fa-light fa-block"></i>{project.unidades} Unidades</div>
-                                </>) : null}
-                            </div>
-{project.fechaEntrega ? (
-                                <div className="d-flex justify-content-center">
-                                    <div className="d-flex align-items-center gap-2"><i className="fa-regular fa-calendar"></i>Entrega: {formatearFechaEntrega(project.fechaEntrega)}</div>
-                                </div>
-                            ) : null}
+                    </div>
+
+                    {/* Móvil/tablet: stats */}
+                    <div className="d-lg-none w-100 mt-3">
+                        <div className="d-flex align-items-center justify-content-center gap-4 mb-3">
+                            {tieneValor(project.estructura.niveles) && <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>{project.estructura.niveles} Niveles</div>}
+                            {project.unidades ? (<>
+                                <div style={{ width: '1px', height: '18px', backgroundColor: '#ccc' }}></div>
+                                <div className="d-flex align-items-center gap-2"><i className="fa-sharp fa-light fa-block"></i>{project.unidades} Unidades</div>
+                            </>) : null}
                         </div>
+{project.fechaEntrega ? (
+                            <div className="d-flex justify-content-center">
+                                <div className="d-flex align-items-center gap-2"><i className="fa-regular fa-calendar"></i>Entrega: {formatearFechaEntrega(project.fechaEntrega)}</div>
+                            </div>
+                        ) : null}
                     </div>
                 </div>
             </div>
