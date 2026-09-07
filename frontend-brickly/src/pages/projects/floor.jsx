@@ -209,6 +209,7 @@ function Floor({ preview = false }) {
 
     const esBodega = modelo.tipo === 'Bodega';
     const esOficina = modelo.tipo === 'Oficina';
+    const soloBanoPark = project.tipo === 'Bodegas' || project.tipo === 'Edificio de oficinas';
     const otrosModelos = (project.modelos || []).filter(m => m.modelSlug !== modelSlug);
 
     const tieneValor = esValorPresente;
@@ -317,7 +318,7 @@ function Floor({ preview = false }) {
                     <img src={mainImg} alt="Principal" className="object-fit-cover w-100 border-radius-1 h-100" style={{ display: 'block' }} />
                     {modelo.tour360 || project.tour360 ? (
                     <a href={modelo.tour360 || project.tour360} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="position-absolute top-0 start-0 d-block" style={{ margin: '12px', zIndex: 2 }}>
-                        <img src={botonTour} alt="Tour 360" style={{ height: '86px', width: 'auto' }} />
+                        <img src={botonTour} alt="Tour 360" style={{ height: 'clamp(60px, 9.2vw, 113px)', width: 'auto' }} />
                     </a>
                     ) : null}
                     <div className={`position-absolute bottom-0 end-0 m-2 favorite-icon ${isFavorite(project.idRaw) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={handleToggleFav}>
@@ -365,7 +366,7 @@ function Floor({ preview = false }) {
                     <img src={mainImg} alt="Principal" className="object-fit-cover w-100 h-100" style={{ display: 'block' }} />
                     {modelo.tour360 || project.tour360 ? (
                     <a href={modelo.tour360 || project.tour360} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="position-absolute top-0 start-0 d-block" style={{ margin: '12px', zIndex: 2 }}>
-                        <img src={botonTour} alt="Tour 360" style={{ height: '86px', width: 'auto' }} />
+                        <img src={botonTour} alt="Tour 360" style={{ height: 'clamp(60px, 9.2vw, 113px)', width: 'auto' }} />
                     </a>
                     ) : null}
                     <div className={`position-absolute bottom-0 end-0 m-2 favorite-icon ${isFavorite(project.idRaw) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={handleToggleFav}>
@@ -428,7 +429,13 @@ function Floor({ preview = false }) {
                         {(modelo.camas > 0 || modelo.banos > 0 || modelo.parqueo > 0 || tieneValor(modelo.area) || tieneValor(modelo.areas?.totalAmbientes)) && (
                         <div className="d-flex mb-4 py-3 border-top border-bottom justify-content-center align-items-center" style={{ gap: 'clamp(25px, 8vw, 70px)' }}>
                             <div>A partir de: </div>
-                            {!esBodega && (
+                            {project.tipo === 'Edificio de oficinas' && tieneValor(modelo.areas?.totalAmbientes) && (
+                            <div className="text-center">
+                                <img src="https://www.bricklyhomes.com/assets/spaces-CJ1Ch4hY.png" className="d-block mx-auto mb-1" alt="" style={{ fontSize: '22px', height: '22px' }} />
+                                <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.areas?.totalAmbientes}</span>
+                            </div>
+                            )}
+                            {!soloBanoPark && (
                             <div className="text-center">
                                 <i className="fa-solid fa-bed d-block mb-1" style={{ fontSize: '22px' }}></i>
                                 <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.camas}</span>
@@ -442,16 +449,10 @@ function Floor({ preview = false }) {
                                 <i className="fa-solid fa-car-side d-block mb-1" style={{ fontSize: '22px' }}></i>
                                 <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.parqueo}</span>
                             </div>
-                            {!esBodega && tieneValor(modelo.area) && (
+                            {project.tipo !== 'Bodegas' && tieneValor(modelo.area) && (
                             <div className="text-center">
                                 <i className="fa-solid fa-crop-simple d-block mb-1" style={{ fontSize: '22px' }}></i>
                                 <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.area}</span>
-                            </div>
-                            )}
-                            {!esBodega && tieneValor(modelo.areas?.totalAmbientes) && (
-                            <div className="text-center">
-                                <i className="fa-solid fa-building d-block mb-1" style={{ fontSize: '22px' }}></i>
-                                <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.areas?.totalAmbientes}</span>
                             </div>
                             )}
                         </div>

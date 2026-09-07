@@ -884,9 +884,19 @@ function Proyectos() {
 
                                         {/* Iconos */}
                                         <div className="d-flex gap-4 my-3" style={{ fontSize: '16px' }}>
+                                            {item.tipo === 'Edificio de oficinas' ? (item.totalAmbientes && (
+                                            <div title={t('Total de ambientes', 'Total rooms')}>
+                                                <img src="https://www.bricklyhomes.com/assets/spaces-CJ1Ch4hY.png" alt="" style={{ height: '20px' }} className="me-2" />
+                                                {item.totalAmbientes}
+                                            </div>
+                                            )) : null}
+                                            {item.tipo !== 'Bodegas' ? (
+                                            <>
+                                            {item.tipo !== 'Edificio de oficinas' && (
                                             <div title={t('Habitaciones', 'Bedrooms')}>
                                                 <i className="fa-solid fa-bed me-2"></i>{item.camas}
                                             </div>
+                                            )}
                                             <div title={t('Baños', 'Baths')}>
                                                 <i className="fa-solid fa-bath me-2"></i>{item.banos}
                                             </div>
@@ -896,6 +906,17 @@ function Proyectos() {
                                             <div title={t('Área', 'Area')}>
                                                 <i className="fa-solid fa-crop-simple me-2"></i>{item.area}
                                             </div>
+                                            </>
+                                            ) : (
+                                            <>
+                                            <div title={t('Baños', 'Baths')}>
+                                                <i className="fa-solid fa-bath me-2"></i>{item.banos}
+                                            </div>
+                                            <div title={t('Parqueo', 'Parking')}>
+                                                <i className="fa-solid fa-car-side me-2"></i>{item.parqueo}
+                                            </div>
+                                            </>
+                                            )}
                                         </div>
 
                                         {/* Precio + modo */}

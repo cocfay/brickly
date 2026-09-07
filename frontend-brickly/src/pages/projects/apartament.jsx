@@ -346,7 +346,7 @@ function Apartament({ preview = false }) {
                     <img src={mainImg} alt="Principal" className="object-fit-cover w-100 border-radius-1 h-100" style={{ display: 'block' }} />
                     {project.tour360 ? (
                     <a href={project.tour360} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="position-absolute top-0 start-0 d-block" style={{ margin: '12px', zIndex: 2 }}>
-                        <img src={botonTour} alt="Tour 360" style={{ height: '86px', width: 'auto' }} />
+                        <img src={botonTour} alt="Tour 360" style={{ height: 'clamp(60px, 9.2vw, 113px)', width: 'auto' }} />
                     </a>
                     ) : null}
                     <div className={`position-absolute bottom-0 end-0 m-2 favorite-icon ${isFavorite(project.idRaw) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={handleToggleFav}>
@@ -394,7 +394,7 @@ function Apartament({ preview = false }) {
                     <img src={mainImg} alt="Principal" className="object-fit-cover w-100 h-100" style={{ display: 'block' }} />
                     {project.tour360 ? (
                     <a href={project.tour360} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="position-absolute top-0 start-0 d-block" style={{ margin: '12px', zIndex: 2 }}>
-                        <img src={botonTour} alt="Tour 360" style={{ height: '86px', width: 'auto' }} />
+                        <img src={botonTour} alt="Tour 360" style={{ height: 'clamp(60px, 9.2vw, 113px)', width: 'auto' }} />
                     </a>
                     ) : null}
                     <div className={`position-absolute bottom-0 end-0 m-2 favorite-icon ${isFavorite(project.idRaw) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={handleToggleFav}>
@@ -457,13 +457,13 @@ function Apartament({ preview = false }) {
                         {(project.camas > 0 || project.banos > 0 || project.parqueo > 0 || tieneValor(project.area) || tieneValor(project.totalAmbientes)) && (
                         <div className="d-flex mb-4 py-3 border-top border-bottom justify-content-center align-items-center" style={{ gap: 'clamp(25px, 8vw, 70px)' }}>
                             <div>A partir de: </div>
-                            {project.tipo !== 'Bodegas' && tieneValor(project.totalAmbientes) && (
+                            {project.tipo === 'Edificio de oficinas' ? (tieneValor(project.totalAmbientes) && (
                             <div className="text-center">
                                 <img src="https://www.bricklyhomes.com/assets/spaces-CJ1Ch4hY.png" className="d-block mx-auto mb-1" alt="" style={{ fontSize: '22px', height: '22px' }} />
                                 <span style={{ fontSize: '20px', fontWeight: 600 }}>{project.totalAmbientes}</span>
                             </div>
-                            )}
-                            {project.tipo !== 'Bodegas' && (
+                            )) : null}
+                            {project.tipo !== 'Bodegas' && project.tipo !== 'Edificio de oficinas' && (
                             <div className="text-center">
                                 <i className="fa-solid fa-bed d-block mb-1" style={{ fontSize: '22px' }}></i>
                                 <span style={{ fontSize: '20px', fontWeight: 600 }}>{project.camas}</span>
@@ -588,9 +588,34 @@ function Apartament({ preview = false }) {
                                             ) : null} */}
                                                 <hr />
                                                 <div className="d-flex justify-content-around align-items-center gap-2 mt-2 text-muted" style={{ fontSize: '12px' }}>
+                                                    {project.tipo === 'Edificio de oficinas' ? (m.areas?.totalAmbientes && (
+                                                    <span><img src="https://www.bricklyhomes.com/assets/spaces-CJ1Ch4hY.png" alt="" style={{ height: '14px' }} className="me-1" />{m.areas?.totalAmbientes}</span>
+                                                    )) : null}
+                                                    {project.tipo === 'Bodegas' ? (
+                                                    <>
+                                                    <span><i className="fa-solid fa-bath me-1"></i>{m.banos}</span>
+                                                    <span><i className="fa-solid fa-car-side me-1"></i>{m.parqueo}</span>
+                                                    </>
+                                                    ) : project.tipo === 'Edificio de oficinas' ? (
+                                                    <>
+                                                    <span><i className="fa-solid fa-bath me-1"></i>{m.banos}</span>
+                                                    <span><i className="fa-solid fa-car-side me-1"></i>{m.parqueo}</span>
+                                                    <span><i className="fa-solid fa-crop-simple me-1"></i>{m.area}</span>
+                                                    </>
+                                                    ) : project.tipo === 'Edificio' || project.tipo === 'Condominio' ? (
+                                                    <>
+                                                    <span><i className="fa-solid fa-bath me-1"></i>{m.banos}</span>
+                                                    <span><i className="fa-solid fa-car-side me-1"></i>{m.parqueo}</span>
+                                                    <span><i className="fa-solid fa-crop-simple me-1"></i>{m.area}</span>
+                                                    <span><i className="fa-solid fa-bed me-1"></i>{m.camas}</span>
+                                                    </>
+                                                    ) : (
+                                                    <>
                                                     <span><i className="fa-solid fa-crop-simple me-1"></i>{m.area}</span>
                                                     <span><i className="fa-solid fa-bed me-1"></i>{m.camas}</span>
                                                     <span><i className="fa-solid fa-bath me-1"></i>{m.banos}</span>
+                                                    </>
+                                                    )}
                                                 </div>
                                                 <hr />
                                                 <div className="d-flex justify-content-center align-items-center gap-1 mt-2 text-body text-decoration-none">
