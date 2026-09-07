@@ -11,6 +11,9 @@ import '../../assets/css/propiedades.css';
 import { useT } from '../../hooks/useT';
 import { getProyectosPublicos } from '../../cpanel/services/proyectos';
 import { mapProyectoToCard } from '../../utils/proyectosUtils';
+import { formatProjectPrice } from '../../utils/proyectosUtils';
+import { getProjectPath } from '../../utils/projectRoutes';
+import { useCurrency } from '../../context/CurrencyContext';
 import { useFavoriteProjects } from '../../hooks/useFavoriteProjects';
 import { isAuthenticated } from '../../services/authService';
 
@@ -51,6 +54,7 @@ const selectStyles = {
 function Proyectos() {
     const t = useT();
     const { isFavorite, toggle: toggleFav, canFavorite } = useFavoriteProjects();
+    const { currency: currencyMode } = useCurrency();
 
     const [filters, setFilters] = useState({
         search: '',
@@ -839,7 +843,7 @@ function Proyectos() {
                             const isVenta = item.modo === 'Venta';
                             return (
                                 <div className="col-md-6 col-xl-4 d-flex flex-column" key={index}>
-                                    <Link to={`/proyectos/apartamento/${item.id}`} className="position-relative d-block propiedades-zoom">
+                                    <Link to={getProjectPath(item)} className="position-relative d-block propiedades-zoom">
                                         <img
                                             src={item.img}
                                             className="object-fit-cover w-100 border-radius-1"
@@ -869,7 +873,7 @@ function Proyectos() {
                                     </Link>
 
                                     {/* Info */}
-                                    <Link to={`/proyectos/apartamento/${item.id}`} className="mt-3 text-body d-flex flex-column flex-grow-1">
+                                    <Link to={getProjectPath(item)} className="mt-3 text-body d-flex flex-column flex-grow-1">
                                         <div className="text-truncate" style={{ fontSize: 'clamp(34px, 6vw, 44px)', fontFamily: 'AppleGaramond' }}>
                                             {item.titulo}
                                         </div>
@@ -898,7 +902,7 @@ function Proyectos() {
                                         <div className="mt-auto">
                                             <div className="text-muted" style={{ fontSize: '13px' }}>Desde</div>
                                             <div className="fw-bold fs-4 text-dark d-flex align-items-center gap-4">
-                                                {item.precio}
+                                                {formatProjectPrice(item.priceNum, item.priceQNum, currencyMode)}
                                                 <div className="d-flex align-items-center gap-2">
                                                     <img src={isVenta ? venta : alquiler} alt="modo" style={{ width: '20px' }} />
                                                     <div

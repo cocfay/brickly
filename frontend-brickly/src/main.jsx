@@ -132,6 +132,14 @@ const App = () => {
               <Route path="arquitectos/proyecto/:id" element={<Projectarchitect />} />
               <Route path="arquitectos/:slug" element={<Profilearchitect />} />
               <Route path="proyectos" element={<Project />} />
+              <Route path="proyectos/edificio/:id" element={<Apartament />} />
+              <Route path="proyectos/edificio/:id/modelo/:modelSlug" element={<Floor />} />
+              <Route path="proyectos/bodega/:id" element={<Apartament />} />
+              <Route path="proyectos/bodega/:id/modelo/:modelSlug" element={<Floor />} />
+              <Route path="proyectos/condominio/:id" element={<Apartament />} />
+              <Route path="proyectos/condominio/:id/modelo/:modelSlug" element={<Floor />} />
+              <Route path="proyectos/edificio-de-oficinas/:id" element={<Apartament />} />
+              <Route path="proyectos/edificio-de-oficinas/:id/modelo/:modelSlug" element={<Floor />} />
               <Route path="proyectos/apartamento/:id" element={<Apartament />} />
               <Route path="proyectos/apartamento/:id/modelo/:modelSlug" element={<Floor />} />
               <Route path="favoritos" element={<Favoritos />} />

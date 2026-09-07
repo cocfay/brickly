@@ -10,11 +10,23 @@ export const getProjectSlug = (projectOrId) => {
   );
 };
 
-export const getProjectPath = (projectOrId) =>
-  `/proyectos/apartamento/${getProjectSlug(projectOrId)}`;
+export const getTipoSlug = (tipo) => {
+  const map = {
+    Edificio: 'edificio',
+    Bodegas: 'bodega',
+    Bodega: 'bodega',
+    Condominio: 'condominio',
+    'Edificio de oficinas': 'edificio-de-oficinas',
+    Apartamento: 'apartamento',
+  };
+  return map[tipo] || 'apartamento';
+};
 
-export const getModelPath = (projectOrId, modelOrSlug) =>
-  `/proyectos/apartamento/${getProjectSlug(projectOrId)}/modelo/${getModelSlug(modelOrSlug)}`;
+export const getProjectPath = (projectOrId, tipo) =>
+  `/proyectos/${getTipoSlug(tipo || (typeof projectOrId === 'object' && projectOrId ? projectOrId.tipo : ''))}/${getProjectSlug(projectOrId)}`;
+
+export const getModelPath = (projectOrId, modelOrSlug, tipo) =>
+  `/proyectos/${getTipoSlug(tipo || (typeof projectOrId === 'object' && projectOrId ? projectOrId.tipo : ''))}/${getProjectSlug(projectOrId)}/modelo/${getModelSlug(modelOrSlug)}`;
 
 export const getModelSlug = (modelOrSlug) => {
   if (!modelOrSlug) return '';

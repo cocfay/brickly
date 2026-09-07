@@ -13,11 +13,12 @@ import bricklyIcon from '../../assets/images/logos/logo_circular.png';
 import { useT } from '../../hooks/useT';
 import '../../assets/css/proyectos.css';
 import { getProyectoById, sendProyectoLead, registerProyectoCitaClick } from '../../cpanel/services/proyectos';
-import { enriquecerProyecto, MODELO_FALLBACK_IMG } from '../../utils/proyectosUtils';
+import { enriquecerProyecto, MODELO_FALLBACK_IMG, formatProjectPrice } from '../../utils/proyectosUtils';
 import { enriquecerAmenidades } from '../../utils/amenidades';
-import { getModelPath } from '../../utils/projectRoutes';
+import { getModelPath, getProjectPath } from '../../utils/projectRoutes';
 import { useFavoriteProjects } from '../../hooks/useFavoriteProjects';
 import { isAuthenticated } from '../../services/authService';
+import { useCurrency } from '../../context/CurrencyContext';
 
 // Determina si un atributo tiene un valor real cargado (no "ninguno", "-", 0, etc.)
 const esValorPresente = (v) => {
@@ -47,6 +48,7 @@ function BulletRow({ label, value }) {
 
 function Floor({ preview = false }) {
     const t = useT();
+    const { currency: currencyMode } = useCurrency();
     const { id, modelSlug } = useParams();
     const [project, setProject] = useState(null);
     const [modelo, setModelo] = useState(null);
@@ -179,10 +181,10 @@ function Floor({ preview = false }) {
     // Rutas adaptadas al contexto: preview (cpanel) vs público
     const toInicio = preview ? '/cpanel' : '/';
     const toProyectos = preview ? '/cpanel/proyectos' : '/proyectos';
-    const toProyecto = preview ? `/cpanel/proyectos/view/${apartamentoId}` : `/proyectos/apartamento/${apartamentoId}`;
+    const toProyecto = preview ? `/cpanel/proyectos/view/${apartamentoId}` : getProjectPath(project, project.tipo);
     const toModelo = (modelSlug) => preview
         ? `/cpanel/proyectos/view/${apartamentoId}/modelo/${modelSlug}`
-        : getModelPath(apartamentoId, { modelSlug });
+        : getModelPath(project, { modelSlug }, project.tipo);
 
     // Galería dinámica: fotos del modelo o imagen de respaldo
     const galeria = Array.isArray(modelo.fotosUrls) && modelo.fotosUrls.length
@@ -284,21 +286,23 @@ function Floor({ preview = false }) {
                         <div>
                             <div className="text-muted" style={{ fontSize: '14px' }}>Desde</div>
                             <div className="d-flex align-items-center gap-3 flex-wrap">
-                                <span className="fw-bold" style={{ fontSize: 'clamp(22px, 3vw, 30px)' }}>{modelo.precioDesdeUSD}</span>
+                                <span className="fw-bold" style={{ fontSize: 'clamp(22px, 3vw, 30px)' }}>{formatProjectPrice(modelo.precioDesdeUSDNum, modelo.precioDesdeQNum, currencyMode)}</span>
                                 <div className='d-flex align-items-center gap-2'><img src={venta} alt="icons" style={{ width: '20px' }} /> <div className="bg-dark rounded-1 px-4 py-0 text-white fw-lighter" style={{ fontSize: '16px' }}>{project.modo}</div></div>
                             </div>
                         </div>
                     </div>
-                    <div className="d-flex flex-column align-items-lg-end gap-2 text-lg-end">
-                        {modelo.tour360 ? (
-                            <a href={modelo.tour360} className="d-flex align-items-center gap-2 text-body text-decoration-none" style={{ fontSize: '16px', border: '1px solid black', borderRadius: '999px', padding: '8px 20px' }}>
-                                <img src={tour} alt="tour" style={{ width: '24px' }} />
-                                Tour 360
-                            </a>
-                        ) : null}
-                    </div>
                 </div>
             </div>
+
+            {/* Tour 360 */}
+            {modelo.tour360 || project.tour360 ? (
+            <div className="d-flex justify-content-end mb-2">
+                <a href={modelo.tour360 || project.tour360} target="_blank" rel="noopener noreferrer" className="text-body text-decoration-none" style={{ fontSize: '16px' }}>
+                    <img src={tour} alt="tour" style={{ width: '48px', height: '30px', marginRight: '8px' }} />
+                    Tour 360
+                </a>
+            </div>
+            ) : null}
 
             {/* ── Galería ── */}
             {isLg ? (
@@ -410,13 +414,15 @@ function Floor({ preview = false }) {
                         <div style={{ lineHeight: 1.8, marginBottom: '24px' }} dangerouslySetInnerHTML={{ __html: (modelo.descripcion || '').replace(/\n/g, '<br/>') }} />
 
                         {/* Iconos principales */}
-                        {(modelo.camas > 0 || modelo.banos > 0 || modelo.parqueo > 0 || tieneValor(modelo.area)) && (
+                        {(modelo.camas > 0 || modelo.banos > 0 || modelo.parqueo > 0 || tieneValor(modelo.area) || tieneValor(modelo.areas?.totalAmbientes)) && (
                         <div className="d-flex mb-4 py-3 border-top border-bottom justify-content-center align-items-center" style={{ gap: 'clamp(25px, 8vw, 70px)' }}>
                             <div>A partir de: </div>
+                            {!esBodega && (
                             <div className="text-center">
                                 <i className="fa-solid fa-bed d-block mb-1" style={{ fontSize: '22px' }}></i>
                                 <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.camas}</span>
                             </div>
+                            )}
                             <div className="text-center">
                                 <i className="fa-solid fa-bath d-block mb-1" style={{ fontSize: '22px' }}></i>
                                 <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.banos}</span>
@@ -425,12 +431,21 @@ function Floor({ preview = false }) {
                                 <i className="fa-solid fa-car-side d-block mb-1" style={{ fontSize: '22px' }}></i>
                                 <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.parqueo}</span>
                             </div>
+                            {!esBodega && tieneValor(modelo.area) && (
                             <div className="text-center">
                                 <i className="fa-solid fa-crop-simple d-block mb-1" style={{ fontSize: '22px' }}></i>
                                 <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.area}</span>
                             </div>
+                            )}
+                            {!esBodega && tieneValor(modelo.areas?.totalAmbientes) && (
+                            <div className="text-center">
+                                <i className="fa-solid fa-building d-block mb-1" style={{ fontSize: '22px' }}></i>
+                                <span style={{ fontSize: '20px', fontWeight: 600 }}>{modelo.areas?.totalAmbientes}</span>
+                            </div>
+                            )}
                         </div>
                         )}
+
                     </div>
                     )}
 
@@ -659,7 +674,7 @@ function Floor({ preview = false }) {
                                         {m.nombre}
                                     </div>
                                     <div className="text-muted" style={{ fontSize: '14px' }}>{t('Desde', 'From')}</div>
-                                    <div className="mt-2 fw-bold fs-4 text-dark">{m.precioDesdeUSD}</div>
+                                    <div className="mt-2 fw-bold fs-4 text-dark">{formatProjectPrice(m.precioDesdeUSDNum, m.precioDesdeQNum, currencyMode)}</div>
                                     <hr />
                                     <div className="d-flex justify-content-around icons-small-description gap-4 mt-2">
                                         <div><i className="fa-solid fa-crop-simple me-2"></i>{m.area}</div>

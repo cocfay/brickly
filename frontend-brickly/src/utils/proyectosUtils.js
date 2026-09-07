@@ -27,7 +27,7 @@ export const formatUSD = (val) => {
   const num = parseFloat(val);
   if (isNaN(num)) return '';
   return '$' + num.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
+    minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
 };
@@ -36,15 +36,39 @@ export const formatGTQ = (val) => {
   const num = parseFloat(val);
   if (isNaN(num)) return '';
   return 'Q ' + num.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
+    minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
 };
 
+/**
+ * Devuelve el precio a mostrar según la moneda seleccionada por el usuario,
+ * con fallback a la otra moneda si el valor no existe.
+ * @param {number} usdNum - Precio numérico en USD (0 si no existe)
+ * @param {number} qNum - Precio numérico en Quetzales (0 si no existe)
+ * @param {string} currencyMode - "USD" | "GTQ"
+ * @returns {string} precio formateado o "Precio a consultar"
+ */
+export const formatProjectPrice = (usdNum, qNum, currencyMode) => {
+  const usd = parseFloat(usdNum);
+  const q = parseFloat(qNum);
+  const gtqActive = currencyMode === 'GTQ';
+  if (gtqActive) {
+    if (!isNaN(q) && q > 0) return formatGTQ(q);
+    if (!isNaN(usd) && usd > 0) return formatUSD(usd);
+  } else {
+    if (!isNaN(usd) && usd > 0) return formatUSD(usd);
+    if (!isNaN(q) && q > 0) return formatGTQ(q);
+  }
+  return 'Precio a consultar';
+};
+
 export const construirUbicacion = (loc = {}) => {
-  const dept = loc.department || loc.departamento || '';
-  const muni = loc.municipality || loc.municipio || '';
-  const zonaRaw = loc.zone || loc.zona || '';
+  const esValido = (val) =>
+    val && String(val).trim() && !['ninguno', 'nunguno', 'none'].includes(String(val).toLowerCase().trim());
+  const dept = esValido(loc.department) ? loc.department : (esValido(loc.departamento) ? loc.departamento : '');
+  const muni = esValido(loc.municipality) ? loc.municipality : (esValido(loc.municipio) ? loc.municipio : '');
+  const zonaRaw = esValido(loc.zone) ? loc.zone : (esValido(loc.zona) ? loc.zona : '');
   const zona = zonaRaw
     ? (String(zonaRaw).toLowerCase().startsWith('zona') ? zonaRaw : `Zona ${zonaRaw}`)
     : '';
@@ -94,6 +118,7 @@ export const enriquecerModelo = (m) => {
     areas: {
       areaConstruccionM2: areas.areaConstruccionM2 || '',
       espacioAlmacenamiento: areas.espacioAlmacenamiento || '',
+      totalAmbientes: areas.totalAmbientes || '',
     },
     estructura: { alturaCielo: m.estructura?.alturaCielo || '' },
     gastosFijos: {
@@ -123,6 +148,12 @@ export const mapProyectoToCard = (p) => {
   const precioUSD = preciosUSD.length
     ? Math.min(...preciosUSD)
     : parseFloat(p.priceFromUSD);
+  const preciosQ = modelos
+    .map((m) => m.precioDesdeQNum)
+    .filter((n) => !isNaN(n));
+  const precioQ = preciosQ.length
+    ? Math.min(...preciosQ)
+    : parseFloat(p.priceFromQ);
   const loc = p.location || {};
   const dept = loc.department || loc.departamento || '';
   const muni = loc.municipality || loc.municipio || '';
@@ -141,12 +172,14 @@ export const mapProyectoToCard = (p) => {
     tipo: p.type || primerModelo.tipo || 'Proyecto',
     precio: precioUSD ? formatUSD(precioUSD) : 'Precio a consultar',
     priceNum: precioUSD,
+    priceQNum: precioQ,
     modo: p.mode || 'Venta',
     camas: primerModelo.camas || 0,
     banos: primerModelo.banos || 0,
     parqueo: primerModelo.parqueo || 0,
     area: areaM2 ? `${areaM2} m²` : '',
     areaNum: parseFloat(areaM2) || 0,
+    totalAmbientes: primerModelo.areas?.totalAmbientes || '',
     visitas: p.visits || p.visitas || 0,
     createdAt: p.createdAt ? new Date(p.createdAt).getTime() : 0,
     featured: { isActive: false },
@@ -204,6 +237,8 @@ export const enriquecerProyecto = (p, { otros = [] } = {}) => {
     tipo: p.type || primerModelo.tipo || 'Proyecto',
     precioDesdeUSD: !isNaN(precioUSD) ? formatUSD(precioUSD) : '—',
     precioDesdeQ: !isNaN(precioQ) ? formatGTQ(precioQ) : '—',
+    precioDesdeUSDNum: !isNaN(precioUSD) ? precioUSD : 0,
+    precioDesdeQNum: !isNaN(precioQ) ? precioQ : 0,
     tasaUSD: `$${tasa}`,
     modo: p.mode || 'Venta',
     situacional: p.situacional || '',
@@ -213,6 +248,7 @@ export const enriquecerProyecto = (p, { otros = [] } = {}) => {
     banos: primerModelo.banos || 0,
     parqueo: primerModelo.parqueo || 0,
     area: primerModelo.area || '',
+    totalAmbientes: primerModelo.areas?.totalAmbientes || '',
     descripcion: p.description || '',
     tour360: p.tour360 || '',
     desarrolladora: {

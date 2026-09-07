@@ -237,7 +237,8 @@ function ProyectoForm({ projectId }) {
           descripcion: m.descripcion || '',
           areas: {
             areaConstruccionM2: m.areas?.areaConstruccionM2 ?? '',
-            espacioAlmacenamiento: m.areas?.espacioAlmacenamiento ?? ''
+            espacioAlmacenamiento: m.areas?.espacioAlmacenamiento ?? '',
+            totalAmbientes: m.areas?.totalAmbientes ?? ''
           },
           estructura: { alturaCielo: m.estructura?.alturaCielo ?? '' },
           distribucion: {
@@ -680,7 +681,8 @@ function ProyectoForm({ projectId }) {
         descripcion: m.descripcion,
         areas: {
           areaConstruccionM2: m.areas?.areaConstruccionM2 ?? undefined,
-          espacioAlmacenamiento: m.areas?.espacioAlmacenamiento ?? undefined
+          espacioAlmacenamiento: m.areas?.espacioAlmacenamiento ?? undefined,
+          totalAmbientes: m.areas?.totalAmbientes ?? undefined
         },
         estructura: {
           alturaCielo: m.estructura?.alturaCielo ?? undefined

@@ -15,10 +15,11 @@ import tour    from '../../assets/images/iconos/IconoTour.png';
 import bricklyIcon from '../../assets/images/logos/logo_circular.png';
 import { useT } from '../../hooks/useT';
 import { getProyectoById, getProyectosPublicos, sendProyectoLead, registerProyectoCitaClick } from '../../cpanel/services/proyectos';
-import { enriquecerProyecto, MODELO_FALLBACK_IMG } from '../../utils/proyectosUtils';
-import { getModelPath } from '../../utils/projectRoutes';
+import { enriquecerProyecto, MODELO_FALLBACK_IMG, formatProjectPrice } from '../../utils/proyectosUtils';
+import { getModelPath, getProjectPath } from '../../utils/projectRoutes';
 import { useFavoriteProjects } from '../../hooks/useFavoriteProjects';
 import { isAuthenticated } from '../../services/authService';
+import { useCurrency } from '../../context/CurrencyContext';
 
 // Determina si un atributo tiene un valor real cargado (no "ninguno", "-", 0, etc.)
 const esValorPresente = (v) => {
@@ -51,14 +52,17 @@ function Apartament({ preview = false }) {
     const [isLg, setIsLg] = useState(window.innerWidth >= 992);
     const [scrollProgress, setScrollProgress] = useState(0);
     const modelosBarRef = useRef(null);
+    const { currency: currencyMode } = useCurrency();
 
     // Rutas adaptadas al contexto: preview (cpanel) vs público
     const toInicio = preview ? '/cpanel' : '/';
     const toProyectos = preview ? '/cpanel/proyectos' : '/proyectos';
-    const toProyecto = (pid) => preview ? `/cpanel/proyectos/view/${pid}` : `/proyectos/apartamento/${pid}`;
+    const toProyecto = (pid) => preview
+        ? `/cpanel/proyectos/view/${typeof pid === 'string' ? pid : pid.id}`
+        : getProjectPath(typeof pid === 'string' ? { id: pid } : pid);
     const toModelo = (pid, modelSlug) => preview
         ? `/cpanel/proyectos/view/${pid}/modelo/${modelSlug}`
-        : getModelPath(pid, { modelSlug });
+        : getModelPath(pid, { modelSlug }, project?.tipo);
 
     useEffect(() => {
         const handleResize = () => setIsLg(window.innerWidth >= 992);
@@ -207,16 +211,27 @@ function Apartament({ preview = false }) {
 
     const amenidades = project.amenidades || [];
     const situacional = project.situacional || '';
+    const etiquetaTipo = {
+      'Edificio': 'APARTAMENTO',
+      'edificio': 'APARTAMENTO',
+      'Bodegas': 'BODEGA',
+      'Bodega': 'BODEGA',
+      'Condominio': 'CASA',
+      'Edificio de oficinas': 'OFICINA',
+      'edificio de oficinas': 'OFICINA',
+    };
     const etiquetasSituacion = {
-      'en venta': 'APARTAMENTOS EN VENTA',
-      'preventa': 'APARTAMENTOS EN PREVENTA',
-      'en construcción': 'APARTAMENTOS EN CONSTRUCCION',
-      'en construccion': 'APARTAMENTOS EN CONSTRUCCION',
+      'en venta': 'EN VENTA',
+      'preventa': 'EN PREVENTA',
+      'en construcción': 'EN CONSTRUCCION',
+      'en construccion': 'EN CONSTRUCCION',
       'próximo a entregar': 'PROXIMO A ENTREGAR',
       'proximo a entregar': 'PROXIMO A ENTREGAR',
-      'terminado': 'APARTAMENTO TERMINADO',
+      'terminado': 'TERMINADO',
     };
-    const situacionalLabel = etiquetasSituacion[situacional.toLowerCase()] || '';
+    const tipoLabel = etiquetaTipo[project.tipo] || 'APARTAMENTO';
+    const situacionLabel = etiquetasSituacion[situacional.toLowerCase()] || '';
+    const situacionalLabel = [tipoLabel, situacionLabel].filter(Boolean).join(' ');
 
     const tieneValor = esValorPresente;
     const formatearFechaEntrega = (val) => {
@@ -246,67 +261,67 @@ function Apartament({ preview = false }) {
             {/* Header */}
             <div className="mb-4">
 
-                {/* Header */}
-                <div className="mb-4">
-
-                    {/* Fila superior: título / ubicación / tipo + badge de estado */}
-                    <div className="d-flex justify-content-between align-items-start flex-column flex-lg-row">
-                        <div className="d-flex flex-wrap flex-column align-items-start gap-2 mt-3">
-                            <div style={{ fontSize: 'clamp(28px, 4vw, 50px)', fontFamily: 'AppleGaramond', lineHeight: 1.1 }}>
-                                {project.titulo}
-                            </div>
-                            <div className="" style={{ fontSize: '20px' }}>
-                                <i className="fa-solid fa-location-dot me-1"></i>{project.ubicacion}
-                            </div>
-                            <div style={{ fontSize: '20px' }}>Tipo: {project.tipo}</div>
+                {/* Fila superior: título / ubicación / tipo */}
+                <div className="d-flex justify-content-between align-items-start flex-column flex-lg-row">
+                    <div className="d-flex flex-wrap flex-column align-items-start gap-2 mt-3">
+                        <div style={{ fontSize: 'clamp(28px, 4vw, 50px)', fontFamily: 'AppleGaramond', lineHeight: 1.1 }}>
+                            {project.titulo}
                         </div>
-                        <div className="me-lg-5 mt-3 mt-lg-0">
-                            <div style={{ border: '1px solid black' }} className="py-1 px-3 rounded-4" >{situacionalLabel}</div>
+                        <div className="" style={{ fontSize: '20px' }}>
+                            <i className="fa-solid fa-location-dot me-1"></i>{project.ubicacion}
                         </div>
+                        <div style={{ fontSize: '20px' }}>Tipo: {project.tipo}</div>
                     </div>
+                </div>
 
-                    {/* Fila inferior: precio + stats */}
-                    <div className="d-flex justify-content-between align-items-center flex-column flex-lg-row gap-3 mt-4">
-                        <div className="d-flex align-items-center gap-3 flex-wrap">
-                            <span className="fw-bold" style={{ fontSize: 'clamp(22px, 3vw, 30px)' }}>{project.precioDesdeUSD}</span>
-                            <div className='d-flex align-items-center gap-2'><img src={venta} alt="icons" style={{ width: '20px' }} /> <div className= "bg-dark rounded-1 px-4 py-0 text-white fw-lighter" style={{ fontSize: '16px' }}>{project.modo}</div></div>
+                {/* Fila inferior: precio + badge de estado + stats */}
+                <div className="d-flex justify-content-between align-items-center align-items-lg-end flex-column flex-lg-row gap-3 mt-2">
+                    <div className="d-flex align-items-center align-items-lg-end gap-3 flex-wrap">
+                        <div>
+                            <div className="text-muted" style={{ fontSize: '14px' }}>Desde</div>
+                            <span className="fw-bold" style={{ fontSize: 'clamp(22px, 3vw, 30px)' }}>{formatProjectPrice(project.precioDesdeUSDNum, project.precioDesdeQNum, currencyMode)}</span>
                         </div>
-                        <div className="d-none d-lg-flex align-items-center justify-content-center gap-4">
-                            {tieneValor(project.estructura.niveles) && <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>{project.estructura.niveles} Niveles</div>}
+                        <div className='d-flex align-items-center gap-2' style={{ marginBottom: '8px' }}><img src={venta} alt="icons" style={{ width: '20px' }} /> <div className= "bg-dark rounded-1 px-4 py-0 text-white fw-lighter" style={{ fontSize: '16px' }}>{project.modo}</div></div>
+                    </div>
+                    <div className="position-relative d-none d-lg-block" style={{ marginRight: '7rem', marginBottom: '4px' }}>
+                        <div className="position-absolute py-2 px-4 rounded-4" style={{ bottom: '100%', marginBottom: '40px', left: '50%', transform: 'translateX(-50%)', whiteSpace: 'nowrap', border: '1px solid black', fontSize: '22px' }}>{situacionalLabel}</div>
+                        <div className="d-flex align-items-center justify-content-center gap-4" style={{ fontSize: '20px' }}>
+                            {tieneValor(project.estructura.niveles) && <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings" style={{ fontSize: '30px' }}></i>{project.estructura.niveles} Niveles</div>}
                             {project.unidades ? (<>
-                                <div style={{ width: '1px', height: '18px', backgroundColor: '#ccc' }}></div>
-                                <div className="d-flex align-items-center gap-2"><i className="fa-sharp fa-light fa-block"></i>{project.unidades} Unidades</div>
+                                <div style={{ width: '1px', height: '20px', backgroundColor: '#ccc' }}></div>
+                                <div className="d-flex align-items-center gap-2"><i className="fa-sharp fa-light fa-block" style={{ fontSize: '30px' }}></i>{project.unidades} Unidades</div>
                             </>) : null}
                             {project.fechaEntrega ? (<>
-                                <div style={{ width: '1px', height: '18px', backgroundColor: '#ccc' }}></div>
-                                <div className="d-flex align-items-center gap-2"><i className="fa-regular fa-calendar"></i>Entrega: {formatearFechaEntrega(project.fechaEntrega)}</div>
+                                <div style={{ width: '1px', height: '20px', backgroundColor: '#ccc' }}></div>
+                                <div className="d-flex align-items-center gap-2"><i className="fa-regular fa-calendar" style={{ fontSize: '30px' }}></i>Entrega: {formatearFechaEntrega(project.fechaEntrega)}</div>
                             </>) : null}
                         </div>
                     </div>
+                </div>
 
-                    {/* Móvil/tablet: stats */}
-                    <div className="d-lg-none w-100 mt-3">
-                        <div className="d-flex align-items-center justify-content-center gap-4 mb-3">
-                            {tieneValor(project.estructura.niveles) && <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>{project.estructura.niveles} Niveles</div>}
-                            {project.unidades ? (<>
-                                <div style={{ width: '1px', height: '18px', backgroundColor: '#ccc' }}></div>
-                                <div className="d-flex align-items-center gap-2"><i className="fa-sharp fa-light fa-block"></i>{project.unidades} Unidades</div>
-                            </>) : null}
-                        </div>
-{project.fechaEntrega ? (
-                            <div className="d-flex justify-content-center">
-                                <div className="d-flex align-items-center gap-2"><i className="fa-regular fa-calendar"></i>Entrega: {formatearFechaEntrega(project.fechaEntrega)}</div>
-                            </div>
-                        ) : null}
+                {/* Móvil/tablet: badge de estado + stats */}
+                <div className="d-lg-none w-100 mt-3 d-flex flex-column align-items-center gap-2">
+                    <div style={{ border: '1px solid black' }} className="py-1 px-3 rounded-4" >{situacionalLabel}</div>
+                    <div className="d-flex align-items-center justify-content-center gap-4 mb-3">
+                        {tieneValor(project.estructura.niveles) && <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>{project.estructura.niveles} Niveles</div>}
+                        {project.unidades ? (<>
+                            <div style={{ width: '1px', height: '18px', backgroundColor: '#ccc' }}></div>
+                            <div className="d-flex align-items-center gap-2"><i className="fa-sharp fa-light fa-block"></i>{project.unidades} Unidades</div>
+                        </>) : null}
                     </div>
+{project.fechaEntrega ? (
+                        <div className="d-flex justify-content-center">
+                            <div className="d-flex align-items-center gap-2"><i className="fa-regular fa-calendar"></i>Entrega: {formatearFechaEntrega(project.fechaEntrega)}</div>
+                        </div>
+                    ) : null}
                 </div>
             </div>
 
             {/* ── Galería ── */}
             {project.tour360 ? (
             <div className="d-flex justify-content-end mb-2">
-                <a href={project.tour360} target="_blank" rel="noopener noreferrer" className="d-flex align-items-center gap-2 text-body text-decoration-none" style={{ fontSize: '14px', border: '1px solid black', borderRadius: '999px', padding: '6px 16px' }}>
-                    <img src={tour} alt="tour" style={{ width: '18px' }} />
+                <a href={project.tour360} target="_blank" rel="noopener noreferrer" className="text-body text-decoration-none" style={{ fontSize: '16px' }}>
+                    <img src={tour} alt="tour" style={{ width: '48px', height: '30px', marginRight: '8px' }} />
                     Tour 360
                 </a>
             </div>
@@ -420,13 +435,21 @@ function Apartament({ preview = false }) {
                         <div style={{ lineHeight: 1.8, marginBottom: '24px' }} dangerouslySetInnerHTML={{ __html: (project.descripcion || '').replace(/\n/g, '<br/>') }} />
 
                         {/* Iconos principales */}
-                        {(project.camas > 0 || project.banos > 0 || project.parqueo > 0 || tieneValor(project.area)) && (
+                        {(project.camas > 0 || project.banos > 0 || project.parqueo > 0 || tieneValor(project.area) || tieneValor(project.totalAmbientes)) && (
                         <div className="d-flex mb-4 py-3 border-top border-bottom justify-content-center align-items-center" style={{ gap: 'clamp(25px, 8vw, 70px)' }}>
                             <div>A partir de: </div>
+                            {project.tipo !== 'Bodegas' && tieneValor(project.totalAmbientes) && (
+                            <div className="text-center">
+                                <img src="https://www.bricklyhomes.com/assets/spaces-CJ1Ch4hY.png" className="d-block mx-auto mb-1" alt="" style={{ fontSize: '22px', height: '22px' }} />
+                                <span style={{ fontSize: '20px', fontWeight: 600 }}>{project.totalAmbientes}</span>
+                            </div>
+                            )}
+                            {project.tipo !== 'Bodegas' && (
                             <div className="text-center">
                                 <i className="fa-solid fa-bed d-block mb-1" style={{ fontSize: '22px' }}></i>
                                 <span style={{ fontSize: '20px', fontWeight: 600 }}>{project.camas}</span>
                             </div>
+                            )}
                             <div className="text-center">
                                 <i className="fa-solid fa-bath d-block mb-1" style={{ fontSize: '22px' }}></i>
                                 <span style={{ fontSize: '20px', fontWeight: 600 }}>{project.banos}</span>
@@ -435,10 +458,12 @@ function Apartament({ preview = false }) {
                                 <i className="fa-solid fa-car-side d-block mb-1" style={{ fontSize: '22px' }}></i>
                                 <span style={{ fontSize: '20px', fontWeight: 600 }}>{project.parqueo}</span>
                             </div>
+                            {project.tipo !== 'Bodegas' && tieneValor(project.area) && (
                             <div className="text-center">
                                 <i className="fa-solid fa-crop-simple d-block mb-1" style={{ fontSize: '22px' }}></i>
                                 <span style={{ fontSize: '20px', fontWeight: 600 }}>{project.area}</span>
                             </div>
+                            )}
                         </div>
                         )}
                     </div>
@@ -538,7 +563,7 @@ function Apartament({ preview = false }) {
                                             <div className="p-3">
                                                 <div className="fw-bold" style={{ fontSize: '24px' }}>{m.nombre}</div>
                                                 <div className="text-muted" style={{ fontSize: '12px' }}>{t('Desde', 'From')}</div>
-                                                <div className="fw-bold">{m.precioDesdeUSD}</div>
+                                                <div className="fw-bold">{formatProjectPrice(m.precioDesdeUSDNum, m.precioDesdeQNum, currencyMode)}</div>
                                                 {/* {m.precioDesdeQ ? (
                                                 <div className="text-muted" style={{ fontSize: '12px' }}>(Q {m.precioDesdeQ.replace('Q ', '')})</div>
                                             ) : null} */}
@@ -691,7 +716,7 @@ function Apartament({ preview = false }) {
                     {project.otrosPropiedades.map((item, i) => (
                         <div key={i} className="col-md-6 col-xl-4">
                             <div className="position-relative d-block">
-                                <Link to={toProyecto(item.id || 'torre-platino')} className="d-block propiedades-zoom">
+                                <Link to={toProyecto(item.id ? item : { ...item, id: 'torre-platino' })} className="d-block propiedades-zoom">
                                     <img
                                         src={item.img}
                                         className="object-fit-cover w-100 border-radius-1"
@@ -710,7 +735,7 @@ function Apartament({ preview = false }) {
                                     </div>
                                 </Link>
                             </div>
-                            <Link className="text-body text-decoration-none" to={toProyecto(item.id || 'torre-platino')}>
+                            <Link className="text-body text-decoration-none" to={toProyecto(item.id ? item : { ...item, id: 'torre-platino' })}>
                                 <div className="mt-3">
                                     <div className="text-truncate" style={{ fontSize: 'clamp(34px, 6vw, 44px)', fontFamily: 'AppleGaramond' }}>
                                         {item.titulo}
@@ -719,13 +744,13 @@ function Apartament({ preview = false }) {
                                     <div>Tipo: {item.tipo}</div>
                                     <div className="my-2" style={{ fontSize: '14px' }}>{t('A partir de:', 'Starting from:')}</div>
                                     <div className="d-flex icons-small-description gap-4">
-                                        <div><i className="fa-solid fa-bed me-2"></i>{item.camas}</div>
+                                        {item.tipo !== 'Bodegas' && <div><i className="fa-solid fa-bed me-2"></i>{item.camas}</div>}
                                         <div><i className="fa-solid fa-bath me-2"></i>{item.banos}</div>
                                         <div><i className="fa-solid fa-car-side me-2"></i>{item.parqueo}</div>
-                                        <div><i className="fa-solid fa-crop-simple me-2"></i>{item.area}</div>
+                                        {item.tipo !== 'Bodegas' && <div><i className="fa-solid fa-crop-simple me-2"></i>{item.area}</div>}
                                     </div>
                                     <div className="mt-2 fw-bold fs-4 text-dark d-flex align-items-center gap-4">
-                                        {item.precio}
+                                        {formatProjectPrice(item.priceNum, item.priceQNum, currencyMode)}
                                         <div className="d-flex align-items-center gap-2">
                                             <img src={venta} alt="modo" style={{ width: '20px' }} />
                                             <div className="bg-dark rounded-1 px-4 py-0 text-white fw-lighter" style={{ fontSize: '16px' }}>

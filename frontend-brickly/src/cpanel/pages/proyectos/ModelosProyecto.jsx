@@ -113,7 +113,7 @@ const nuevoModelo = (tipo = 'Apartamento') => ({
   tasa: '7.5',
   precioDesdeUSD: '',
   descripcion: '',
-  areas: { areaConstruccionM2: '', espacioAlmacenamiento: '' },
+  areas: { areaConstruccionM2: '', espacioAlmacenamiento: '', totalAmbientes: '' },
   estructura: { alturaCielo: '' },
   distribucion: {
     totalAmbientes: '',
@@ -473,6 +473,15 @@ function ModeloForm({ modelo, index, tipoModelo, listaAmenidades, onChange, onRe
                 value={modelo.areas?.espacioAlmacenamiento || ''}
                 onChange={(e) => setSub('areas', 'espacioAlmacenamiento', e.target.value)}
                 placeholder="Ej: 5 m²"
+              />
+            </Campo>
+            <Campo label="Total de Ambientes">
+              <Form.Control
+                type="number"
+                min={0}
+                value={modelo.areas?.totalAmbientes ?? ''}
+                onChange={(e) => setSub('areas', 'totalAmbientes', e.target.value)}
+                onWheel={(e) => e.target.blur()}
               />
             </Campo>
           </Row>
