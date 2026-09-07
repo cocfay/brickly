@@ -7,6 +7,7 @@ import 'glightbox/dist/css/glightbox.min.css';
 import '../../assets/css/glightbox-custom.css';
 
 import tour    from '../../assets/images/iconos/IconoTour.png';
+import botonTour from '../../assets/images/iconos/IconoTour360.png';
 import arrow   from '../../assets/images/iconos/arrow.png';
 import venta   from '../../assets/images/iconos/venta.png';
 import bricklyIcon from '../../assets/images/logos/logo_circular.png';
@@ -295,14 +296,14 @@ function Floor({ preview = false }) {
             </div>
 
             {/* Tour 360 */}
-            {modelo.tour360 || project.tour360 ? (
+            {/* {modelo.tour360 || project.tour360 ? (
             <div className="d-flex justify-content-end mb-2">
                 <a href={modelo.tour360 || project.tour360} target="_blank" rel="noopener noreferrer" className="text-body text-decoration-none" style={{ fontSize: '16px' }}>
                     <img src={tour} alt="tour" style={{ width: '48px', height: '30px', marginRight: '8px' }} />
                     Tour 360
                 </a>
             </div>
-            ) : null}
+            ) : null} */}
 
             {/* ── Galería ── */}
             {isLg ? (
@@ -314,6 +315,11 @@ function Floor({ preview = false }) {
                     onClick={() => openLightbox(mainImg)}
                 >
                     <img src={mainImg} alt="Principal" className="object-fit-cover w-100 border-radius-1 h-100" style={{ display: 'block' }} />
+                    {modelo.tour360 || project.tour360 ? (
+                    <a href={modelo.tour360 || project.tour360} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="position-absolute top-0 start-0 d-block" style={{ margin: '12px', zIndex: 2 }}>
+                        <img src={botonTour} alt="Tour 360" style={{ height: '86px', width: 'auto' }} />
+                    </a>
+                    ) : null}
                     <div className={`position-absolute bottom-0 end-0 m-2 favorite-icon ${isFavorite(project.idRaw) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={handleToggleFav}>
                         <i className="fa-solid fa-heart"></i>
                     </div>
@@ -357,6 +363,11 @@ function Floor({ preview = false }) {
                     onClick={() => openLightbox(mainImg)}
                 >
                     <img src={mainImg} alt="Principal" className="object-fit-cover w-100 h-100" style={{ display: 'block' }} />
+                    {modelo.tour360 || project.tour360 ? (
+                    <a href={modelo.tour360 || project.tour360} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="position-absolute top-0 start-0 d-block" style={{ margin: '12px', zIndex: 2 }}>
+                        <img src={botonTour} alt="Tour 360" style={{ height: '86px', width: 'auto' }} />
+                    </a>
+                    ) : null}
                     <div className={`position-absolute bottom-0 end-0 m-2 favorite-icon ${isFavorite(project.idRaw) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={handleToggleFav}>
                         <i className="fa-solid fa-heart"></i>
                     </div>

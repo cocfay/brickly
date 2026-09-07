@@ -12,6 +12,7 @@ import '../../assets/css/proyectos.css'
 import venta   from '../../assets/images/iconos/venta.png';
 import arrow   from '../../assets/images/iconos/arrow.png';
 import tour    from '../../assets/images/iconos/IconoTour.png';
+import botonTour from '../../assets/images/iconos/IconoTour360.png';
 import bricklyIcon from '../../assets/images/logos/logo_circular.png';
 import { useT } from '../../hooks/useT';
 import { getProyectoById, getProyectosPublicos, sendProyectoLead, registerProyectoCitaClick } from '../../cpanel/services/proyectos';
@@ -212,25 +213,33 @@ function Apartament({ preview = false }) {
     const amenidades = project.amenidades || [];
     const situacional = project.situacional || '';
     const etiquetaTipo = {
-      'Edificio': 'APARTAMENTO',
-      'edificio': 'APARTAMENTO',
-      'Bodegas': 'BODEGA',
-      'Bodega': 'BODEGA',
-      'Condominio': 'CASA',
-      'Edificio de oficinas': 'OFICINA',
-      'edificio de oficinas': 'OFICINA',
+      'Edificio': 'APARTAMENTOS',
+      'edificio': 'APARTAMENTOS',
+      'Bodegas': 'BODEGAS',
+      'Bodega': 'BODEGAS',
+      'Condominio': 'CASAS',
+      'Edificio de oficinas': 'OFICINAS',
+      'edificio de oficinas': 'OFICINAS',
+    };
+    const etiquetaTerminado = {
+      APARTAMENTOS: 'TERMINADOS',
+      BODEGAS: 'TERMINADAS',
+      CASAS: 'TERMINADAS',
+      OFICINAS: 'TERMINADAS',
     };
     const etiquetasSituacion = {
       'en venta': 'EN VENTA',
       'preventa': 'EN PREVENTA',
       'en construcción': 'EN CONSTRUCCION',
       'en construccion': 'EN CONSTRUCCION',
-      'próximo a entregar': 'PROXIMO A ENTREGAR',
-      'proximo a entregar': 'PROXIMO A ENTREGAR',
-      'terminado': 'TERMINADO',
+      'próximo a entregar': 'PROXIMAS A ENTREGAR',
+      'proximo a entregar': 'PROXIMAS A ENTREGAR',
     };
-    const tipoLabel = etiquetaTipo[project.tipo] || 'APARTAMENTO';
-    const situacionLabel = etiquetasSituacion[situacional.toLowerCase()] || '';
+    const tipoLabel = etiquetaTipo[project.tipo] || 'APARTAMENTOS';
+    const situacionalKey = situacional.toLowerCase();
+    const situacionLabel = situacionalKey === 'terminado'
+      ? (etiquetaTerminado[tipoLabel] || 'TERMINADOS')
+      : (etiquetasSituacion[situacionalKey] || '');
     const situacionalLabel = [tipoLabel, situacionLabel].filter(Boolean).join(' ');
 
     const tieneValor = esValorPresente;
@@ -318,14 +327,14 @@ function Apartament({ preview = false }) {
             </div>
 
             {/* ── Galería ── */}
-            {project.tour360 ? (
+            {/* {project.tour360 ? (
             <div className="d-flex justify-content-end mb-2">
                 <a href={project.tour360} target="_blank" rel="noopener noreferrer" className="text-body text-decoration-none" style={{ fontSize: '16px' }}>
                     <img src={tour} alt="tour" style={{ width: '48px', height: '30px', marginRight: '8px' }} />
                     Tour 360
                 </a>
             </div>
-            ) : null}
+            ) : null} */}
             {isLg ? (
             <div className="d-flex gap-2 mb-5" style={{ height: 'clamp(400px, 55vw, 600px)' }}>
                 {/* Imagen principal */}
@@ -335,6 +344,11 @@ function Apartament({ preview = false }) {
                     onClick={() => openLightbox(mainImg)}
                 >
                     <img src={mainImg} alt="Principal" className="object-fit-cover w-100 border-radius-1 h-100" style={{ display: 'block' }} />
+                    {project.tour360 ? (
+                    <a href={project.tour360} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="position-absolute top-0 start-0 d-block" style={{ margin: '12px', zIndex: 2 }}>
+                        <img src={botonTour} alt="Tour 360" style={{ height: '86px', width: 'auto' }} />
+                    </a>
+                    ) : null}
                     <div className={`position-absolute bottom-0 end-0 m-2 favorite-icon ${isFavorite(project.idRaw) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={handleToggleFav}>
                         <i className="fa-solid fa-heart"></i>
                     </div>
@@ -378,6 +392,11 @@ function Apartament({ preview = false }) {
                     onClick={() => openLightbox(mainImg)}
                 >
                     <img src={mainImg} alt="Principal" className="object-fit-cover w-100 h-100" style={{ display: 'block' }} />
+                    {project.tour360 ? (
+                    <a href={project.tour360} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="position-absolute top-0 start-0 d-block" style={{ margin: '12px', zIndex: 2 }}>
+                        <img src={botonTour} alt="Tour 360" style={{ height: '86px', width: 'auto' }} />
+                    </a>
+                    ) : null}
                     <div className={`position-absolute bottom-0 end-0 m-2 favorite-icon ${isFavorite(project.idRaw) ? 'like' : 'unlike'}`} style={{ cursor: 'pointer' }} onClick={handleToggleFav}>
                         <i className="fa-solid fa-heart"></i>
                     </div>
