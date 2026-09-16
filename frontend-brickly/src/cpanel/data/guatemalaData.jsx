@@ -219,3 +219,19 @@ export const getMunicipiosByDepartamento = (departamento) => {
 export const getZonasByDepartamento = (departamento) => {
   return datosGuatemala[departamento]?.zonas || [];
 };
+
+export const getAllMunicipios = () => {
+  const set = new Set();
+  Object.values(datosGuatemala).forEach((d) => {
+    (d?.municipios || []).forEach((m) => set.add(m));
+  });
+  return [...set];
+};
+
+export const getAllZonas = () => {
+  const set = new Set();
+  Object.values(datosGuatemala).forEach((d) => {
+    (d?.zonas || []).forEach((z) => set.add(z));
+  });
+  return [...set];
+};

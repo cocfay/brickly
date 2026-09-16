@@ -6,6 +6,7 @@ import { FormattedMessage } from 'react-intl';
 import MainMenu from './menus/homeMenu';
 import SimpleMenu from './menus/simpleMenu';
 import GoogleAnalytics from './GoogleAnalytics';
+import SubscriptionPopup from './SubscriptionPopup';
 import { API_URL, getToken, handleAuthError } from '../services/authService';
 import logo from '../assets/images/logos/logo_blanco.png';
 import '../assets/css/site.css';
@@ -177,6 +178,7 @@ function Layout() {
           Gracias por suscribirte.
         </div>
       )}
+      <SubscriptionPopup />
     </>
   );
 }
