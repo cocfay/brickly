@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Container, Row, Col, Alert } from "react-bootstrap"
+import { Container, Row, Col, Alert, Button } from "react-bootstrap"
 import { getCurrentUser } from './../../services/authService';
 import { checkAndMarkExclusive, checkAndUnmarkExclusive } from '../services/exclusivas';
 
@@ -18,6 +18,20 @@ function Home(){
 
     const [exclusiveResult, setExclusiveResult] = useState(null);
     const [exclusiveLoading, setExclusiveLoading] = useState(false);
+    const [cookieDeleted, setCookieDeleted] = useState(false);
+
+    const clearPopupCookies = () => {
+        ['brickly_popup_dismissed', 'brickly_subscribed'].forEach(name => {
+            [
+                '/', '/cpanel', '/cpanel/home', '/cpanel/propiedades',
+                '/propiedades', '/proyectos', '/',
+            ].forEach(path => {
+                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}`;
+            });
+        });
+        setCookieDeleted(true);
+        setTimeout(() => setCookieDeleted(false), 4000);
+    };
 
     useEffect(() => {
         if (isAdmin) {
@@ -50,6 +64,14 @@ function Home(){
 
     return(
         <Container className="mb-5">
+            {isAdmin && (
+                <div className="d-flex justify-content-end mb-3">
+                    {cookieDeleted && <Alert variant="success" className="mb-0 me-3 py-2">Cookies del popup eliminadas</Alert>}
+                    <Button variant="dark" onClick={clearPopupCookies}>
+                        Borrar cookies del popup de suscripción
+                    </Button>
+                </div>
+            )}
             <MetricasAdmin />
         </Container>
     )
