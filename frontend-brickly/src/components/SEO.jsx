@@ -11,6 +11,7 @@ export default function SEO({
   image = DEFAULT_IMAGE,
   url = SITE_URL,
   type = 'website',
+  noindex = false,
 }) {
   const fullTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME;
 
@@ -25,6 +26,9 @@ export default function SEO({
       <meta name="description" content={description} />
       <meta property="og:description" content={description} />
       <meta name="twitter:description" content={description} />
+
+      {/* Robots */}
+      {noindex && <meta name="robots" content="noindex, follow" />}
 
       {/* URL */}
       <meta property="og:url" content={url} />

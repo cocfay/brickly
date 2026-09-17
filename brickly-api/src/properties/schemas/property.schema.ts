@@ -207,3 +207,9 @@ PropertySchema.index({
   'location.municipality': 1,
   'location.zone': 1,
 });
+PropertySchema.index({
+  status: 1,
+  'market.type': 1,
+  'market.mode': 1,
+  'location.zone': 1,
+});

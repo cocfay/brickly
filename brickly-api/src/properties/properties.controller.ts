@@ -109,6 +109,11 @@ export class PropertiesController {
     return this.propertiesService.getLocationsTree();
   }
 
+  @Get('seo-combos')
+  getSeoCombos() {
+    return this.propertiesService.getSeoCombos();
+  }
+
   
 
   @Get('newsletter/recommendations')

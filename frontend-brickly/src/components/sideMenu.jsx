@@ -140,9 +140,9 @@ function sideMenu() {
                 {/* <Nav.Link as={NavLink} to="arquitectos" className="text-white py-3 border-bottom border-secondary" onClick={handleClose} style={{ fontSize: '14px' }}>
                     <FormattedMessage id='link.text2' />
                 </Nav.Link> */}
-                {/* <Nav.Link as={NavLink} to="/proyectos" className="text-white py-3 border-bottom border-secondary" onClick={handleClose} style={{ fontSize: '14px' }}>
+                <Nav.Link as={NavLink} to="/proyectos" className="text-white py-3 border-bottom border-secondary" onClick={handleClose} style={{ fontSize: '14px' }}>
                     <FormattedMessage id='link.text3' />
-                </Nav.Link> */}
+                </Nav.Link>
                 <Nav.Link as={NavLink} to="/agentes" className="text-white py-3 border-bottom border-secondary" onClick={handleClose} style={{ fontSize: '14px' }}>
                     <FormattedMessage id='link.text4' />
                 </Nav.Link>

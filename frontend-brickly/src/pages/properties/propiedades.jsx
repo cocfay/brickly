@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { Container, Dropdown, Form, Button, InputGroup, ButtonGroup } from 'react-bootstrap';
+import { Container, Dropdown, Form, Button, InputGroup, ButtonGroup, Breadcrumb } from 'react-bootstrap';
+import { Helmet } from 'react-helmet-async';
 import { FormattedMessage } from 'react-intl';
 import { useCurrency } from '../../context/CurrencyContext';
 import { getDisplayPrice } from '../../utils/priceUtils';
@@ -18,6 +19,7 @@ import space from '../../assets/images/iconos/spaces.png';
 import arrow from '../../assets/images/iconos/arrow.png'
 
 import SEO from '../../components/SEO';
+import { seoLabel, seoTitle, seoDescription, buildSeoPath } from '../../utils/seoLanding';
 import { API_URL, isAuthenticated } from '../../services/authService'; 
 import { useT } from '../../hooks/useT';
 import { fetchPropertiesPage, fetchAllPages } from '../../utils/fetchAll';
@@ -124,8 +126,9 @@ function FixedDropdown({ label, children, minWidth = '130px' }) {
   );
 }
 
-function Propiedades() {
+function Propiedades({ seo }) {
   const t = useT();
+  const seoLanding = seo || null;
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -135,6 +138,7 @@ function Propiedades() {
   // Leer filtros desde query params de la URL (enlaces de campaña)
   // Se ejecuta una sola vez al montar porque searchParams es estable en el primer render
   const getUrlFilters = () => {
+    if (seoLanding) return null;
     const keys = ['mode','type','dept','muni','zone','search','minPrice','maxPrice','beds','baths','featured','exclusive','sort'];
     if (!keys.some(k => searchParams.has(k))) return null;
     return {
@@ -196,19 +200,22 @@ function Propiedades() {
 
   // Prioridad: location.state > URL params > sessionStorage > defaults
   // Si vienen URL params, ignorar sessionStorage para que el enlace de campaña siempre gane
-  const savedFilters = !priceState && !urlFilters ? getSavedFilters() : null;
+  const savedFilters = !priceState && !urlFilters && !seoLanding ? getSavedFilters() : null;
 
   const [filters, setFilters] = useState({
-    search:       priceState?.search       ?? urlFilters?.search       ?? savedFilters?.search       ?? '',
-    mode:         priceState?.mode         ?? urlFilters?.mode         ?? savedFilters?.mode         ?? 'Todos',
-    type:         priceState?.type         ?? urlFilters?.type         ?? savedFilters?.type         ?? 'Todos',
+    search:       seoLanding ? '' : (priceState?.search       ?? urlFilters?.search       ?? savedFilters?.search       ?? ''),
+    mode:         seoLanding?.mode        ?? priceState?.mode         ?? urlFilters?.mode         ?? savedFilters?.mode         ?? 'Todos',
+    type:         seoLanding?.type        ?? priceState?.type         ?? urlFilters?.type         ?? savedFilters?.type         ?? 'Todos',
     minPrice:     priceState?.minPrice     ?? urlFilters?.minPrice     ?? savedFilters?.minPrice     ?? 0,
     maxPrice:     priceState?.maxPrice     ?? urlFilters?.maxPrice     ?? savedFilters?.maxPrice     ?? PRICE_VISUAL_MAX,
     beds:         urlFilters?.beds         ?? savedFilters?.beds       ?? 'Cualquiera',
     baths:        urlFilters?.baths        ?? savedFilters?.baths      ?? 'Cualquiera',
-    department:   priceState?.department   ?? urlFilters?.department   ?? savedFilters?.department   ?? null,
-    municipality: priceState?.municipality ?? urlFilters?.municipality ?? savedFilters?.municipality ?? null,
-    zone:         priceState?.zone         ?? urlFilters?.zone         ?? savedFilters?.zone         ?? null,
+    department:   seoLanding?.locationType === 'department' ? seoLanding.location
+                  : (priceState?.department   ?? urlFilters?.department   ?? savedFilters?.department   ?? null),
+    municipality: seoLanding?.locationType === 'municipality' ? seoLanding.location
+                  : (priceState?.municipality ?? urlFilters?.municipality ?? savedFilters?.municipality ?? null),
+    zone:         seoLanding?.locationType === 'zone' ? seoLanding.location
+                  : (priceState?.zone         ?? urlFilters?.zone         ?? savedFilters?.zone         ?? null),
     minSize:      urlFilters?.minSize      ?? savedFilters?.minSize    ?? 0,
     maxSize:      urlFilters?.maxSize      ?? savedFilters?.maxSize    ?? 10000000,
     featured:     priceState?.featured     ?? urlFilters?.featured     ?? savedFilters?.featured     ?? false,
@@ -217,6 +224,10 @@ function Propiedades() {
 
   // Restaurar isFiltering y sortOption si había filtros guardados o vinieron por URL
   useEffect(() => {
+    if (seoLanding) {
+      setIsFiltering(true);
+      return;
+    }
     const src = urlFilters ?? savedFilters;
     if (!src) return;
     const hasActive =
@@ -253,6 +264,7 @@ function Propiedades() {
 
   // Sincronizar filtros cuando el usuario navega con nuevo estado (ej: desde home o perfil de agente)
   useEffect(() => {
+    if (seoLanding) return;
     const st = location.state;
     if (!st) return; // Si no hay state nuevo, no sobreescribir (se mantienen los guardados)
     setFilters(prev => ({
@@ -782,6 +794,7 @@ function Propiedades() {
 
   // Restaurar estado al montar (volviendo de detalle)
   useEffect(() => {
+    if (seoLanding) return;
     try {
       const saved = sessionStorage.getItem(STATE_KEY);
       if (!saved) return;
@@ -830,25 +843,27 @@ function Propiedades() {
 
   // Efecto para cargar datos: siempre con paginación (la API maneja la búsqueda por ?search=)
   useEffect(() => {
-    // Guardia primaria: STATE_KEY en sessionStorage (datos recién restaurados, primera ejecución)
-    try {
-      const saved = sessionStorage.getItem(STATE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.timestamp && Date.now() - parsed.timestamp <= 5 * 60 * 1000) {
-          sessionStorage.removeItem(STATE_KEY); // consumir el guardia
-          restoredRef.current = true; // activar guardia secundaria para re-ejecuciones inmediatas
-          return;
+    if (!seoLanding) {
+      // Guardia primaria: STATE_KEY en sessionStorage (datos recién restaurados, primera ejecución)
+      try {
+        const saved = sessionStorage.getItem(STATE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.timestamp && Date.now() - parsed.timestamp <= 5 * 60 * 1000) {
+            sessionStorage.removeItem(STATE_KEY); // consumir el guardia
+            restoredRef.current = true; // activar guardia secundaria para re-ejecuciones inmediatas
+            return;
+          }
+          sessionStorage.removeItem(STATE_KEY);
         }
-        sessionStorage.removeItem(STATE_KEY);
-      }
-    } catch { /* ignorar */ }
+      } catch { /* ignorar */ }
 
-    // Guardia secundaria: restoredRef protege contra re-ejecuciones inmediatas del effect
-    // causadas por cambios en loadPropertiesPage/buildApiUrl justo después de la restauración
-    if (restoredRef.current) {
-      restoredRef.current = false;
-      return;
+      // Guardia secundaria: restoredRef protege contra re-ejecuciones inmediatas del effect
+      // causadas por cambios en loadPropertiesPage/buildApiUrl justo después de la restauración
+      if (restoredRef.current) {
+        restoredRef.current = false;
+        return;
+      }
     }
 
     setloading(true);
@@ -875,26 +890,65 @@ function Propiedades() {
   return (
 
     <>
-        <SEO
-          title="Propiedades"
-          description="Explora las mejores propiedades en venta y alquiler en todo Guatemala. Casas, apartamentos, terrenos, oficinas y proyectos. Filtra por precio y ubicación."
-          url="https://www.bricklyhomes.com/propiedades"
-        />
+        {seoLanding ? (
+          <>
+            <SEO
+              title={seoTitle(seoLanding.type, seoLanding.mode, seoLanding.location)}
+              description={seoDescription(seoLanding.type, seoLanding.mode, seoLanding.location)}
+              url={`https://www.bricklyhomes.com${buildSeoPath(seoLanding.type, seoLanding.mode, seoLanding.locationType, seoLanding.location)}`}
+              noindex={seoLanding.count === 0}
+            />
+            <Helmet>
+              <script type="application/ld+json">
+                {JSON.stringify({
+                  '@context': 'https://schema.org',
+                  '@type': 'BreadcrumbList',
+                  itemListElement: [
+                    { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://www.bricklyhomes.com/' },
+                    { '@type': 'ListItem', position: 2, name: 'Propiedades', item: 'https://www.bricklyhomes.com/propiedades' },
+                    { '@type': 'ListItem', position: 3, name: seoLabel(seoLanding.type, seoLanding.mode), item: `https://www.bricklyhomes.com/propiedades?type=${encodeURIComponent(seoLanding.type)}&mode=${encodeURIComponent(seoLanding.mode)}` },
+                    { '@type': 'ListItem', position: 4, name: seoLanding.location },
+                  ],
+                })}
+              </script>
+            </Helmet>
+          </>
+        ) : (
+          <SEO
+            title="Propiedades"
+            description="Explora las mejores propiedades en venta y alquiler en todo Guatemala. Casas, apartamentos, terrenos, oficinas y proyectos. Filtra por precio y ubicación."
+            url="https://www.bricklyhomes.com/propiedades"
+          />
+        )}
         <Container>
       <div className="mt-3 mt-lg-5">
-        <div className="d-flex align-items-center justify-content-between gap-3">
-          <div style={{ fontSize: 'clamp(20px, 3vw, 28px)'}}>
-            {agentName
-              ? t(`Propiedades de ${agentName}`, `Properties of ${agentName}`)
-              : <FormattedMessage id='property.text1' />
-            }
+        {seoLanding ? (
+          <>
+            <Breadcrumb className='px-3 py-1 rounded-1' style={{ "--bs-breadcrumb-divider": "'>'", fontSize: '14px', width: 'fit-content', background: '#f0f0f0' }}>
+              <Breadcrumb.Item linkAs={Link} linkProps={{ to: '/' }}>Inicio</Breadcrumb.Item>
+              <Breadcrumb.Item linkAs={Link} linkProps={{ to: '/propiedades' }}>Propiedades</Breadcrumb.Item>
+              <Breadcrumb.Item linkAs={Link} linkProps={{ to: `/propiedades?type=${encodeURIComponent(seoLanding.type)}&mode=${encodeURIComponent(seoLanding.mode)}` }}>{seoLabel(seoLanding.type, seoLanding.mode)}</Breadcrumb.Item>
+              <Breadcrumb.Item active>{seoLanding.location}</Breadcrumb.Item>
+            </Breadcrumb>
+            <h1 style={{ fontSize: 'clamp(24px, 4vw, 40px)' }} className="fw-bold mb-0 mt-4">
+              {seoTitle(seoLanding.type, seoLanding.mode, seoLanding.location)}
+            </h1>
+          </>
+        ) : (
+          <div className="d-flex align-items-center justify-content-between gap-3">
+            <div style={{ fontSize: 'clamp(20px, 3vw, 28px)'}}>
+              {agentName
+                ? t(`Propiedades de ${agentName}`, `Properties of ${agentName}`)
+                : <FormattedMessage id='property.text1' />
+              }
+            </div>
+            {(agentName || location.state?.fromLocationSection) && (
+              <Link onClick={() => navigate(-1)} title={t('Atrás', 'Back')}>
+                <img src={arrow} style={{ width: 'clamp(30px, 5vw, 40px)' }} alt="Atrás" srcSet="" />
+              </Link>
+            )}
           </div>
-          {(agentName || location.state?.fromLocationSection) && (
-            <Link onClick={() => navigate(-1)} title={t('Atrás', 'Back')}>
-              <img src={arrow} style={{ width: 'clamp(30px, 5vw, 40px)' }} alt="Atrás" srcSet="" />
-            </Link>
-          )}
-        </div>
+        )}
       </div>
 
       <div className="mt-0 mt-lg-4 bg-white py-4 sticky-top-ajustado">

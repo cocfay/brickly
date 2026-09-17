@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:seo": "node scripts/inline-critical.mjs && node scripts/prerender.mjs",
+    "build:all": "npm run build && npm run build:seo",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -54,6 +56,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "puppeteer": "^25.11.0",
     "ttf2woff2": "^8.0.1",
     "vite": "^7.2.4"
   },

@@ -2061,6 +2061,81 @@ export class PropertiesService {
       }));
   }
 
+  /**
+   * Combinaciones SEO válidas (tipo + operación + ubicación) con conteo
+   * de propiedades publicadas. Las zonas se agrupan de forma global
+   * (ignorando departamento/municipio), de modo que "Zona 10" acumula
+   * propiedades de todos los departamentos. Además incluye un nivel por
+   * departamento (p. ej. "Escuintla") para landings de ubicación amplia.
+   */
+  async getSeoCombos() {
+    const rows = await this.propertyModel.aggregate([
+      { $match: { status: 'published' } },
+      {
+        $group: {
+          _id: {
+            type: '$market.type',
+            mode: '$market.mode',
+            zone: '$location.zone',
+            department: '$location.department',
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const normalize = (value) => {
+      const str = String(value ?? '').trim();
+      if (!str) return null;
+      return ['ninguno', 'nunguno', 'none'].includes(str.toLowerCase()) ? null : str;
+    };
+
+    const zoneMap = new Map<string, number>();
+    const deptMap = new Map<string, number>();
+
+    for (const row of rows) {
+      const type = normalize(row._id.type);
+      const mode = normalize(row._id.mode);
+      const zone = normalize(row._id.zone);
+      const dept = normalize(row._id.department);
+      if (!type || !mode) continue;
+
+      if (zone) {
+        const key = `${type}||${mode}||${zone}`;
+        zoneMap.set(key, (zoneMap.get(key) || 0) + row.count);
+      }
+      if (dept) {
+        const key = `${type}||${mode}||${dept}`;
+        deptMap.set(key, (deptMap.get(key) || 0) + row.count);
+      }
+    }
+
+    const combos: {
+      type: string;
+      mode: string;
+      locationType: 'zone' | 'department';
+      location: string;
+      count: number;
+    }[] = [];
+    for (const [key, count] of zoneMap) {
+      const [type, mode, location] = key.split('||');
+      combos.push({ type, mode, locationType: 'zone', location, count });
+    }
+    for (const [key, count] of deptMap) {
+      const [type, mode, location] = key.split('||');
+      combos.push({ type, mode, locationType: 'department', location, count });
+    }
+
+    combos.sort(
+      (a, b) =>
+        a.type.localeCompare(b.type) ||
+        a.mode.localeCompare(b.mode) ||
+        a.location.localeCompare(b.location, 'es', { numeric: true }),
+    );
+
+    return combos;
+  }
+
   async disablePropertiesByPlan(userId: string) {
     const mainUserIdObj = new Types.ObjectId(userId);
     const subUsers = await this.userModel.find(

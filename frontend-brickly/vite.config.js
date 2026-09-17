@@ -23,10 +23,11 @@ function readEnvFile(file) {
 }
 
 export default defineConfig(({ mode }) => {
+  const prodEnv = readEnvFile(path.resolve(process.cwd(), '.env'))
   let env = loadEnv(mode, process.cwd(), '')
   // En producción, .env (config de producción) tiene prioridad sobre .env.local (dev)
   if (mode === 'production') {
-    env = { ...env, ...readEnvFile(path.resolve(process.cwd(), '.env')) }
+    env = { ...env, ...prodEnv }
   }
   const basePath = env.VITE_BASE_PATH || '/'
   // Normalizar: asegurar que empiece con / y no termine con /
@@ -34,6 +35,13 @@ export default defineConfig(({ mode }) => {
   const apiPrefix = normalizedBase === '/' ? '' : normalizedBase
 
   return {
+    // En producción, inyectar forzosamente las variables de .env en el bundle
+    // (Vite da prioridad a .env.local sobre .env; esto revierte esa precedencia)
+    define: mode === 'production'
+      ? Object.fromEntries(
+          Object.entries(prodEnv).map(([key, value]) => [`import.meta.env.${key}`, JSON.stringify(value)])
+        )
+      : {},
     plugins: [
       react(),
       {

@@ -24,6 +24,7 @@ import './index.css';
 /* Lazy loaded pages - se cargan solo cuando se navega a ellas */
 const Home = lazy(() => import('./pages/home.jsx'));
 const Propiedades = lazy(() => import('./pages/properties/propiedades.jsx'));
+const SeoLanding = lazy(() => import('./pages/properties/seoLanding.jsx'));
 const UltimasPropiedades = lazy(() => import('./pages/properties/ultimaspropiedades.jsx'));
 const Propiedad = lazy(() => import('./pages/properties/propiedad.jsx'));
 const Favoritos = lazy(() => import('./pages/favoritos.jsx'));
@@ -124,6 +125,7 @@ const App = () => {
               <Route index element={<Home />} />
               <Route path="home" element={<Home />} />
               <Route path="propiedades" element={<Propiedades />} />
+              <Route path="propiedades/:tipoOp/:ubicacion" element={<SeoLanding />} />
               <Route path="propiedades/:slug" element={<Propiedad />} />
               <Route path="ultimas-propiedades" element={<UltimasPropiedades />} />
               <Route path="propiedad/:id" element={<Propiedad />} />
