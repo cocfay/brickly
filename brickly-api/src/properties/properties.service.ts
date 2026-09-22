@@ -476,17 +476,19 @@ export class PropertiesService {
     return 'Consultar precio';
   }
 
+  private static readonly ICON_BASE = 'https://www.bricklyhomes.com/newsletters/iconos';
+
   private static readonly REC_ICONS = {
-    bed: 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzExMSI+PHBhdGggZD0iTTMgMTh2LTVhMiAyIDAgMCAxIDItMmgxNGEyIDIgMCAwIDEgMiAydjVoLTJ2LTJINXYySDN6bTItOHYxaDE0di0xSDV6Ii8+PGNpcmNsZSBjeD0iNyIgY3k9IjEyIiByPSIxLjYiLz48L3N2Zz4=',
-    bath: 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzExMSI+PHBhdGggZD0iTTQgMTJoMTZ2MWE0IDQgMCAwIDEtNCA0SDhhNCA0IDAgMCAxLTQtNHYtMXptMSAxYTMgMyAwIDAgMCAzIDNoOGEzIDMgMCAwIDAgMy0zSDV6Ii8+PHBhdGggZD0iTTYgNmEyIDIgMCAwIDEgMi0yYy40IDAgLjguMSAxLjEuM0w4IDZhMSAxIDAgMCAwLS45LS45eiIvPjwvc3ZnPg==',
-    car: 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzExMSI+PHBhdGggZD0iTTUgMTFsMS41LTQuNkEyIDIgMCAwIDEgOC40IDVoNy4yYTIgMiAwIDAgMSAxLjkgMS40TDE5IDExYTIgMiAwIDAgMSAyIDJ2NGgtMmEyIDIgMCAxIDEtNCAwSDlhMiAyIDAgMSAxLTQgMEgzdi00YTIgMiAwIDAgMSAyLTJ6bTItMWgxMGwtLjctMi4yYS42LjYgMCAwIDAtLjYtLjRIOC4zYS42LjYgMCAwIDAtLjYuNEw3IDEweiIvPjwvc3ZnPg==',
-    pin: 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik0xMiAyMXMtNy02LjEtNy0xMWE3IDcgMCAxIDEgMTQgMGMwIDQuOS03IDExLTcgMTF6Ii8+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMCIgcj0iMi41IiBmaWxsPSIjMTExIi8+PC9zdmc+',
-    home: 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik0zIDEwLjUgMTIgM2w5IDcuNVYyMGExIDEgMCAwIDEtMSAxaC01di02aC02djZINGExIDEgMCAwIDEtMS0xdi05LjV6Ii8+PC9zdmc+',
-    expand: 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTExIiBzdHJva2Utd2lkdGg9IjIuNCI+PHBhdGggZD0iTTcgMTcgMTcgN005IDdoOHY4Ii8+PC9zdmc+',
+    bed: 'bed',
+    bath: 'bath',
+    car: 'car',
+    pin: 'pin',
+    home: 'home',
+    expand: 'expand',
   };
 
-  private recommendationIcon(b64: string, size = 14) {
-    return `<img src="data:image/svg+xml;base64,${b64}" alt="" width="${size}" height="${size}" style="width:${size}px; height:${size}px; vertical-align:-2px; display:inline-block; border:0;">`;
+  private recommendationIcon(name: string, size = 14) {
+    return `<img src="${PropertiesService.ICON_BASE}/${name}.png" alt="" width="${size}" height="${size}" style="width:${size}px; height:${size}px; vertical-align:-2px; display:inline-block; border:0;">`;
   }
 
   private recommendationDescriptionBlock(p: any, titleSize = '20px', truncate = false) {
@@ -561,7 +563,7 @@ export class PropertiesService {
             <div class="col-50" style="display:inline-block; width:100%; max-width:252px; vertical-align:top; font-size:0; text-align:left; margin-right:22px; margin-bottom:34px;">
               <div style="position:relative; border-radius:16px; overflow:hidden; font-size:14px;">
                 <a href="${link}" target="_blank">
-                  <img src="${photo}" alt="${title}" width="270" style="width:100%; display:block; border:0; border-radius:16px; aspect-ratio:1/1; object-fit:cover;">
+                  <img src="${photo}" alt="${title}" width="252" height="252" class="card-img" style="display:block; width:100%; height:252px; border:0; border-radius:16px; object-fit:cover; object-position:center;">
                 </a>
                 ${featuredHtml}
                 <div style="position:absolute; right:10px; bottom:10px; width:28px; height:28px; background-color:#ffffff; border-radius:50%; text-align:center; line-height:28px;">${this.recommendationIcon(PropertiesService.REC_ICONS.expand, 14)}</div>
@@ -609,7 +611,7 @@ export class PropertiesService {
                   .hide-mobile { display: none !important; }
                   .padding-mobile { padding: 25px 20px !important; }
                   .text-center-mobile { text-align: center !important; }
-                  .img-full { width: 100% !important; height: auto !important; }
+                  .img-full { width: 100% !important; height: 240px !important; }
                   .no-border-mobile { border: none !important; }
               }
               @media (prefers-color-scheme: dark) {
@@ -650,7 +652,7 @@ export class PropertiesService {
                   <td style="padding: 0 20px 35px 20px;">
                       <div style="background-color:#f8f9fa; border-radius: 24px; overflow: hidden; font-size: 0; max-width: 560px;">
                           <div style="display: block; width: 100%; max-width: 560px; font-size: 14px;">
-                              <img src="${viewedPhoto}" alt="${viewedTitle}" class="img-full" style="display:block; width:100%; height:auto; border:0;">
+                              <img src="${viewedPhoto}" alt="${viewedTitle}" width="560" height="320" class="img-full" style="display:block; width:100%; height:320px; border:0; object-fit:cover; object-position:center;">
                           </div>
                           <div class="padding-mobile" style="padding: 25px 25px 30px 25px; font-size: 14px;">
                               <p style="margin: 0 0 12px 0; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #999999; font-weight: 700;">${zone ? `Viste esta propiedad en la Zona ${zone}` : 'Viste esta propiedad'}</p>

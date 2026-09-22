@@ -11,6 +11,23 @@ export const MODELO_FALLBACK_IMG = modeloImg;
 export const DEVELOPER_FALLBACK_IMG = developerLogo;
 
 /**
+ * Quita etiquetas HTML de un texto (para meta-description).
+ */
+export const stripHtml = (html = '') =>
+  String(html).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+
+/**
+ * Limita un texto a una cantidad de caracteres cortando en la última palabra.
+ */
+export const limitarTexto = (text = '', max = 155) => {
+  const clean = String(text).trim();
+  if (clean.length <= max) return clean;
+  const cortado = clean.slice(0, max);
+  const lastSpace = cortado.lastIndexOf(' ');
+  return (lastSpace > 0 ? cortado.slice(0, lastSpace) : cortado) + '…';
+};
+
+/**
  * Resuelve la URL de una imagen guardada en BD.
  * - URLs absolutas (http/https) se usan tal cual.
  * - Rutas relativas (uploads/...) pasan por getLogoUrl (host del frontend).

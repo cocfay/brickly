@@ -16,6 +16,7 @@ import { getProjectPath } from '../../utils/projectRoutes';
 import { useCurrency } from '../../context/CurrencyContext';
 import { useFavoriteProjects } from '../../hooks/useFavoriteProjects';
 import { isAuthenticated } from '../../services/authService';
+import SEO from '../../components/SEO';
 
 const PRICE_VISUAL_MAX = 20000000;
 const MAX_SIZE_LIMIT = 10000000;
@@ -316,6 +317,11 @@ function Proyectos() {
 
     return (
         <Container>
+            <SEO
+                title="Proyectos"
+                description="Explora los mejores proyectos inmobiliarios en Guatemala. Condominios, edificios de apartamentos, bodegas y oficinas en venta, preventa o construcción. Filtra por precio y ubicación."
+                url="https://www.bricklyhomes.com/proyectos"
+            />
             {/* Título */}
             <div className="mt-3 mt-lg-5">
                 <div style={{ fontSize: 'clamp(20px, 3vw, 28px)' }}>

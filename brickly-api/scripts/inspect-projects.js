@@ -1,0 +1,14 @@
+const fs = require('fs');
+const path = require('path').join(__dirname, 'projects.json');
+const s = fs.readFileSync(path, 'utf8');
+const arr = JSON.parse(s);
+console.log('registros:', arr.length);
+console.log('keys:', Object.keys(arr[0]).join(', '));
+console.log('sin _id:', arr.filter(x => !(x._id && x._id.$oid)).length);
+const hasUser = arr.filter(x => x.userId);
+console.log('con userId:', hasUser.length);
+console.log('userId ejemplo:', JSON.stringify(arr[0].userId));
+console.log('status:', [...new Set(arr.map(x => x.status))].join(','));
+console.log('con createdAt/updatedAt:', arr.filter(x => x.createdAt || x.updatedAt).length);
+console.log('fechaEntrega:', JSON.stringify(arr[0].fechaEntrega));
+console.log('date_project:', JSON.stringify(arr[0].date_project));

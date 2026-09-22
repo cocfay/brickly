@@ -10,10 +10,6 @@ import { getDisplayPrice } from '../utils/priceUtils';
 import { FormattedMessage } from 'react-intl'; 
 
 //import logo from '../assets/images/logos/logo_negro.png';
-import casa1 from '../assets/images/imagenes_de_casas/img1.webp';
-import casa2 from '../assets/images/imagenes_de_casas/img2.webp';
-import casa3 from '../assets/images/imagenes_de_casas/img3.webp';
-import casa4 from '../assets/images/imagenes_de_casas/img4.webp';
 
 import aparta6 from '../assets/images/imagenes_de_casas/img6.webp';
 import aparta7 from '../assets/images/imagenes_de_casas/img7.webp';
@@ -65,6 +61,7 @@ import { getLocationCatalog } from '../services/locationCatalog';
 import { registerWSClick } from '../services/countWS';
 import { getAgencyProfilePath, getUserProfilePath } from '../utils/profileRoutes';
 import { getPropertyPath } from '../utils/propertyRoutes';
+import { PROPERTY_PLACEHOLDER, handlePropertyImageError } from '../utils/propertyImage';
 
 const formatPrice = (value, currency) => {
   const num = parseFloat(value) || 0;
@@ -578,9 +575,9 @@ function Home() {
               const item = propiedadReciente;
               const photos = item.media?.photos || [];
               const totalPhotos = photos.length;
-              const mainPhoto = totalPhotos > 0 ? URL + '/' + photos[0].path : casa1;
-              const secondPhoto = totalPhotos > 1 ? URL + '/' + photos[1].path : casa1;
-              const thirdPhoto = totalPhotos > 2 ? URL + '/' + photos[2].path : casa1;
+              const mainPhoto = totalPhotos > 0 ? URL + '/' + photos[0].path : PROPERTY_PLACEHOLDER;
+              const secondPhoto = totalPhotos > 1 ? URL + '/' + photos[1].path : PROPERTY_PLACEHOLDER;
+              const thirdPhoto = totalPhotos > 2 ? URL + '/' + photos[2].path : PROPERTY_PLACEHOLDER;
               return (
                 <>
                   <div className='row mt-5 text-black'>
@@ -590,11 +587,11 @@ function Home() {
                           <div className="ratio ratio-16x9 h-100 position-relative d-block">
                             {width >= 768 ? (
                               <a className="glightbox d-block w-100 h-100" href={mainPhoto} data-gallery={`gallery-${item._id}`} onClick={(e) => e.stopPropagation()}>
-                                <img src={mainPhoto} className="object-fit-cover border-radius-1 w-100 h-100" alt="Imagen principal" width="800" height="450" fetchPriority="high" />
+                                <img src={mainPhoto} className="object-fit-cover border-radius-1 w-100 h-100" alt="Imagen principal" width="800" height="450" fetchPriority="high" onError={handlePropertyImageError} />
                               </a>
                             ) : (
                               <Link to={getPropertyPath(item)} className="d-block w-100 h-100" onClick={(e) => e.stopPropagation()}>
-                                <img src={mainPhoto} className="object-fit-cover border-radius-1 w-100 h-100" alt="Imagen principal" width="800" height="450" fetchPriority="high" />
+                                <img src={mainPhoto} className="object-fit-cover border-radius-1 w-100 h-100" alt="Imagen principal" width="800" height="450" fetchPriority="high" onError={handlePropertyImageError} />
                               </Link>
                             )}
                             <div style={{ padding: '5%', pointerEvents: 'none' }} className='position-absolute top-0 w-100 h-100 d-flex flex-column justify-content-between'>
@@ -624,17 +621,17 @@ function Home() {
                                 if (index === 0) {
                                   return width >= 768 ? (
                                     <a key={index} className="ratio ratio-4x3 second-img-section1 d-block glightbox mb-2" href={photoUrl} data-gallery={`gallery-${item._id}`} onClick={(e) => e.stopPropagation()}>
-                                      <img src={photoUrl} className="object-fit-cover border-radius-2" alt="Imagen secundaria 1" width="400" height="300" loading="lazy" />
+                                      <img src={photoUrl} className="object-fit-cover border-radius-2" alt="Imagen secundaria 1" width="400" height="300" loading="lazy" onError={handlePropertyImageError} />
                                     </a>
                                   ) : (
                                     <Link key={index} to={getPropertyPath(item)} className="ratio ratio-4x3 second-img-section1 d-block mb-2">
-                                      <img src={photoUrl} className="object-fit-cover border-radius-2" alt="Imagen secundaria 1" width="400" height="300" loading="lazy" />
+                                      <img src={photoUrl} className="object-fit-cover border-radius-2" alt="Imagen secundaria 1" width="400" height="300" loading="lazy" onError={handlePropertyImageError} />
                                     </Link>
                                   );
                                 } else if (index === 1) {
                                   return width >= 768 ? (
                                     <a key={index} className="ratio ratio-4x3 second-img-section1 d-block glightbox mt-xl-2 position-relative" href={photoUrl} data-gallery={`gallery-${item._id}`} onClick={(e) => e.stopPropagation()}>
-                                      <img src={photoUrl} className="object-fit-cover border-radius-2" alt="Imagen secundaria 2" width="400" height="300" loading="lazy" />
+                                      <img src={photoUrl} className="object-fit-cover border-radius-2" alt="Imagen secundaria 2" width="400" height="300" loading="lazy" onError={handlePropertyImageError} />
                                       {totalSecondary > 2 && (
                                         <div className="position-absolute w-100 h-100 d-flex justify-content-end align-items-end p-3">
                                           <div className="d-flex align-items-baseline gap-2 text-dark py-1 px-3 rounded-5" style={{ fontSize: 'clamp(10px, 3vw, 16px)', backgroundColor: '#d9d9d9e6' }}>
@@ -645,7 +642,7 @@ function Home() {
                                     </a>
                                   ) : (
                                     <Link key={index} to={getPropertyPath(item)} className="ratio ratio-4x3 second-img-section1 d-block mt-xl-2 position-relative">
-                                      <img src={photoUrl} className="object-fit-cover border-radius-2" alt="Imagen secundaria 2" width="400" height="300" loading="lazy" />
+                                      <img src={photoUrl} className="object-fit-cover border-radius-2" alt="Imagen secundaria 2" width="400" height="300" loading="lazy" onError={handlePropertyImageError} />
                                       {totalSecondary > 2 && (
                                         <div className="position-absolute w-100 h-100 d-flex justify-content-end align-items-end p-3">
                                           <div className="d-flex align-items-baseline gap-2 text-dark py-1 px-3 rounded-5" style={{ fontSize: 'clamp(10px, 3vw, 16px)', backgroundColor: '#d9d9d9e6' }}>
@@ -658,11 +655,11 @@ function Home() {
                                 }
                                 return width >= 768 ? (
                                   <a key={index} className="ratio ratio-4x3 second-img-section1 glightbox mb-2 d-none" href={photoUrl} data-gallery={`gallery-${item._id}`} onClick={(e) => e.stopPropagation()}>
-                                    <img src={photoUrl} className="object-fit-cover border-radius-2" alt="Imagen secundaria" />
+                                    <img src={photoUrl} className="object-fit-cover border-radius-2" alt="Imagen secundaria" onError={handlePropertyImageError} />
                                   </a>
                                 ) : (
                                   <Link key={index} to={getPropertyPath(item)} className="ratio ratio-4x3 second-img-section1 mb-2 d-none">
-                                    <img src={photoUrl} className="object-fit-cover border-radius-2" alt="Imagen secundaria" />
+                                    <img src={photoUrl} className="object-fit-cover border-radius-2" alt="Imagen secundaria" onError={handlePropertyImageError} />
                                   </Link>
                                 );
                               });
@@ -796,12 +793,12 @@ function Home() {
               <div style={{ marginTop: 'clamp(5rem, 10vw, 9rem)'}}>
                 <div className="row gy-5 gy-xl-0">
                   {propiedadesSecundarias.map((item) => {
-                    const imgSrc = item.media?.photos?.length > 0 ? URL + '/' + item.media.photos[0].path : casa2;
+                    const imgSrc = item.media?.photos?.length > 0 ? URL + '/' + item.media.photos[0].path : PROPERTY_PLACEHOLDER;
                     return (
                       <div key={item._id} className="col-md-6 col-xl-4">
                         <Link to={getPropertyPath(item)} className="position-relative d-flex flex-column text-body h-100">
                           <div className="position-relative">
-                            <img src={imgSrc} className="object-fit-cover w-100 border-radius-1" style={{ aspectRatio: '4 / 4' }} alt="Imagen principal" width="400" height="400" loading="lazy" />
+                            <img src={imgSrc} className="object-fit-cover w-100 border-radius-1" style={{ aspectRatio: '4 / 4' }} alt="Imagen principal" width="400" height="400" loading="lazy" onError={handlePropertyImageError} />
                             <div style={{ padding: '5%' }} className='position-absolute top-0 w-100 h-100 d-flex flex-column justify-content-between'>
                               <div className='d-flex gap-2 align-items-center rounded-4' style={{ backgroundColor: '#000000c7', color: 'white', width: 'fit-content', boxSizing: 'border-box', padding: '3px 10px', fontSize: '14px' }}>
                                 <img src={diamond} className="object-fit-cover" style={{ width: '14px' }} alt="Diamond" /><FormattedMessage id="home.text31" />
@@ -907,12 +904,12 @@ function Home() {
               <div style={{ marginTop: 'clamp(2rem, 5vw, 4rem)'}}>
                 <div className="row gy-5 gy-xl-0">
                   {exclusivas.map((item) => {
-                    const imgSrc = item.media?.photos?.length > 0 ? URL + '/' + item.media.photos[0].path : casa2;
+                    const imgSrc = item.media?.photos?.length > 0 ? URL + '/' + item.media.photos[0].path : PROPERTY_PLACEHOLDER;
                     return (
                       <div key={item._id} className="col-md-6 col-xl-4">
                         <Link to={getPropertyPath(item)} className="position-relative d-flex flex-column text-body h-100">
                           <div className="position-relative">
-                            <img src={imgSrc} className="object-fit-cover w-100 border-radius-1" style={{ aspectRatio: '4 / 4' }} alt="Imagen principal" width="400" height="400" loading="lazy" />
+                            <img src={imgSrc} className="object-fit-cover w-100 border-radius-1" style={{ aspectRatio: '4 / 4' }} alt="Imagen principal" width="400" height="400" loading="lazy" onError={handlePropertyImageError} />
                             <div style={{ padding: '5%' }} className='position-absolute top-0 w-100 h-100 d-flex flex-column justify-content-between'>
                               <div className='d-flex gap-2 align-items-center rounded-4' style={{ backgroundColor: '#000000c7', color: 'white', width: 'fit-content', boxSizing: 'border-box', padding: '3px 10px', fontSize: '14px' }}>
                                 <FormattedMessage id="home.text7" />
@@ -1057,6 +1054,7 @@ function Home() {
             {/* Contenido real */}
             {!loading && propiedades.length > 0 && propiedadMasReciente && (() => {
                 const item = propiedadMasReciente;
+                const mainPhotoUrl = item.media?.photos?.length > 0 ? URL + '/' + item.media.photos[0].path : PROPERTY_PLACEHOLDER;
                     return (
                       <>
                         <div className='row gx-5 mt-5' key={item._id}>
@@ -1069,11 +1067,11 @@ function Home() {
                                   navigate(getPropertyPath(item));
                                   return;
                                 }
-                                const photos = item.media.photos.map(p => ({
+                                const photos = (item.media?.photos || []).map(p => ({
                                   href: URL + '/' + p.path,
                                   type: 'image',
                                 }));
-                                const currentUrl = preview ? preview : URL + '/' + item.media.photos[0].path;
+                                const currentUrl = preview ? preview : mainPhotoUrl;
                                 const startAt = photos.findIndex(p => p.href === currentUrl);
                                 if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
                                 const lb = GLightbox({
@@ -1087,7 +1085,7 @@ function Home() {
                                 lb.open();
                               }}
                             >
-                              <img src={ preview ? preview : URL + '/' + item.media.photos[0].path } className="object-fit-cover border-radius-1 w-100 h-100" alt="Imagen principal" width="800" height="450" loading="lazy" style={{ position: 'absolute', top: 0, left: 0 }} />
+                              <img src={ preview ? preview : mainPhotoUrl } className="object-fit-cover border-radius-1 w-100 h-100" alt="Imagen principal" width="800" height="450" loading="lazy" style={{ position: 'absolute', top: 0, left: 0 }} onError={handlePropertyImageError} />
                               <div style={{ padding: '5%', position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} className='d-flex flex-column justify-content-between'>
                                 {/* <div className='d-flex gap-2 align-items-center' style={{ backgroundColor: '#000000c7', color: 'white', width: 'fit-content', boxSizing: 'border-box', padding: '1px 24px', fontSize: '14px' }}>
                                   <FormattedMessage id="home.text7" />
@@ -1253,7 +1251,7 @@ function Home() {
                         <div key={item._id} className="col-md-6 col-xl-4 d-flex flex-column">
                           <div className="position-relative d-block">
                             <Link to={getPropertyPath(item)} className="d-block propiedades-zoom">
-                              <img src={URL + '/' + item.media.photos[0].path} className="object-fit-cover w-100 border-radius-1" alt="Imagen principal" width="400" height="400" loading="lazy" style={{ aspectRatio: '4 / 4' }} />
+                              <img src={URL + '/' + item.media.photos[0].path} className="object-fit-cover w-100 border-radius-1" alt="Imagen principal" width="400" height="400" loading="lazy" style={{ aspectRatio: '4 / 4' }} onError={handlePropertyImageError} />
                               <div style={{ padding: '5%' }} className='position-absolute top-0 w-100 h-100 d-flex flex-column justify-content-between'>
                                   {/* <div className='d-flex gap-2 align-items-center' style={{ backgroundColor: '#000000c7', color: 'white', width: 'fit-content', boxSizing: 'border-box', padding: '1px 24px', fontSize: '14px' }}>
                                     <FormattedMessage id="home.text7" />

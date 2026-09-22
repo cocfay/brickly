@@ -16,11 +16,12 @@ import botonTour from '../../assets/images/iconos/IconoTour360.png';
 import bricklyIcon from '../../assets/images/logos/logo_circular.png';
 import { useT } from '../../hooks/useT';
 import { getProyectoById, getProyectosPublicos, sendProyectoLead, registerProyectoCitaClick } from '../../cpanel/services/proyectos';
-import { enriquecerProyecto, MODELO_FALLBACK_IMG, formatProjectPrice } from '../../utils/proyectosUtils';
+import { enriquecerProyecto, MODELO_FALLBACK_IMG, formatProjectPrice, stripHtml, limitarTexto } from '../../utils/proyectosUtils';
 import { getModelPath, getProjectPath } from '../../utils/projectRoutes';
 import { useFavoriteProjects } from '../../hooks/useFavoriteProjects';
 import { isAuthenticated } from '../../services/authService';
 import { useCurrency } from '../../context/CurrencyContext';
+import SEO from '../../components/SEO';
 
 // Determina si un atributo tiene un valor real cargado (no "ninguno", "-", 0, etc.)
 const esValorPresente = (v) => {
@@ -52,6 +53,8 @@ function Apartament({ preview = false }) {
     const { id } = useParams();
     const [isLg, setIsLg] = useState(window.innerWidth >= 992);
     const [scrollProgress, setScrollProgress] = useState(0);
+    const [modelosOverflow, setModelosOverflow] = useState(false);
+    const [thumbWidth, setThumbWidth] = useState(16);
     const modelosBarRef = useRef(null);
     const { currency: currencyMode } = useCurrency();
 
@@ -158,10 +161,25 @@ function Apartament({ preview = false }) {
     const updateModelosProgress = () => {
         const el = scrollRef.current;
         if (!el) return;
-        const max = el.scrollWidth - el.clientWidth;
-        const p = max > 0 ? el.scrollLeft / max : 0;
-        setScrollProgress(p);
+        const overflow = el.scrollWidth - el.clientWidth;
+        setModelosOverflow(overflow > 1);
+        setScrollProgress(overflow > 0 ? el.scrollLeft / overflow : 0);
+        setThumbWidth(el.scrollWidth > 0 ? Math.max((el.clientWidth / el.scrollWidth) * 100, 8) : 100);
     };
+
+    // Recalcular desborde cuando cargan los modelos o cambia el breakpoint
+    useEffect(() => {
+        const el = scrollRef.current;
+        if (!el) return;
+        const raf = requestAnimationFrame(updateModelosProgress);
+        return () => cancelAnimationFrame(raf);
+    }, [project, isLg]);
+
+    // Recalcular al redimensionar la ventana
+    useEffect(() => {
+        window.addEventListener('resize', updateModelosProgress);
+        return () => window.removeEventListener('resize', updateModelosProgress);
+    }, []);
 
     useEffect(() => {
         if (id) {
@@ -249,8 +267,23 @@ function Apartament({ preview = false }) {
       return m ? `${m[2]}/${m[1]}` : val;
     };
 
+    // ── SEO: título con el nombre del proyecto y meta-description personalizada ──
+    const seoTitle = project.titulo;
+    const descripcionBase = stripHtml(project.descripcion);
+    const seoDescription = limitarTexto(
+      descripcionBase ||
+        `${project.titulo} es un proyecto de ${project.tipo} en ${project.ubicacion}${project.situacional ? ', en ' + project.situacional : ''}${project.unidades ? ', con ' + project.unidades + (project.unidades === 1 ? ' unidad' : ' unidades') : ''}, desde ${project.precioDesdeUSD}.`
+    );
+    const seoUrl = `${window.location.origin}${getProjectPath(project, project.tipo)}`;
+
     return (
         <>
+        <SEO
+            title={seoTitle}
+            description={seoDescription}
+            image={project.imagenPrincipal}
+            url={seoUrl}
+        />
         <Container style={{ marginTop: 'clamp(1.5rem, 3vw, 3rem)', marginBottom: 'clamp(3rem, 6vw, 6rem)' }}>
 
             {/* Breadcrumb */}
@@ -630,6 +663,7 @@ function Apartament({ preview = false }) {
                         </div>
 
                         {/* Barra de desplazamiento horizontal */}
+                        {modelosOverflow && (
                         <div className="modelos-scrollbar" onClick={(e) => {
                             const el = scrollRef.current;
                             const bar = e.currentTarget;
@@ -643,9 +677,10 @@ function Apartament({ preview = false }) {
                             <div
                                 ref={modelosBarRef}
                                 className="modelos-scrollbar-thumb"
-                                style={{ width: '16%', marginLeft: `calc(${scrollProgress * 100}% * (1 - 0.16))` }}
+                                style={{ width: `${thumbWidth}%`, marginLeft: `calc(${scrollProgress * 100}% * (1 - ${thumbWidth / 100}))` }}
                             ></div>
                         </div>
+                        )}
                     </div>
 
                     {/* Amenidades del edificio */}

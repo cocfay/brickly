@@ -14,12 +14,13 @@ import bricklyIcon from '../../assets/images/logos/logo_circular.png';
 import { useT } from '../../hooks/useT';
 import '../../assets/css/proyectos.css';
 import { getProyectoById, sendProyectoLead, registerProyectoCitaClick } from '../../cpanel/services/proyectos';
-import { enriquecerProyecto, MODELO_FALLBACK_IMG, formatProjectPrice } from '../../utils/proyectosUtils';
+import { enriquecerProyecto, MODELO_FALLBACK_IMG, formatProjectPrice, stripHtml, limitarTexto } from '../../utils/proyectosUtils';
 import { enriquecerAmenidades } from '../../utils/amenidades';
 import { getModelPath, getProjectPath } from '../../utils/projectRoutes';
 import { useFavoriteProjects } from '../../hooks/useFavoriteProjects';
 import { isAuthenticated } from '../../services/authService';
 import { useCurrency } from '../../context/CurrencyContext';
+import SEO from '../../components/SEO';
 
 // Determina si un atributo tiene un valor real cargado (no "ninguno", "-", 0, etc.)
 const esValorPresente = (v) => {
@@ -214,6 +215,15 @@ function Floor({ preview = false }) {
 
     const tieneValor = esValorPresente;
 
+    // ── SEO: título del modelo + proyecto y meta-description personalizada ──
+    const seoTitle = `${modelo.nombre} | ${titulo}`;
+    const descripcionBase = stripHtml(modelo.descripcion);
+    const seoDescription = limitarTexto(
+      descripcionBase ||
+        `${modelo.nombre} es un ${modelo.tipo} en ${ubicacion}${modelo.camas ? ', con ' + modelo.camas + (modelo.camas === 1 ? ' dormitorio' : ' dormitorios') : ''}${modelo.banos ? ' y ' + modelo.banos + (modelo.banos === 1 ? ' baño' : ' baños') : ''}${modelo.area ? ', ' + modelo.area : ''}. Precio desde ${modelo.precioDesdeUSD}.`
+    );
+    const seoUrl = `${window.location.origin}${getModelPath(project, { modelSlug }, project.tipo)}`;
+
     const distribFields = esBodega
         ? [
             modelo.distribucion.oficina,
@@ -256,6 +266,12 @@ function Floor({ preview = false }) {
 
     return (
         <>
+        <SEO
+            title={seoTitle}
+            description={seoDescription}
+            image={mainImg}
+            url={seoUrl}
+        />
         <Container style={{ marginTop: 'clamp(1.5rem, 3vw, 3rem)', marginBottom: 'clamp(3rem, 6vw, 6rem)' }}>
 
             {/* Breadcrumb */}

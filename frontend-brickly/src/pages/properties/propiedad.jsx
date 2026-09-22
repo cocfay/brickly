@@ -28,7 +28,7 @@ import diamond from '../../assets/images/iconos/diamond.png';
 import tour from '../../assets/images/iconos/IconoTour.png';
 import arrow from '../../assets/images/iconos/arrow.png'
 import space from '../../assets/images/iconos/spaces.png';
-import sinPropiedad from '../../cpanel/assets/images/iconos/sinPropiedad.png';
+import { PROPERTY_PLACEHOLDER, handlePropertyImageError } from '../../utils/propertyImage';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useT } from '../../hooks/useT';
 
@@ -447,30 +447,37 @@ function Propiedad() {
                         )}     
 
                         <div className="row g-3 mt-2">
-                            {data?.media?.photos.find(p => p.isMain) && (
-                                <div className="col-lg-8">
-                                    <div className="position-relative h-100">
-                                        <div className="ratio ratio-16x9 h-100">
-                                            <a className="glightbox d-block w-100 h-100" href={URL + '/' + data?.media?.photos.find(p => p.isMain).path} data-gallery={`gallery-`+data._id}>
-                                                <img src={URL + '/' + data?.media?.photos.find(p => p.isMain).path} className="object-fit-cover border-radius-1 w-100 h-100" alt="Imagen principal" loading="lazy" />
-                                            </a>
-                                        </div>
-                                        <div
-                                            className={`favorite-icon position-absolute bottom-0 end-0 m-3 ${isFavorite(data._id) ? 'like' : 'unlike'}`}
-                                            style={{ cursor: 'pointer', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }}
-                                        onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (isAuthenticated() && !canFavorite) return;
-                                                const iconElement = e.currentTarget.querySelector('i');
-                                                iconElement.style.transform = 'scale(1.3)';
-                                                setTimeout(() => { iconElement.style.transform = 'scale(1)'; toggleFav(data._id); }, 200);
-                                            }}
-                                        >
-                                            <i className="fa-solid fa-heart" style={{ width: '17px', height: '16px' }}></i>
+                            {(() => {
+                                const mainPhoto = data?.media?.photos.find(p => p.isMain);
+                                return (
+                                    <div className="col-lg-8">
+                                        <div className="position-relative h-100">
+                                            <div className="ratio ratio-16x9 h-100">
+                                                {mainPhoto ? (
+                                                    <a className="glightbox d-block w-100 h-100" href={URL + '/' + mainPhoto.path} data-gallery={`gallery-`+data._id}>
+                                                        <img src={URL + '/' + mainPhoto.path} className="object-fit-cover border-radius-1 w-100 h-100" alt="Imagen principal" loading="lazy" onError={handlePropertyImageError} />
+                                                    </a>
+                                                ) : (
+                                                    <img src={PROPERTY_PLACEHOLDER} className="object-fit-cover border-radius-1 w-100 h-100" alt="Imagen principal" loading="lazy" />
+                                                )}
+                                            </div>
+                                            <div
+                                                className={`favorite-icon position-absolute bottom-0 end-0 m-3 ${isFavorite(data._id) ? 'like' : 'unlike'}`}
+                                                style={{ cursor: 'pointer', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }}
+                                            onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (isAuthenticated() && !canFavorite) return;
+                                                    const iconElement = e.currentTarget.querySelector('i');
+                                                    iconElement.style.transform = 'scale(1.3)';
+                                                    setTimeout(() => { iconElement.style.transform = 'scale(1)'; toggleFav(data._id); }, 200);
+                                                }}
+                                            >
+                                                <i className="fa-solid fa-heart" style={{ width: '17px', height: '16px' }}></i>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            )}
+                                );
+                            })()}
                             <div className="col-lg-4">
                                 <div className="d-flex gap-3 gap-lg-0 flex-lg-column container-second-img">
                                     {(() => {
@@ -481,14 +488,14 @@ function Propiedad() {
                                             if(index === 0){
                                                 return (
                                                     <a key={index} className="ratio ratio-4x3 second-img-section1 d-block glightbox mb-lg-2" href={URL + '/' + items.path} data-gallery={`gallery-`+data._id}>
-                                                        <img src={URL + '/' + items.path} className="object-fit-cover border-radius-2" alt="Imagen secundaria 1" loading="lazy" />
+                                                        <img src={URL + '/' + items.path} className="object-fit-cover border-radius-2" alt="Imagen secundaria 1" loading="lazy" onError={handlePropertyImageError} />
                                                     </a>
                                                 )
                                             }
                                             else if(index === 1){
                                                 return (
                                                     <a key={index} className="ratio ratio-4x3 second-img-section1 d-block glightbox mt-lg-2 position-relative" href={URL + '/' + items.path} data-gallery={`gallery-`+data._id}>
-                                                        <img src={URL + '/' + items.path} className="object-fit-cover border-radius-2" alt="Imagen secundaria 2" loading="lazy" />
+                                                        <img src={URL + '/' + items.path} className="object-fit-cover border-radius-2" alt="Imagen secundaria 2" loading="lazy" onError={handlePropertyImageError} />
                                                         {totalSecondary > 2 && (
                                                             <div className="position-absolute w-100 h-100 d-flex justify-content-end align-items-end p-3">
                                                                 <div className="d-flex align-items-baseline gap-2 text-dark py-1 px-3 rounded-5" style={{ fontSize: 'clamp(10px, 3vw, 16px)', backgroundColor: '#d9d9d9e6' }}>
@@ -502,7 +509,7 @@ function Propiedad() {
 
                                             return (
                                                 <a key={index} className="ratio ratio-4x3 second-img-section1 glightbox mb-xl-2 d-none" href={URL + '/' + items.path} data-gallery={`gallery-`+data._id}>
-                                                    <img src={URL + '/' + items.path} className="object-fit-cover border-radius-2" alt="Imagen secundaria 1" loading="lazy" />
+                                                    <img src={URL + '/' + items.path} className="object-fit-cover border-radius-2" alt="Imagen secundaria 1" loading="lazy" onError={handlePropertyImageError} />
                                                 </a>
                                             )
                                         })
@@ -1162,10 +1169,10 @@ function Propiedad() {
                             ))
                         ) : propiedadesSecundarias.map((item, index) => {
                             return (
-                            <div key={item._id} className={`col-md-6 col-xl-4 ${index == 0 ? 'mt-2 mt-lg-0' : '' }`}>
+                            <div key={item._id} className={`col-md-6 col-xl-4 ${index == 0 ? 'mt-2 mt-md-5 mt-xl-0' : '' }`}>
                                 <div className="position-relative d-block">
                                     <Link to={getPropertyPath(item)} className="d-block propiedades-zoom">
-                                        <img src={item.media?.photos?.[0]?.path ? URL + '/' + item.media.photos[0].path : sinPropiedad} className="object-fit-cover w-100 border-radius-1" alt="Imagen principal" style={{ aspectRatio: '4 / 4' }} loading="lazy" />
+                                        <img src={item.media?.photos?.[0]?.path ? URL + '/' + item.media.photos[0].path : PROPERTY_PLACEHOLDER} className="object-fit-cover w-100 border-radius-1" alt="Imagen principal" style={{ aspectRatio: '4 / 4' }} loading="lazy" onError={handlePropertyImageError} />
                                         <div style={{ padding: '5%' }} className='position-absolute top-0 w-100 h-100 d-flex flex-column justify-content-between'>
                                             {/* <div className='d-flex gap-2 align-items-center' style={{ backgroundColor: '#000000c7', color: 'white', width: 'fit-content', boxSizing: 'border-box', padding: '1px 24px', fontSize: '14px' }}>
                                             <FormattedMessage id="home.text7" />

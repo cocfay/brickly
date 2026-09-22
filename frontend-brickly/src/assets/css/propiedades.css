@@ -41,13 +41,32 @@ body{
     }
 }
 
+/* Detalle: en lg+ (iPad/desktop) las imágenes secundarias van apiladas,
+   cada una ocupando ~50% del alto de la imagen principal. Mayor especificidad
+   que las reglas de home.css para no afectar el home. */
+@media only screen and (min-width: 992px) {
+    .section-1 .container-second-img {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+        height: 100% !important;
+    }
+    .section-1 .second-img-section1 {
+        flex: 1 1 0 !important;
+        height: auto !important;
+        min-height: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        overflow: hidden;
+    }
+}
+
 .agent-fixed-bar {
     display: none;
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 3;
+    z-index: 1030;
     background: white;
     box-shadow: 0 -2px 12px rgba(0,0,0,0.12);
     padding: 12px 16px;
