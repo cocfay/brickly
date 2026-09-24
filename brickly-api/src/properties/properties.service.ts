@@ -342,15 +342,15 @@ export class PropertiesService {
           continue;
         }
 
-        const zone = viewed.location?.zone as string | undefined;
+        const reference = this.locationReference(viewed.location);
 
         let recommended: any[] = [];
-        if (zone) {
+        if (reference) {
           recommended = await this.propertyModel
             .find({
               _id: { $ne: viewed._id },
               status: 'published',
-              'location.zone': zone,
+              [`location.${reference.field}`]: reference.value,
             })
             .limit(4)
             .lean();
@@ -376,13 +376,13 @@ export class PropertiesService {
           user,
           viewed,
           recommended,
-          zone,
+          reference,
         });
 
         const sent = await this.ContactService.sendEmail({
           emailTo: user.email,
           name: user.name,
-          subject: `Viste una propiedad en ${zone || 'tu zona'}, te recomendamos estas opciones`,
+          subject: `Viste una propiedad en ${reference?.label || 'tu zona'}, te recomendamos estas opciones`,
           html,
         });
 
@@ -476,6 +476,14 @@ export class PropertiesService {
     return 'Consultar precio';
   }
 
+  private locationReference(loc: any): { field: 'zone' | 'municipality' | 'department'; value: string; label: string } | null {
+    const isNone = (v: any) => !v || /^ningun[ao]?$/i.test(String(v).trim());
+    if (!isNone(loc?.zone)) return { field: 'zone', value: loc.zone, label: /^zona\s/i.test(String(loc.zone)) ? String(loc.zone) : `Zona ${loc.zone}` };
+    if (!isNone(loc?.municipality)) return { field: 'municipality', value: loc.municipality, label: String(loc.municipality) };
+    if (!isNone(loc?.department)) return { field: 'department', value: loc.department, label: String(loc.department) };
+    return null;
+  }
+
   private static readonly ICON_BASE = 'https://www.bricklyhomes.com/newsletters/iconos';
 
   private static readonly REC_ICONS = {
@@ -504,7 +512,7 @@ export class PropertiesService {
     const locParts: string[] = [];
     if (loc.department && String(loc.department).toLowerCase() !== 'ninguno') locParts.push(loc.department);
     if (loc.municipality && String(loc.municipality).toLowerCase() !== 'ninguno') locParts.push(loc.municipality);
-    if (loc.zone && String(loc.zone).toLowerCase() !== 'ninguno') locParts.push(`Zona ${loc.zone}`);
+    if (loc.zone && String(loc.zone).toLowerCase() !== 'ninguno') locParts.push(/^zona\s/i.test(String(loc.zone)) ? loc.zone : `Zona ${loc.zone}`);
     const locationText = locParts.join(', ');
 
     const bedrooms = layout.bedrooms || 0;
@@ -579,9 +587,9 @@ export class PropertiesService {
     user: any;
     viewed: any;
     recommended: any[];
-    zone?: string;
+    reference?: { field: 'zone' | 'municipality' | 'department'; value: string; label: string } | null;
   }) {
-    const { user, viewed, recommended, zone } = data;
+    const { user, viewed, recommended, reference } = data;
 
     const viewedPhoto = this.absoluteAsset(
       viewed.media?.photos?.find((p: any) => p.isMain)?.path ||
@@ -635,12 +643,12 @@ export class PropertiesService {
                           <tr>
                               <td align="left">
                                   <a href="https://www.bricklyhomes.com" target="_blank">
-                                      <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-dark">
+                                      <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold; background-color:#ffffff; border-radius:4px; padding:3px;" class="logo-dark">
                                       <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_blanco.png" alt="Brickly Homes" width="150" style="display:none; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-light">
                                   </a>
                               </td>
                               <td align="right" style="vertical-align: middle;">
-                                  <img src="https://www.bricklyhomes.com/newsletters/iconos/newsletter.png" alt="Contacto" width="24" height="24" style="display:block; border:0;">
+                                  <img src="https://www.bricklyhomes.com/newsletters/iconos/newsletter.png" alt="Contacto" width="24" height="24" style="display:block; border:0; background-color:#ffffff; border-radius:4px; padding:3px;">
                               </td>
                           </tr>
                       </table>
@@ -655,11 +663,11 @@ export class PropertiesService {
                               <img src="${viewedPhoto}" alt="${viewedTitle}" width="560" height="320" class="img-full" style="display:block; width:100%; height:320px; border:0; object-fit:cover; object-position:center;">
                           </div>
                           <div class="padding-mobile" style="padding: 25px 25px 30px 25px; font-size: 14px;">
-                              <p style="margin: 0 0 12px 0; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #999999; font-weight: 700;">${zone ? `Viste esta propiedad en la Zona ${zone}` : 'Viste esta propiedad'}</p>
+                              <p style="margin: 0 0 12px 0; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #999999; font-weight: 700;">${reference?.label ? `Viste esta propiedad en ${reference.label}` : 'Viste esta propiedad'}</p>
                               ${this.recommendationDescriptionBlock(viewed, '26px', false)}
                               <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin-top:16px;">
                                   <tr>
-                                      <td align="center" style="background-color: #000000; border-radius: 20px;">
+                                      <td align="center" style="background-color: #000000; border-radius: 20px; border: 1px solid #ffffff;">
                                           <a href="${viewedLink}" target="_blank" style="padding: 12px 35px; display: block; font-size: 14px; font-weight: bold; color: #ffffff; text-decoration: none;">Ver propiedad</a>
                                       </td>
                                   </tr>
@@ -672,7 +680,7 @@ export class PropertiesService {
               <!-- TÍTULO RECOMENDADAS -->
               <tr>
                   <td align="center" style="padding: 15px 20px 30px 20px;">
-                      <h2 style="margin: 0; font-size: 24px; line-height: 30px; color: #111111; font-weight: 700;">Te recomendamos estas propiedades${zone ? `<br />en la Zona ${zone}` : ''}</h2>
+                      <h2 style="margin: 0; font-size: 24px; line-height: 30px; color: #111111; font-weight: 700;">Te recomendamos estas propiedades${reference?.label ? `<br />en ${reference.label}` : ''}</h2>
                   </td>
               </tr>
 
@@ -691,7 +699,7 @@ export class PropertiesService {
 
                       <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                           <tr>
-                              <td align="center" style="background-color: #000000; border-radius: 20px;">
+                              <td align="center" style="background-color: #000000; border-radius: 20px; border: 1px solid #ffffff;">
                                   <a href="https://www.bricklyhomes.com/propiedades" target="_blank" style="padding: 12px 35px; display: block; font-size: 14px; font-weight: bold; color: #ffffff; text-decoration: none;">Explorar más propiedades</a>
                               </td>
                           </tr>

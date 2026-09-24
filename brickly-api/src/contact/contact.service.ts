@@ -210,12 +210,12 @@ export class ContactService {
                                   <tr>
                                       <td align="left">
                                           <a href="https://www.bricklyhomes.com" target="_blank">
-                                              <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-dark">
+                                              <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold; background-color:#ffffff; border-radius:4px; padding:3px;" class="logo-dark">
                                               <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_blanco.png" alt="Brickly Homes" width="150" style="display:none; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-light">
                                           </a>
                                       </td>
                                       <td align="right" style="vertical-align: middle;">
-                                          <img src="https://www.bricklyhomes.com/newsletters/iconos/newsletter.png" alt="Contacto" width="24" height="24" style="display:block; border:0;">
+                                          <img src="https://www.bricklyhomes.com/newsletters/iconos/newsletter.png" alt="Contacto" width="24" height="24" style="display:block; border:0; background-color:#ffffff; border-radius:4px; padding:3px;">
                                       </td>
                                   </tr>
                               </table>
@@ -277,7 +277,7 @@ export class ContactService {
                               
                               <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                                   <tr>
-                                      <td align="center" style="background-color: #000000; border-radius: 20px;">
+                                      <td align="center" style="background-color: #000000; border-radius: 20px; border: 1px solid #ffffff;">
                                           <a href="https://www.bricklyhomes.com" target="_blank" style="padding: 12px 35px; display: block; font-size: 14px; font-weight: bold; color: #ffffff; text-decoration: none;">Ir a Brickly Homes</a>
                                       </td>
                                   </tr>
@@ -490,12 +490,12 @@ export class ContactService {
                                 <tr>
                                     <td align="left">
                                         <a href="https://www.bricklyhomes.com" target="_blank">
-                                            <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-dark">
+                                            <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold; background-color:#ffffff; border-radius:4px; padding:3px;" class="logo-dark">
                                             <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_blanco.png" alt="Brickly Homes" width="150" style="display:none; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-light">
                                         </a>
                                     </td>
                                     <td align="right" style="vertical-align: middle;">
-                                        <img src="https://www.bricklyhomes.com/newsletters/iconos/newsletter.png" alt="Contacto" width="24" height="24" style="display:block; border:0;">
+                                        <img src="https://www.bricklyhomes.com/newsletters/iconos/newsletter.png" alt="Contacto" width="24" height="24" style="display:block; border:0; background-color:#ffffff; border-radius:4px; padding:3px;">
                                     </td>
                                 </tr>
                             </table>
@@ -592,7 +592,7 @@ export class ContactService {
                             <!-- Botón Negro -->
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                                 <tr>
-                                    <td align="center" style="background-color: #000000; border-radius: 20px;">
+                                    <td align="center" style="background-color: #000000; border-radius: 20px; border: 1px solid #ffffff;">
                                         <a href="https://www.bricklyhomes.com" target="_blank" style="padding: 12px 35px; display: block; font-size: 14px; font-weight: bold; color: #ffffff; text-decoration: none;">Ir a Brickly Homes</a>
                                     </td>
                                 </tr>
@@ -824,7 +824,7 @@ export class ContactService {
                                                 <tr>
                                                     <td align="left" valign="middle">
                                                         <a href="https://www.bricklyhomes.com" target="_blank">
-                                                            <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-dark">
+                                                            <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold; background-color:#ffffff; border-radius:4px; padding:3px;" class="logo-dark">
                                                             <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_blanco.png" alt="Brickly Homes" width="150" style="display:none; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-light">
                                                         </a>
                                                     </td>
@@ -1120,7 +1120,7 @@ export class ContactService {
                                                 <tr>
                                                     <td align="left" valign="middle">
                                                         <a href="https://www.bricklyhomes.com" target="_blank">
-                                                            <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-dark">
+                                                            <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold; background-color:#ffffff; border-radius:4px; padding:3px;" class="logo-dark">
                                                             <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_blanco.png" alt="Brickly Homes" width="150" style="display:none; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-light">
                                                         </a>
                                                     </td>
@@ -2035,12 +2035,12 @@ export class ContactService {
                                 <tr>
                                     <td align="left">
                                         <a href="https://www.bricklyhomes.com" target="_blank">
-                                            <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-dark">
+                                            <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold; background-color:#ffffff; border-radius:4px; padding:3px;" class="logo-dark">
                                             <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_blanco.png" alt="Brickly Homes" width="150" style="display:none; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-light">
                                         </a>
                                     </td>
                                     <td align="right" style="vertical-align: middle;">
-                                        <img src="https://www.bricklyhomes.com/newsletters/iconos/newsletter.png" alt="Contacto" width="24" height="24" style="display:block; border:0;">
+                                        <img src="https://www.bricklyhomes.com/newsletters/iconos/newsletter.png" alt="Contacto" width="24" height="24" style="display:block; border:0; background-color:#ffffff; border-radius:4px; padding:3px;">
                                     </td>
                                 </tr>
                             </table>
@@ -2137,7 +2137,7 @@ export class ContactService {
                             <!-- Botón Negro -->
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                                 <tr>
-                                    <td align="center" style="background-color: #000000; border-radius: 20px;">
+                                    <td align="center" style="background-color: #000000; border-radius: 20px; border: 1px solid #ffffff;">
                                         <a href="https://www.bricklyhomes.com" target="_blank" style="padding: 12px 35px; display: block; font-size: 14px; font-weight: bold; color: #ffffff; text-decoration: none;">Ir a Brickly Homes</a>
                                     </td>
                                 </tr>
@@ -2317,7 +2317,7 @@ export class ContactService {
                                                 <tr>
                                                     <td align="left" valign="middle">
                                                         <a href="https://www.bricklyhomes.com" target="_blank">
-                                                            <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-dark">
+                                                            <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_negro.png" alt="Brickly Homes" width="150" style="display:block; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold; background-color:#ffffff; border-radius:4px; padding:3px;" class="logo-dark">
                                                             <img src="https://www.bricklyhomes.com/newsletters/iconos/logo_blanco.png" alt="Brickly Homes" width="150" style="display:none; border:0; font-family:sans-serif; font-size:18px; line-height:20px; color:#111111; font-weight:bold;" class="logo-light">
                                                         </a>
                                                     </td>
