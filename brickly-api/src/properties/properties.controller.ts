@@ -33,6 +33,10 @@ const folderIdGenerator =
     10,
   );
 
+// Evita carpetas que inicien con "-" (cp/rsync/scp las leen como opciones de shell)
+const sanitizeFolderName = (name: string): string =>
+  name ? name.replace(/^-+/, (m) => 'x'.repeat(m.length)) : name;
+
 @Controller('properties')
 export class PropertiesController {
  // constructor(private readonly propertiesService: PropertiesService) {}
@@ -149,7 +153,7 @@ export class PropertiesController {
         dto.folderId = folderIdGenerator();
         folderId = dto.folderId;
       }else{
-         folderId = propertyAssign.folderId;
+         folderId = sanitizeFolderName(propertyAssign.folderId);
       }
       dto.media = await this.processMedia(dto.media,String(propertyAssign.userId) + "/" + folderId);
     }

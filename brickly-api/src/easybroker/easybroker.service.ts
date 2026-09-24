@@ -32,6 +32,10 @@ const folderIdGenerator =
     10,
   );
 
+// Evita carpetas que inicien con "-" (cp/rsync/scp las leen como opciones de shell)
+const sanitizeFolderName = (name: string): string =>
+  name ? name.replace(/^-+/, (m) => 'x'.repeat(m.length)) : name;
+
 @Injectable()
 export class EasybrokerService {
   private API_URL =
@@ -140,6 +144,7 @@ export class EasybrokerService {
     }else{
         folderId = folderIdGenerator();
     }
+    folderId = sanitizeFolderName(folderId);
 
     const downloadedPhotos: {path: string; thumbnail: string; isMain:boolean}[] = [];
 
