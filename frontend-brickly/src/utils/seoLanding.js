@@ -5,6 +5,11 @@ export const SEO_TYPES = {
   'oficinas': 'Oficina',
   'locales-comerciales': 'Local comercial',
   'bodegas': 'Bodega',
+  'casas-en-condominio': 'Casa en Condominio',
+  'edificios': 'Edificio',
+  'fincas': 'Finca',
+  'locales': 'Local',
+  'otros': 'Otro',
 };
 
 export const SEO_MODES = {
@@ -27,6 +32,11 @@ export const TYPE_PLURAL = {
   'Oficina': 'Oficinas',
   'Local comercial': 'Locales Comerciales',
   'Bodega': 'Bodegas',
+  'Casa en Condominio': 'Casas en Condominio',
+  'Edificio': 'Edificios',
+  'Finca': 'Fincas',
+  'Local': 'Locales',
+  'Otro': 'Otros',
 };
 
 export const MODE_LABEL = {

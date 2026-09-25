@@ -4,7 +4,7 @@
  * Flujo:
  *  1. Consume {API}/properties/seo-combos para conocer el inventario real
  *     por combinación (tipo + operación + ubicación).
- *  2. Genera la matriz completa de 276 combos (6 tipos x 2 ops x 23 ubicaciones).
+ *  2. Genera la matriz completa de 506 combos (11 tipos x 2 ops x 23 ubicaciones).
  *  3. Con Puppeteer visita cada landing con inventario (count > 0), captura el
  *     HTML renderizado (title, meta, H1, breadcrumb, listado) y lo guarda en
  *     dist/propiedades/<tipoOp>/<ubicacion>/index.html.
@@ -32,6 +32,11 @@ const SEO_TYPES = {
   'oficinas': 'Oficina',
   'locales-comerciales': 'Local comercial',
   'bodegas': 'Bodega',
+  'casas-en-condominio': 'Casa en Condominio',
+  'edificios': 'Edificio',
+  'fincas': 'Finca',
+  'locales': 'Local',
+  'otros': 'Otro',
 };
 const TYPE_TO_SLUG = Object.fromEntries(Object.entries(SEO_TYPES).map(([s, t]) => [t, s]));
 const SEO_MODES = { 'venta': 'Venta', 'alquiler': 'Alquiler' };
