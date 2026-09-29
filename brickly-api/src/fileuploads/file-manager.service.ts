@@ -181,6 +181,11 @@ export class FileManagerService {
           .join(targetFolder, fileName)
           .replace(/\\/g, '/');
       }
+  existsFile(relativePath: string): boolean {
+    if (!relativePath) return false;
+    const fullPath = path.join(process.cwd(), relativePath);
+    return fs.existsSync(fullPath) && fs.statSync(fullPath).isFile();
+  }
   async deleteFolder(folderPath: string) {
       const fs = require('fs');
       const path = require('path');

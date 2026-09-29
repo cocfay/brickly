@@ -126,6 +126,7 @@ export class Property {
       path: String,
       thumbnail: String,
       isMain: Boolean,
+      sourceUrl: String,
     }[],
     videos: {
       path: String,

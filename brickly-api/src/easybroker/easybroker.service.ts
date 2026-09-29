@@ -146,36 +146,12 @@ export class EasybrokerService {
     }
     folderId = sanitizeFolderName(folderId);
 
-    const downloadedPhotos: {path: string; thumbnail: string; isMain:boolean}[] = [];
-
-      if (item.images?.length) {
-        for (
-          let index = 0;
-          index < item.images.length;
-          index++
-        ) {
-          const img = item.images[index];
-
-          try {
-            const optimized =
-              await this.fileManager.downloadAndOptimizeImage(
-                img.url,
-                'properties/photos/' + userId + '/' + folderId,
-              );
-
-            downloadedPhotos.push({
-              path: optimized.path,
-              thumbnail: optimized.thumbnail,
-              isMain: index === 0,
-            });
-          } catch (error) {
-            console.error(
-              'Error descargando imagen',
-              img.url,
-            );
-          }
-        }
-      }
+    const downloadedPhotos = await this.loadOrDownloadImages(
+      userId,
+      folderId,
+      item.images,
+      existingProperty?.media?.photos,
+    );
 
     const lotSize = Number(item.lot_size) || 0;
     const constructionSize =
@@ -340,6 +316,89 @@ export class EasybrokerService {
       },
     );
   }
+  private async loadOrDownloadImages(
+    userId: string,
+    folderId: string,
+    images: any[],
+    existingPhotos: any[] = [],
+  ): Promise<
+    { path: string; thumbnail: string; isMain: boolean; sourceUrl?: string }[]
+  > {
+    const result: {
+      path: string;
+      thumbnail: string;
+      isMain: boolean;
+      sourceUrl?: string;
+    }[] = [];
+
+    if (!images?.length) return result;
+
+    const existingByUrl = new Map<string, any>();
+    for (const p of existingPhotos || []) {
+      if (p?.sourceUrl) existingByUrl.set(p.sourceUrl, p);
+    }
+
+    for (let index = 0; index < images.length; index++) {
+      const img = images[index];
+      const existing = existingByUrl.get(img?.url) || existingPhotos?.[index];
+
+      if (existing) {
+        const localOk =
+          this.fileManager.existsFile(existing.path) ||
+          this.fileManager.existsFile(existing.thumbnail);
+
+        if (localOk) {
+          result.push({
+            path: existing.path,
+            thumbnail: existing.thumbnail,
+            isMain: index === 0,
+            sourceUrl: img?.url || existing.sourceUrl,
+          });
+          continue;
+        }
+      }
+
+      if (!img?.url) {
+        if (existing) {
+          result.push({
+            path: existing.path,
+            thumbnail: existing.thumbnail,
+            isMain: index === 0,
+            sourceUrl: existing.sourceUrl,
+          });
+        }
+        continue;
+      }
+
+      try {
+        const optimized =
+          await this.fileManager.downloadAndOptimizeImage(
+            img.url,
+            `properties/photos/${userId}/${folderId}`,
+          );
+        result.push({
+          path: optimized.path,
+          thumbnail: optimized.thumbnail,
+          isMain: index === 0,
+          sourceUrl: img.url,
+        });
+      } catch (error) {
+        console.error('Error descargando imagen', img.url);
+        // si ya existía una foto para esta posición, conservarla
+        if (existing) {
+          result.push({
+            path: existing.path,
+            thumbnail: existing.thumbnail,
+            isMain: index === 0,
+            sourceUrl: existing.sourceUrl || img.url,
+          });
+        }
+      }
+    }
+
+    return result;
+  }
+
   async getPropertyDetail(
     publicId: string,
     apiKey: string,
