@@ -13,6 +13,55 @@ body{
     transition: transform .3s ease-in-out;
     /* padding-left: 1.5rem;
     padding-right: 1.5rem; */
+
+    /* Tamaños y espacios fluidos para que el menú no se vea
+       desproporcionado en pantallas con escala (ej. 1920x1080 al 125%). */
+    --menu-fs: clamp(12px, 0.83vw, 16px);
+    --menu-gap: clamp(8px, 0.75vw, 16px);
+    --menu-gap-sm: clamp(4px, 0.42vw, 8px);
+    font-size: var(--menu-fs);
+    padding-top: clamp(8px, 0.8vw, 16px) !important;
+    padding-bottom: clamp(8px, 0.8vw, 16px) !important;
+    padding-left: clamp(12px, 1.1vw, 24px) !important;
+    padding-right: clamp(12px, 1.1vw, 24px) !important;
+}
+
+/* El tamaño de letra se hereda a links e íconos del menú */
+.menu a,
+.menu span,
+.menu div {
+    font-size: var(--menu-fs);
+}
+
+/* Espaciados fluidos (sobrescriben las utilidades de Bootstrap) */
+.menu :global(.gap-3) {
+    gap: var(--menu-gap) !important;
+}
+
+.menu :global(.gap-2) {
+    gap: var(--menu-gap-sm) !important;
+}
+
+.menu :global(.mt-4) {
+    margin-top: clamp(4px, 0.9vw, 18px) !important;
+}
+
+.menu :global(.mt-2) {
+    margin-top: clamp(4px, 0.4vw, 8px) !important;
+}
+
+.menu :global(.ms-3) {
+    margin-left: clamp(8px, 0.9vw, 16px) !important;
+}
+
+.menu :global(.mb-5) {
+    margin-bottom: clamp(16px, 2vw, 48px) !important;
+}
+
+/* Espacio superior del menú (sobre "Home"), fluido según la altura
+   de la pantalla para que no se vea exagerado al reducir/escalar. */
+.menuTopSpacer {
+    min-height: clamp(8px, 4vh, 60px);
 }
 
 .main {

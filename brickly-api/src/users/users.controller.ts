@@ -60,6 +60,13 @@ export class UsersController {
     return this.usersService.agentsReport();
   }
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.AGENCIA, Role.ADMIN)
+  @Get('report/my-agency-agents')
+  myAgencyAgentsReport(@Req() req) {
+    return this.usersService.myAgencyAgentsReport(req.user.userId);
+  }
+
   @Get('profile/:slug')
   getUserByProfileSlug(@Param('slug') slug: string) {
     return this.usersService.findByProfileSlug(slug);

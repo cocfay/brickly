@@ -1465,4 +1465,81 @@ export class UsersService {
       agents: rows,
     };
   }
+
+  /**
+   * Reporte de agentes de la agencia autenticada (solo su alcance).
+   * Lista los agentes con parentId = agencia y sus métricas
+   * (propiedades propias o asignadas, publicadas, leads, clics, reseñas).
+   */
+  async myAgencyAgentsReport(userId: string) {
+    const agencyId = new Types.ObjectId(userId);
+
+    const agents = await this.userModel
+      .find({ parentId: agencyId, roles: Role.AGENTE })
+      .select(
+        'name email phone avatar parentId isEnabled accessBlocked ' +
+          'subscriptionPlan subscriptionStatus subscription_expire ' +
+          'featured_user agentInfo clickCounter ' +
+          'ratingAverage ratingCount',
+      )
+      .sort({ createdAt: -1 });
+
+    const rows = await Promise.all(
+      agents.map(async (a) => {
+        const agentId = a._id as Types.ObjectId;
+
+        const [totalProperties, totalPublished, leadsCount, assignedCount] =
+          await Promise.all([
+            this.propertyModel.countDocuments({
+              $or: [{ userId: agentId }, { agents: agentId }],
+            }),
+            this.propertyModel.countDocuments({
+              $or: [{ userId: agentId }, { agents: agentId }],
+              status: 'published',
+            }),
+            this.leadformModel.countDocuments({ agentId }),
+            this.propertyModel.countDocuments({
+              userId: { $ne: agentId },
+              agents: agentId,
+            }),
+          ]);
+
+        return {
+          id: a._id,
+          name: a.name || '',
+          email: a.email || '',
+          phone: a.phone || '',
+          avatar: a.avatar || '',
+          isEnabled: a.isEnabled !== false,
+          accessBlocked: Boolean(a.accessBlocked),
+          subscriptionPlan: a.subscriptionPlan || '',
+          subscriptionStatus: a.subscriptionStatus || 'INACTIVE',
+          subscriptionExpire: a.subscription_expire || null,
+          featured: Boolean(a.featured_user),
+          verified: Boolean((a as any).agentInfo?.verified),
+          clicks: Number(a.clickCounter) || 0,
+          ratingAverage: Number(a.ratingAverage) || 0,
+          ratingCount: Number(a.ratingCount) || 0,
+          totalProperties,
+          totalPublished,
+          assignedProperties: assignedCount,
+          leadsCount,
+        };
+      }),
+    );
+
+    return {
+      summary: {
+        totalAgents: rows.length,
+        totalEnabled: rows.filter((r) => r.isEnabled).length,
+        totalWithProperties: rows.filter((r) => r.totalProperties > 0).length,
+        totalWithPublished: rows.filter((r) => r.totalPublished > 0).length,
+        totalWithLeads: rows.filter((r) => r.leadsCount > 0).length,
+        totalProperties: rows.reduce((acc, r) => acc + r.totalProperties, 0),
+        totalPublished: rows.reduce((acc, r) => acc + r.totalPublished, 0),
+        totalLeads: rows.reduce((acc, r) => acc + r.leadsCount, 0),
+      },
+      agents: rows,
+    };
+  }
 }

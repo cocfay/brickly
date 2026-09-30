@@ -331,5 +331,12 @@ export class PropertiesController {
   countTotalProperties(@Param('id') id: string, @Req() req ){
     return this.propertiesService.getTotalProperties(id)
   }
+
+  @Get('report/my')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.AGENCIA, Role.AGENTE, Role.ADMIN)
+  myPropertiesReport(@Req() req) {
+    return this.propertiesService.myPropertiesReport(req.user.userId);
+  }
   
 }

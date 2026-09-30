@@ -73,6 +73,17 @@ export class ProjectsService {
 
     const SIN_DESA = '(sin desarrolladora)';
 
+    const precioDesdeModelos = (p: any, campo: string) => {
+      const valores = (Array.isArray(p.models) ? p.models : [])
+        .map((m: any) => Number(m?.[campo]))
+        .filter((n: number) => Number.isFinite(n) && n > 0);
+      if (valores.length) return Math.min(...valores);
+      const valorProyecto = Number(p?.[campo]);
+      return Number.isFinite(valorProyecto) && valorProyecto > 0
+        ? valorProyecto
+        : null;
+    };
+
     const groupsMap = new Map<string, any[]>();
     projects.forEach((p) => {
       const name =
@@ -97,8 +108,8 @@ export class ProjectsService {
           mode: p.mode || '',
           situacional: p.situacional || '',
           unidades: p.unidades ?? null,
-          priceFromQ: p.priceFromQ ?? null,
-          priceFromUSD: p.priceFromUSD ?? null,
+          priceFromQ: precioDesdeModelos(p, 'precioDesdeQ'),
+          priceFromUSD: precioDesdeModelos(p, 'precioDesdeUSD'),
           rate: p.rate ?? null,
           fechaEntrega: p.fechaEntrega || '',
           department: p.location?.department || p.location?.departamento || '',

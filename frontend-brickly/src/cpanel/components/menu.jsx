@@ -62,6 +62,14 @@ function Menu({open}){
         loadCounts();
     }, []);
 
+    // Abrir el submenú de Reportes al entrar a una ruta de reportes.
+    // Luego el usuario puede cerrarlo manualmente con el clic.
+    useEffect(() => {
+        if (location.pathname.startsWith('/cpanel/reportes')) {
+            setReportesOpen(true);
+        }
+    }, [location.pathname]);
+
     const handleLogout = (e) => {
         e.preventDefault();
         logout();
@@ -82,7 +90,7 @@ function Menu({open}){
 
     return(
         <div className={`${header.menu} ${open ? header.active : ''} d-flex flex-column py-3 px-4`}>
-            <div style={{ minHeight: '60px' }}></div>
+            <div className={header.menuTopSpacer}></div>
             <div className="d-flex flex-column flex-grow-1 mt-4 gap-3">
                 <Link to="/cpanel/" className="d-flex gap-2 align-items-center text-body">
                     <i className="fa-solid fa-house"></i> Home
@@ -153,7 +161,7 @@ function Menu({open}){
                         {isActive('/cpanel/verificacion') && <ActiveIcon />}
                     </Link>
                 }
-                {user?.roles?.includes("admin") &&
+                {(user?.roles?.includes("admin") || user?.roles?.includes("agencia") || user?.roles?.includes("agente")) &&
                     <div className="d-flex flex-column">
                         <div
                             className="d-flex gap-2 align-items-center text-body"
@@ -161,27 +169,49 @@ function Menu({open}){
                             onClick={() => setReportesOpen(o => !o)}
                         >
                             <i className="fa-solid fa-chart-pie"></i> Reportes
-                            <i className={`fa-solid ${reportesOpen || isActive('/cpanel/reportes') ? 'fa-chevron-up' : 'fa-chevron-down'} ms-auto`} style={{ fontSize: '11px' }}></i>
+                            <i className={`fa-solid ${reportesOpen ? 'fa-chevron-up' : 'fa-chevron-down'} ms-auto`} style={{ fontSize: '11px' }}></i>
                             {isActive('/cpanel/reportes') && <ActiveIcon />}
                         </div>
-                        {(reportesOpen || isActive('/cpanel/reportes')) && (
+                        {reportesOpen && (
                             <div className="d-flex flex-column ms-3 mt-2 gap-2" style={{ borderLeft: '1px solid #ddd', paddingLeft: '12px' }}>
-                                <Link to="/cpanel/reportes/ventas" className="d-flex gap-2 align-items-center text-body">
-                                    <i className="fa-solid fa-dollar-sign"></i> Ventas
-                                    {isActive('/cpanel/reportes/ventas') && <ActiveIcon />}
-                                </Link>
-                                <Link to="/cpanel/reportes/proyectos" className="d-flex gap-2 align-items-center text-body">
-                                    <i className="fa-solid fa-building"></i> Proyectos
-                                    {isActive('/cpanel/reportes/proyectos') && <ActiveIcon />}
-                                </Link>
-                                <Link to="/cpanel/reportes/agencias" className="d-flex gap-2 align-items-center text-body">
-                                    <i className="fa-solid fa-people-group"></i> Agencias
-                                    {isActive('/cpanel/reportes/agencias') && <ActiveIcon />}
-                                </Link>
-                                <Link to="/cpanel/reportes/agentes" className="d-flex gap-2 align-items-center text-body">
-                                    <i className="fa-solid fa-user-tie"></i> Agentes
-                                    {isActive('/cpanel/reportes/agentes') && <ActiveIcon />}
-                                </Link>
+                                {user?.roles?.includes("admin") && (
+                                    <>
+                                        <Link to="/cpanel/reportes/ventas" className="d-flex gap-2 align-items-center text-body">
+                                            <i className="fa-solid fa-dollar-sign"></i> Ventas
+                                            {isActive('/cpanel/reportes/ventas') && <ActiveIcon />}
+                                        </Link>
+                                        <Link to="/cpanel/reportes/proyectos" className="d-flex gap-2 align-items-center text-body">
+                                            <i className="fa-solid fa-building"></i> Proyectos
+                                            {isActive('/cpanel/reportes/proyectos') && <ActiveIcon />}
+                                        </Link>
+                                        <Link to="/cpanel/reportes/agencias" className="d-flex gap-2 align-items-center text-body">
+                                            <i className="fa-solid fa-people-group"></i> Agencias
+                                            {isActive('/cpanel/reportes/agencias') && <ActiveIcon />}
+                                        </Link>
+                                        <Link to="/cpanel/reportes/agentes" className="d-flex gap-2 align-items-center text-body">
+                                            <i className="fa-solid fa-user-tie"></i> Agentes
+                                            {isActive('/cpanel/reportes/agentes') && <ActiveIcon />}
+                                        </Link>
+                                    </>
+                                )}
+                                {user?.roles?.includes("agencia") && (
+                                    <>
+                                        <Link to="/cpanel/reportes/mis-propiedades" className="d-flex gap-2 align-items-center text-body">
+                                            <i className="fa-solid fa-house"></i> Propiedades
+                                            {isActive('/cpanel/reportes/mis-propiedades') && <ActiveIcon />}
+                                        </Link>
+                                        <Link to="/cpanel/reportes/mis-agentes" className="d-flex gap-2 align-items-center text-body">
+                                            <i className="fa-solid fa-user-tie"></i> Agentes
+                                            {isActive('/cpanel/reportes/mis-agentes') && <ActiveIcon />}
+                                        </Link>
+                                    </>
+                                )}
+                                {user?.roles?.includes("agente") && (
+                                    <Link to="/cpanel/reportes/mis-propiedades" className="d-flex gap-2 align-items-center text-body">
+                                        <i className="fa-solid fa-house"></i> Mis propiedades
+                                        {isActive('/cpanel/reportes/mis-propiedades') && <ActiveIcon />}
+                                    </Link>
+                                )}
                             </div>
                         )}
                     </div>

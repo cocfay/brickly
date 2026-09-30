@@ -97,3 +97,50 @@ export const getProjectsByDeveloperReport = async () => {
 
   return res.json();
 };
+
+/**
+ * Reporte de propiedades del usuario autenticado (alcance propio).
+ * - Agencia: sus propiedades + las de sus agentes (propias o asignadas).
+ * - Agente: propiedades que subió o que le fueron asignadas.
+ */
+export const getMyPropertiesReport = async () => {
+  const token = getToken();
+  if (!token) throw new Error('No hay sesión activa');
+
+  const res = await fetch(`${API_URL}/properties/report/my`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `Error ${res.status}`);
+  }
+
+  return res.json();
+};
+
+/**
+ * Reporte de agentes de la agencia autenticada (alcance propio).
+ * Lista los agentes de la agencia con sus propiedades, leads y actividad.
+ */
+export const getMyAgencyAgentsReport = async () => {
+  const token = getToken();
+  if (!token) throw new Error('No hay sesión activa');
+
+  const res = await fetch(`${API_URL}/users/report/my-agency-agents`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `Error ${res.status}`);
+  }
+
+  return res.json();
+};

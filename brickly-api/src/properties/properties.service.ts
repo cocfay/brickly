@@ -802,6 +802,102 @@ export class PropertiesService {
         return { total, totalPublished }
 
   }
+
+  /**
+   * Reporte de propiedades del usuario autenticado (solo su alcance).
+   * - Agencia: propiedades donde userId es la agencia o sus agentes, o
+   *   que fueron asignadas a sus agentes (campo `agents`).
+   * - Agente: propiedades que subió (userId) o que le fueron asignadas (agents).
+   */
+  async myPropertiesReport(userId: string) {
+    const mainUserIdObj = new Types.ObjectId(userId);
+
+    // Subusuarios (agentes) si el usuario es una agencia
+    const subUsersRaw = await this.userModel
+      .find({ parentId: mainUserIdObj }, { _id: 1 })
+      .lean();
+    const subUserIdsObj = subUsersRaw.map((u) => u._id as Types.ObjectId);
+    const allowedUserIds = [mainUserIdObj, ...subUserIdsObj];
+
+    const query: any = {
+      $or: [
+        { userId: { $in: allowedUserIds } },
+        { agents: { $in: allowedUserIds } },
+      ],
+    };
+
+    const properties = await this.propertyModel
+      .find(query)
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Mapa de usuarios (agencia/agente) para mostrar el propietario
+    const ownerIds = [
+      ...new Set(
+        properties
+          .map((p) => p.userId?.toString())
+          .filter(Boolean),
+      ),
+    ];
+    const owners = await this.userModel
+      .find({ _id: { $in: ownerIds } })
+      .select('name email roles')
+      .lean();
+    const ownerMap = new Map(
+      owners.map((o) => [o._id.toString(), o]),
+    );
+
+    const rows = properties.map((p) => {
+      const owner = ownerMap.get(p.userId?.toString()) || null;
+      return {
+        id: p._id,
+        title: p.market?.title || '',
+        type:
+          p.market?.propertyType ||
+          p.market?.type ||
+          '',
+        mode:
+          p.market?.mode ||
+          p.market?.operationType ||
+          '',
+        status: p.status || '',
+        priceUSD: Number(p.market?.priceUSD) || null,
+        priceQ: Number(p.market?.price) || null,
+        department: p.location?.department || '',
+        municipality: p.location?.municipality || '',
+        zone: p.location?.zone || '',
+        createdAt: (p as any).createdAt,
+        owner: owner
+          ? {
+              id: owner._id,
+              name: owner.name || owner.email || '',
+              isAgency:
+                Array.isArray(owner.roles) &&
+                owner.roles.includes(Role.AGENCIA),
+            }
+          : null,
+        assignedAgentsCount: Array.isArray(p.agents)
+          ? p.agents.length
+          : 0,
+      };
+    });
+
+    const byStatus = (s: string) =>
+      rows.filter((r) => r.status === s).length;
+
+    return {
+      summary: {
+        totalProperties: rows.length,
+        totalPublished: byStatus('published'),
+        totalDraft: byStatus('draft'),
+        totalPrePublished: byStatus('pre-published'),
+        totalSold: byStatus('sold'),
+        totalDisabled: byStatus('disabled'),
+        totalRejected: byStatus('rejected'),
+      },
+      properties: rows,
+    };
+  }
   async getMetrics(userId: string, from?: string, to?: string) {
       const now = new Date();
       const startCurrentMonth = new Date(
