@@ -183,7 +183,10 @@ export class FileManagerService {
       }
   existsFile(relativePath: string): boolean {
     if (!relativePath) return false;
-    const fullPath = path.join(process.cwd(), relativePath);
+    const normalized = String(relativePath).replace(/^\/+/, '');
+    const fullPath = normalized.startsWith('uploads/')
+      ? path.join(process.cwd(), normalized)
+      : path.join(process.cwd(), 'uploads', normalized);
     return fs.existsSync(fullPath) && fs.statSync(fullPath).isFile();
   }
   async deleteFolder(folderPath: string) {

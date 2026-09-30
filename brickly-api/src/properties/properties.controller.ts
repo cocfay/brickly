@@ -120,6 +120,13 @@ export class PropertiesController {
 
   
 
+  @Post('bulk-approve')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(Role.ADMIN)
+  bulkApprove() {
+    return this.propertiesService.bulkApproveDrafts();
+  }
+
   @Get('newsletter/recommendations')
   sendRecommendationNewsletters() {
     return this.propertiesService.sendRecommendationNewsletters();

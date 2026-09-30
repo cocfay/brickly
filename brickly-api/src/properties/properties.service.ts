@@ -9,6 +9,12 @@ import { User } from '../users/user.schema';
 import { Role } from '../auth/roles.enum';
 import { ContactService } from '../contact/contact.service';
 import { ActivityLogsService } from '../activitylogs/activitylogs.service';
+import { FileManagerService } from '../fileuploads/file-manager.service';
+import {
+  detectarMunicipio,
+  detectarZona,
+} from '../common/guatemala-locations';
+import { validatePublicFields } from './property-validation';
 
 
 @Injectable()
@@ -20,6 +26,7 @@ export class PropertiesService {
     @InjectModel(User.name)
     private userModel: Model<User>,
     private readonly activityLogsService: ActivityLogsService,
+    private readonly fileManager: FileManagerService,
   ) {}
 
   async create(dto: CreatePropertyDto) {
@@ -2364,5 +2371,117 @@ export class PropertiesService {
     return Promise.all(
       properties.map((property) => this.ensurePropertySlugForProperty(property)),
     );
+  }
+
+  /**
+   * Proceso aprobación mayor: revisa todos los borradores, rellena municipio/zona
+   * desde el contenido cuando faltan, valida que cumplan los requisitos de
+   * publicación (incl. que las fotos existan físicamente) y publica los que pasen.
+   */
+  async bulkApproveDrafts() {
+    const drafts = await this.propertyModel
+      .find({ status: 'draft' })
+      .sort({ updatedAt: -1 });
+
+    const approved: { _id: any; title: string }[] = [];
+    const failed: {
+      _id: any;
+      title: string;
+      reasons: string[];
+      locationUpdated: boolean;
+    }[] = [];
+
+    for (const prop of drafts) {
+      const reasons: string[] = [];
+      let locationUpdated = false;
+
+      // Criterio 1: todas las fotos de la BD deben existir físicamente en uploads/
+      const photos = (prop.media && prop.media.photos) || [];
+      if (photos.length === 0) {
+        reasons.push('Multimedia - La propiedad no tiene fotos');
+      } else {
+        const missingPhotos = photos.filter((p: any) => {
+          const path = p?.path || p?.thumbnail;
+          if (!path) return true;
+          return !this.fileManager.existsFile(path);
+        });
+        if (missingPhotos.length > 0) {
+          reasons.push(
+            `Multimedia - ${missingPhotos.length} foto(s) no existen en el servidor`,
+          );
+        }
+      }
+
+      // Criterio 2: rellenar municipio y zona desde la descripción/contenido
+      if (!prop.location) prop.location = {};
+      const location: any = prop.location;
+      const contenido = [
+        prop.market?.title,
+        prop.market?.description,
+        prop.media?.description,
+        location.address,
+        location.gatedCommunity,
+      ]
+        .filter((v) => typeof v === 'string' && String(v).trim())
+        .join(' ')
+        .trim();
+
+      if (!String(location.municipality || '').trim()) {
+        const detected = detectarMunicipio(contenido);
+        if (detected.municipality) {
+          location.municipality = detected.municipality;
+          locationUpdated = true;
+          if (!String(location.department || '').trim() && detected.department) {
+            location.department = detected.department;
+          }
+        }
+      }
+      if (!String(location.zone || '').trim()) {
+        const zone = detectarZona(contenido);
+        if (zone && zone !== 'ninguno') {
+          location.zone = zone;
+          locationUpdated = true;
+        }
+      }
+
+      // Validación de publicación (mitad criterios): municipio sí, zona no bloquea,
+      // mismas reglas que el botón Publicar.
+      const validationReasons = validatePublicFields(prop);
+      reasons.push(...validationReasons);
+
+      const cleanReasons = Array.from(new Set(reasons.map((r) => r.trim()).filter(Boolean)));
+
+      if (cleanReasons.length === 0) {
+        await this.propertyModel.updateOne(
+          { _id: prop._id },
+          {
+            $set: {
+              status: 'published',
+              location,
+            } as any,
+          },
+        );
+        approved.push({ _id: prop._id, title: prop.market?.title || 'Sin título' });
+      } else {
+        failed.push({
+          _id: prop._id,
+          title: prop.market?.title || 'Sin título',
+          reasons: cleanReasons,
+          locationUpdated,
+        });
+        if (locationUpdated) {
+          await this.propertyModel.updateOne(
+            { _id: prop._id },
+            { $set: { location } as any },
+          );
+        }
+      }
+    }
+
+    return {
+      total: drafts.length,
+      approved,
+      failed,
+    };
   }
 }

@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { Container, Alert, Modal, Button } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import Select from 'react-select';
-import { getPropiedades, getPropiedadesPaginadas, deletePropiedad, updatePropiedad, assignAgents } from '../../services/propiedades';
+import { getPropiedades, getPropiedadesPaginadas, deletePropiedad, updatePropiedad, assignAgents, bulkApproveDrafts } from '../../services/propiedades';
 import { invalidateCache } from '../../services/propiedadesCache';
 import { validateRequiredFields } from '../../services/validacionPropiedades';
 import { saveEasyBrokerApiKey, syncEasyBroker } from '../../services/sync';
@@ -2025,6 +2025,54 @@ function Index() {
     }
   };
 
+  const handleBulkApprove = async () => {
+    setLoading(true);
+    setLoadingMessage('Proceso aprobación mayor...');
+    try {
+      const result = await bulkApproveDrafts();
+      if (!result?.success && result?.error) {
+        throw new Error(result.error);
+      }
+      invalidateCache();
+      if (dataTableRef.current) dataTableRef.current.ajax.reload(null, false);
+
+      const approvedCount = result?.approved?.length || 0;
+      const failed = result?.failed || [];
+
+      let html = `<center><b>Proceso aprobación mayor</b></center><br>`;
+      html += `<div class="text-success fw-bold d-flex align-items-center gap-2"><i class="fa-solid fa-check-circle"></i> ${approvedCount} propiedad(es) aprobada(s) y publicada(s).</div>`;
+
+      if (failed.length > 0) {
+        html += `<br><div class="fw-bold text-danger">${failed.length} propiedad(es) NO cumplen los criterios y quedaron en borrador:</div>`;
+        html += `<div class="scroll-moderno" style="max-height:380px;margin-top:10px;text-align:left;padding-right:10px;">`;
+        html += failed.map(p =>
+          `<div style="margin-bottom:14px;">
+             <b style="font-size:17px">${escapeHtml(p.title)}</b>
+             ${p.locationUpdated ? '<span class="badge bg-info ms-2" style="vertical-align:middle;font-size:11px;">ubicación rellenada</span>' : ''}
+             <ul class="mb-0 ps-3 mt-1" style="list-style:none;padding-left:0;">${p.reasons.map(r => `<li style="color:#dc3545;">&nbsp;&nbsp;•&nbsp; ${escapeHtml(r)}</li>`).join('')}</ul>
+           </div>`
+        ).join('');
+        html += `</div>`;
+      } else if (result?.total === 0) {
+        html += `<div class="text-muted mt-2">No hay propiedades en borrador.</div>`;
+      }
+
+      alertify.alert("BRICKLY HOMES", html);
+
+      setAlertVariant('success');
+      setAlertMessage(`Proceso aprobación mayor: ${approvedCount} aprobadas, ${failed.length} pendientes.`);
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 5000);
+    } catch (error) {
+      setAlertVariant('danger');
+      setAlertMessage(`Error en proceso aprobación mayor: ${error.message}`);
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 5000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSaveHighlight = async () => {
     if (highlightIds.length === 0 || !highlightDate) return;
     setSavingHighlight(true);
@@ -2712,6 +2760,15 @@ function Index() {
         <div className="w-100">
           <table ref={tableRef} className="display propiedades-table" style={{ width: '100%' }}>
           </table>
+        </div>
+      )}
+
+      {isAdmin && activeStatusBtn === 'draft' && !loadingShow && (
+        <div className="d-flex justify-content-end mb-3">
+          <Button variant="dark" className="rounded-pill px-4 py-2 d-flex align-items-center gap-2" onClick={handleBulkApprove} disabled={loading}>
+            {loading && loadingMessage === 'Proceso aprobación mayor...' ? <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span> : <i className="fa-solid fa-check-double me-1"></i>}
+            Proceso aprobación mayor
+          </Button>
         </div>
       )}
 

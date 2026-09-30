@@ -487,6 +487,21 @@ export const assignAgents = async (propertyId, agentIds) => {
   return updatePropiedad(propertyId, { agents: agentIds });
 };
 
+// Proceso aprobación mayor: revisa todos los borradores, rellena municipio/zona
+// desde el contenido y publica los que cumplan los criterios.
+export const bulkApproveDrafts = async () => {
+  try {
+    const response = await fetch(`${API_URL}/properties/bulk-approve`, {
+      method: 'POST',
+      headers: getAuthHeaders()
+    });
+    return await handleResponse(response);
+  } catch (error) {
+    console.error('Error bulkApproveDrafts:', error);
+    return { success: false, error: error.message };
+  }
+};
+
 // ========== FUNCIONES PARA DESACTIVACIÓN DE AGENTES / AGENCIAS ==========
 
 /**
