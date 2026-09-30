@@ -99,7 +99,7 @@ export class PaymentsService {
           currency: 'GTQ',
         }, // depende de cómo tengas configurado en Recurrente
       ],
-      custom_account_id: user.recurrenteCustomerId,
+      customer_id: user.recurrenteCustomerId,
       metadata: {
         userId: String(user._id),
         plan,
