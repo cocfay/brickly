@@ -1,6 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Container, Row, Col, Table, Spinner, Alert, Form } from 'react-bootstrap';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { Container, Row, Col, Spinner, Alert, Form } from 'react-bootstrap';
 import { getMyAgencyAgentsReport } from '../../services/reportes';
+import { exportTableToExcelFile } from '../../services/exportService';
+import { API_URL } from '../../../services/authService';
+import $ from 'jquery';
+import 'datatables.net-dt';
+import 'datatables.net-dt/css/dataTables.dataTables.css';
+import 'datatables.net-responsive-dt';
+import 'datatables.net-responsive-dt/css/responsive.dataTables.css';
+import espanol from 'datatables.net-plugins/i18n/es-ES.mjs';
 
 function KPICard({ iconClass, label, value, note, color }) {
   return (
@@ -15,6 +23,10 @@ function KPICard({ iconClass, label, value, note, color }) {
   );
 }
 
+// Misma construcción de URL de avatar que cpanel/agentes (funciona en producción).
+const avatarUrl = (avatar) =>
+  avatar && avatar !== '' ? API_URL + avatar.replace('/uploads', '') : '';
+
 function ReporteMisAgentes() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -23,6 +35,9 @@ function ReporteMisAgentes() {
   const [soloEnabled, setSoloEnabled] = useState(false);
   const [soloConProps, setSoloConProps] = useState(false);
   const [soloConLeads, setSoloConLeads] = useState(false);
+
+  const tableRef = useRef(null);
+  const dataTableRef = useRef(null);
 
   useEffect(() => {
     setLoading(true);
@@ -35,7 +50,7 @@ function ReporteMisAgentes() {
 
   const summary = data?.summary;
 
-  const filtered = useMemo(() => {
+  const agents = useMemo(() => {
     const all = data?.agents || [];
     return all.filter((a) => {
       if (soloEnabled && !a.isEnabled) return false;
@@ -45,11 +60,173 @@ function ReporteMisAgentes() {
     });
   }, [data, soloEnabled, soloConProps, soloConLeads]);
 
+  const handleExportExcel = () => {
+    const dt = dataTableRef.current;
+    const source = dt ? dt.rows({ search: 'applied' }).data().toArray() : agents;
+
+    const rows = source.map((a) => [
+      a.name || '—',
+      a.email || '',
+      a.subscriptionPlan || '',
+      a.subscriptionStatus === 'ACTIVE' ? 'Activa' : (a.subscriptionStatus || 'INACTIVE'),
+      a.totalProperties ?? 0,
+      a.totalPublished ?? 0,
+      a.assignedProperties ?? 0,
+      a.leadsCount ?? 0,
+      a.clicks ?? 0,
+      a.ratingCount > 0 ? Number(a.ratingAverage).toFixed(1) : '',
+      a.isEnabled ? 'Activo' : 'Inactivo',
+    ]);
+
+    exportTableToExcelFile({
+      filename: `agentes_agencia_${new Date().toISOString().slice(0, 10)}.xlsx`,
+      sheetName: 'Agentes',
+      title: 'Agentes de mi agencia',
+      headers: [
+        'Agente',
+        'Correo',
+        'Plan',
+        'Suscripción',
+        'Propiedades',
+        'Publicadas',
+        'Asignadas',
+        'Leads',
+        'Clics',
+        'Calificación',
+        'Estado',
+      ],
+      rows,
+      columnWidths: [28, 32, 18, 14, 13, 12, 12, 10, 10, 13, 12],
+    });
+  };
+
+  useEffect(() => {
+    if (loading || !tableRef.current) return;
+
+    if (dataTableRef.current) {
+      dataTableRef.current.destroy();
+      dataTableRef.current = null;
+    }
+
+    dataTableRef.current = $(tableRef.current).DataTable({
+      language: espanol,
+      responsive: true,
+      lengthChange: false,
+      pageLength: 10,
+      data: agents,
+      columns: [
+        {
+          title: 'Agente',
+          data: null,
+          render: (row) => {
+            const url = avatarUrl(row.avatar);
+            const img = url
+              ? `<img src="${url}" alt="avatar" class="rounded-circle object-fit-cover" style="width: 40px; height: 40px;" />`
+              : '<i class="fa-solid fa-circle-user fs-1"></i>';
+            const verified = row.verified ? ' <span class="badge rounded-pill text-bg-primary">Verificado</span>' : '';
+            return `
+              <div class="d-flex align-items-center gap-2">
+                ${img}
+                <div>
+                  <div class="fw-semibold">${row.name || '—'}${verified}</div>
+                  <div class="text-muted" style="font-size: 12px;">${row.email || ''}</div>
+                </div>
+              </div>
+            `;
+          },
+        },
+        {
+          title: 'Suscripción',
+          data: null,
+          render: (row) => {
+            const active = row.subscriptionStatus === 'ACTIVE';
+            const variant = active ? 'success' : row.subscriptionStatus === 'CANCELED' ? 'danger' : 'secondary';
+            return `
+              <div style="font-size: 13px;">${row.subscriptionPlan || '<span class="text-muted">—</span>'}</div>
+              <span class="badge rounded-pill text-bg-${variant}">${active ? 'Activa' : (row.subscriptionStatus || 'INACTIVE')}</span>
+            `;
+          },
+        },
+        {
+          title: 'Propiedades',
+          className: 'text-center',
+          data: null,
+          render: (row) =>
+            row.totalProperties > 0
+              ? `${row.totalProperties} <span class="text-muted">(${row.totalPublished} pub)</span>`
+              : '<span class="text-muted">0</span>',
+        },
+        {
+          title: 'Asignadas',
+          className: 'text-center',
+          data: null,
+          render: (row) =>
+            row.assignedProperties > 0
+              ? String(row.assignedProperties)
+              : '<span class="text-muted">0</span>',
+        },
+        {
+          title: 'Leads',
+          className: 'text-center',
+          data: null,
+          render: (row) =>
+            row.leadsCount > 0
+              ? `<span class="fw-semibold">${row.leadsCount}</span>`
+              : '<span class="text-muted">0</span>',
+        },
+        {
+          title: 'Clics',
+          className: 'text-center',
+          data: null,
+          render: (row) => row.clicks,
+        },
+        {
+          title: 'Reseñas',
+          className: 'text-center',
+          data: null,
+          render: (row) =>
+            row.ratingCount > 0
+              ? `<i class="fa-solid fa-star" style="color: #f59e0b; font-size: 11px;"></i> ${row.ratingAverage.toFixed(1)} <span class="text-muted">(${row.ratingCount})</span>`
+              : '<span class="text-muted">—</span>',
+        },
+        {
+          title: 'Estado',
+          data: null,
+          render: (row) => {
+            if (!row.isEnabled) return '<span class="badge rounded-pill text-bg-secondary">Inactivo</span>';
+            return '<span class="badge rounded-pill text-bg-success">Activo</span>';
+          },
+        },
+      ],
+      destroy: true,
+    });
+
+    return () => {
+      if (dataTableRef.current) {
+        dataTableRef.current.destroy();
+        dataTableRef.current = null;
+      }
+    };
+  }, [agents, loading]);
+
   return (
     <Container>
-      <div style={{ fontSize: 'clamp(24px, 3vw, 40px)' }}>Agentes de mi agencia</div>
-      <div className="text-muted mb-1" style={{ fontSize: '15px' }}>
-        Reporte de los agentes de tu agencia con sus propiedades, leads y actividad.
+      <div className="d-flex flex-wrap align-items-start justify-content-between gap-2">
+        <div>
+          <div style={{ fontSize: 'clamp(24px, 3vw, 40px)' }}>Agentes de mi agencia</div>
+          <div className="text-muted mb-1" style={{ fontSize: '15px' }}>
+            Reporte de los agentes de tu agencia con sus propiedades, leads y actividad.
+          </div>
+        </div>
+        <button
+          className="btn btn-sm btn-outline-success border-light-subtle"
+          style={{ fontSize: '11px', borderRadius: '8px' }}
+          onClick={handleExportExcel}
+          title="Exportar a Excel"
+          disabled={loading || !data || data.summary.totalAgents === 0}
+        >
+          <i className="fa-regular fa-file-excel me-1"></i>Excel
+        </button>
       </div>
 
       {/* Filtros */}
@@ -79,7 +256,7 @@ function ReporteMisAgentes() {
           className="mb-2"
         />
         <div className="text-muted ms-auto" style={{ fontSize: '13px' }}>
-          Mostrando {filtered.length} de {summary?.totalAgents || 0} agentes
+          Mostrando {agents.length} de {summary?.totalAgents || 0} agentes
         </div>
       </div>
 
@@ -109,77 +286,10 @@ function ReporteMisAgentes() {
 
             <div className="border border-1 rounded-4 p-3 p-lg-4 mt-3" style={{ borderColor: '#e4e4e4' }}>
               <div className="mb-2" style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
-                Detalle de agentes ({filtered.length})
+                Detalle de agentes ({agents.length})
               </div>
-              <div className="table-responsive">
-                <Table hover size="sm">
-                  <thead>
-                    <tr>
-                      <th>Agente</th>
-                      <th>Suscripción</th>
-                      <th className="text-end">Propiedades</th>
-                      <th className="text-end">Asignadas</th>
-                      <th className="text-end">Leads</th>
-                      <th className="text-end">Clics</th>
-                      <th className="text-end">Reseñas</th>
-                      <th>Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.map((a) => (
-                      <tr key={a.id}>
-                        <td>
-                          <div className="d-flex align-items-center gap-2">
-                            {a.avatar && (
-                              <img
-                                src={a.avatar}
-                                alt=""
-                                width="32"
-                                height="32"
-                                className="rounded-circle object-fit-cover"
-                                style={{ flexShrink: 0 }}
-                              />
-                            )}
-                            <div>
-                              <div className="fw-semibold">{a.name || '—'}</div>
-                              <div className="text-muted" style={{ fontSize: '12px' }}>{a.email}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <div style={{ fontSize: '13px' }}>{a.subscriptionPlan || <span className="text-muted">—</span>}</div>
-                          <span className={`badge rounded-pill text-bg-${a.subscriptionStatus === 'ACTIVE' ? 'success' : a.subscriptionStatus === 'CANCELED' ? 'danger' : 'secondary'}`}>
-                            {a.subscriptionStatus === 'ACTIVE' ? 'Activa' : a.subscriptionStatus || 'INACTIVE'}
-                          </span>
-                        </td>
-                        <td className="text-end">
-                          {a.totalProperties > 0 ? (
-                            <span>{a.totalProperties} <span className="text-muted">({a.totalPublished} pub)</span></span>
-                          ) : <span className="text-muted">0</span>}
-                        </td>
-                        <td className="text-end">
-                          {a.assignedProperties > 0 ? (
-                            <span>{a.assignedProperties}</span>
-                          ) : <span className="text-muted">0</span>}
-                        </td>
-                        <td className="text-end">{a.leadsCount > 0 ? <span className="fw-semibold">{a.leadsCount}</span> : <span className="text-muted">0</span>}</td>
-                        <td className="text-end">{a.clicks}</td>
-                        <td className="text-end">
-                          {a.ratingCount > 0 ? (
-                            <span><i className="fa-solid fa-star" style={{ color: '#f59e0b', fontSize: '11px' }}></i> {a.ratingAverage.toFixed(1)} <span className="text-muted">({a.ratingCount})</span></span>
-                          ) : <span className="text-muted">—</span>}
-                        </td>
-                        <td>
-                          <div className="d-flex gap-1">
-                            {a.verified && <span className="badge rounded-pill text-bg-primary">Verificado</span>}
-                            {!a.isEnabled && <span className="badge rounded-pill text-bg-secondary">Inactivo</span>}
-                            {!a.verified && !a.isEnabled && a.totalProperties === 0 && a.leadsCount === 0 && <span className="badge rounded-pill text-bg-light">Sin actividad</span>}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
+              <div className="w-100">
+                <table ref={tableRef} className="display nowrap" style={{ width: '100%' }} />
               </div>
             </div>
           </>

@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useLocation } from 'react-router-dom';
 import { Container, Breadcrumb, Button, Row, Col, Alert, Modal } from 'react-bootstrap';
 import 'glightbox/dist/css/glightbox.min.css';
 import '../../../assets/css/glightbox-custom.css';
@@ -37,6 +37,9 @@ function View() {
     const t = useT()
     const lang = localStorage.getItem('selectedLang')
     const { id } = useParams()
+    const location = useLocation()
+    const fromReport = Boolean(location.state?.fromReport)
+    const backTo = location.state?.from || '/cpanel/propiedades'
     const URL = API_URL
     const ame = amenitiesMap
 
@@ -367,7 +370,7 @@ function View() {
                     {/* <Alert variant="success">
                         This is a alert—check it out!
                     </Alert> */}
-                    { isAdmin ? (
+                    { !fromReport && (isAdmin ? (
                         <div className="position-fixed bottom-0 end-0 me-3 mb-3 d-flex flex-column gap-2" style={{ zIndex: '1999' }}>
                             {/* Aprobar (solo si está pre-published) */}
                             {data?.status === 'pre-published' && (
@@ -468,7 +471,7 @@ function View() {
                                 <i className="fa-duotone fa-solid fa-pen-to-square"></i>
                             </Link>
                         </div>
-                    )}
+                    ))}
 
                     <div className="mb-4 mt-5 mt-lg-0">
                         <Breadcrumb className='px-3 py-1 rounder-1' style={{ "--bs-breadcrumb-divider": "'>'", fontSize: '14px', width: 'fit-content', background: '#f0f0f0' }} >
@@ -489,7 +492,7 @@ function View() {
                                     )}
                                     <div className="mt-1 lh-sm" style={{ fontSize: 'clamp(36px, 6vw, 50px)', fontFamily: 'AppleGaramond', lineHeight: 'normal !important' }}>{data?.market?.title}</div>
                                 </div>
-                                <Link to="/cpanel/propiedades" className='mb-4 mb-lg-0' title='Atrás'><img src={arrow} style={{ width: 'clamp(30px, 5vw, 40px)' }} alt="Atrás" srcSet="" /></Link>
+                                <Link to={backTo} className='mb-4 mb-lg-0' title='Atrás'><img src={arrow} style={{ width: 'clamp(30px, 5vw, 40px)' }} alt="Atrás" srcSet="" /></Link>
                             </div>
                             {(!!data?.location?.department && !!data?.location?.municipality && !!data?.location?.zone) &&
                                 <div>

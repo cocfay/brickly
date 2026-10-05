@@ -826,17 +826,41 @@ export class PropertiesService {
     const subUserIdsObj = subUsersRaw.map((u) => u._id as Types.ObjectId);
     const allowedUserIds = [mainUserIdObj, ...subUserIdsObj];
 
-    const query: any = {
-      $or: [
-        { userId: { $in: allowedUserIds } },
-        { agents: { $in: allowedUserIds } },
-      ],
-    };
+    // El campo `agents` se guarda como texto en la BD, por eso comparamos
+    // también contra su versión en string (evita el casting a ObjectId).
+    const allowedIdStrings = allowedUserIds.map((id) => id.toString());
 
-    const properties = await this.propertyModel
-      .find(query)
-      .sort({ createdAt: -1 })
-      .lean();
+    const properties = await this.propertyModel.aggregate([
+      {
+        $match: {
+          $expr: {
+            $or: [
+              { $in: ['$userId', allowedUserIds] },
+              {
+                $gt: [
+                  {
+                    $size: {
+                      $setIntersection: [
+                        {
+                          $map: {
+                            input: { $ifNull: ['$agents', []] },
+                            as: 'a',
+                            in: { $toString: '$$a' },
+                          },
+                        },
+                        allowedIdStrings,
+                      ],
+                    },
+                  },
+                  0,
+                ],
+              },
+            ],
+          },
+        },
+      },
+      { $sort: { createdAt: -1 } },
+    ]);
 
     // Mapa de usuarios (agencia/agente) para mostrar el propietario
     const ownerIds = [
@@ -873,6 +897,14 @@ export class PropertiesService {
         department: p.location?.department || '',
         municipality: p.location?.municipality || '',
         zone: p.location?.zone || '',
+        photo: (() => {
+          const photos = Array.isArray(p.media?.photos)
+            ? p.media.photos
+            : [];
+          const main =
+            photos.find((ph: any) => ph?.isMain) || photos[0] || null;
+          return main?.thumbnail || main?.path || '';
+        })(),
         createdAt: (p as any).createdAt,
         owner: owner
           ? {
@@ -886,6 +918,9 @@ export class PropertiesService {
         assignedAgentsCount: Array.isArray(p.agents)
           ? p.agents.length
           : 0,
+        agentIds: Array.isArray(p.agents)
+          ? p.agents.map((a: any) => String(a))
+          : [],
       };
     });
 

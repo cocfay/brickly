@@ -1484,49 +1484,103 @@ export class UsersService {
       )
       .sort({ createdAt: -1 });
 
-    const rows = await Promise.all(
-      agents.map(async (a) => {
-        const agentId = a._id as Types.ObjectId;
+    const agentIds = agents.map((a) => a._id as Types.ObjectId);
+    const agentIdStrings = agentIds.map((id) => id.toString());
 
-        const [totalProperties, totalPublished, leadsCount, assignedCount] =
-          await Promise.all([
-            this.propertyModel.countDocuments({
-              $or: [{ userId: agentId }, { agents: agentId }],
-            }),
-            this.propertyModel.countDocuments({
-              $or: [{ userId: agentId }, { agents: agentId }],
-              status: 'published',
-            }),
-            this.leadformModel.countDocuments({ agentId }),
-            this.propertyModel.countDocuments({
-              userId: { $ne: agentId },
-              agents: agentId,
-            }),
-          ]);
+    // Propiedades relacionadas con la agencia o sus agentes (propias o asignadas).
+    // El campo `agents` se guarda como texto, por eso lo normalizamos con
+    // $toString para que el match funcione sin importar el tipo almacenado.
+    const [relatedProps, leadsAgg] = await Promise.all([
+      this.propertyModel.aggregate([
+        {
+          $match: {
+            $expr: {
+              $or: [
+                { $in: ['$userId', [agencyId, ...agentIds]] },
+                {
+                  $gt: [
+                    {
+                      $size: {
+                        $setIntersection: [
+                          {
+                            $map: {
+                              input: { $ifNull: ['$agents', []] },
+                              as: 'a',
+                              in: { $toString: '$$a' },
+                            },
+                          },
+                          agentIdStrings,
+                        ],
+                      },
+                    },
+                    0,
+                  ],
+                },
+              ],
+            },
+          },
+        },
+        {
+          $project: {
+            userId: 1,
+            status: 1,
+            agentStrs: {
+              $map: {
+                input: { $ifNull: ['$agents', []] },
+                as: 'a',
+                in: { $toString: '$$a' },
+              },
+            },
+          },
+        },
+      ]),
+      this.leadformModel.aggregate([
+        { $project: { agentIdStr: { $toString: '$agentId' } } },
+        { $match: { agentIdStr: { $in: agentIdStrings } } },
+        { $group: { _id: '$agentIdStr', total: { $sum: 1 } } },
+      ]),
+    ]);
 
-        return {
-          id: a._id,
-          name: a.name || '',
-          email: a.email || '',
-          phone: a.phone || '',
-          avatar: a.avatar || '',
-          isEnabled: a.isEnabled !== false,
-          accessBlocked: Boolean(a.accessBlocked),
-          subscriptionPlan: a.subscriptionPlan || '',
-          subscriptionStatus: a.subscriptionStatus || 'INACTIVE',
-          subscriptionExpire: a.subscription_expire || null,
-          featured: Boolean(a.featured_user),
-          verified: Boolean((a as any).agentInfo?.verified),
-          clicks: Number(a.clickCounter) || 0,
-          ratingAverage: Number(a.ratingAverage) || 0,
-          ratingCount: Number(a.ratingCount) || 0,
-          totalProperties,
-          totalPublished,
-          assignedProperties: assignedCount,
-          leadsCount,
-        };
-      }),
+    const leadsMap = new Map<string, number>(
+      leadsAgg.map((l: any) => [l._id, l.total]),
     );
+
+    const rows = agents.map((a) => {
+      const agentIdStr = a._id.toString();
+
+      const own = relatedProps.filter(
+        (p: any) => String(p.userId) === agentIdStr,
+      );
+      const assigned = relatedProps.filter(
+        (p: any) =>
+          String(p.userId) !== agentIdStr &&
+          Array.isArray(p.agentStrs) &&
+          p.agentStrs.includes(agentIdStr),
+      );
+      const all = [...own, ...assigned];
+
+      return {
+        id: a._id,
+        name: a.name || '',
+        email: a.email || '',
+        phone: a.phone || '',
+        avatar: a.avatar || '',
+        isEnabled: a.isEnabled !== false,
+        accessBlocked: Boolean(a.accessBlocked),
+        subscriptionPlan: a.subscriptionPlan || '',
+        subscriptionStatus: a.subscriptionStatus || 'INACTIVE',
+        subscriptionExpire: a.subscription_expire || null,
+        featured: Boolean(a.featured_user),
+        verified: Boolean((a as any).agentInfo?.verified),
+        clicks: Number(a.clickCounter) || 0,
+        ratingAverage: Number(a.ratingAverage) || 0,
+        ratingCount: Number(a.ratingCount) || 0,
+        totalProperties: all.length,
+        totalPublished: all.filter((p: any) => p.status === 'published').length,
+        assignedProperties: assigned.length,
+        leadsCount: leadsMap.get(agentIdStr) || 0,
+      };
+    });
 
     return {
       summary: {

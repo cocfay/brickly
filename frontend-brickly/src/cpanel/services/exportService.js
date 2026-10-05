@@ -359,6 +359,54 @@ export const exportAgentToExcelFile = (metricas, leadsData, ratingBreakdown) => 
   downloadBlob(blob, `metricas_agente_${new Date().toISOString().slice(0, 10)}.xlsx`);
 };
 
+/**
+ * Exporta una tabla genérica a Excel con un formato formal:
+ * título, fecha de generación, encabezados, anchos de columna y autofiltro.
+ *
+ * @param {Object}   opts
+ * @param {string}   opts.filename      Nombre del archivo .xlsx
+ * @param {string}   [opts.sheetName]   Nombre de la hoja
+ * @param {string}   [opts.title]       Título que va en la primera fila
+ * @param {string[]} opts.headers       Encabezados de columna
+ * @param {Array[]}  opts.rows          Filas de datos
+ * @param {number[]} [opts.columnWidths] Ancho (en caracteres) de cada columna
+ */
+export const exportTableToExcelFile = ({ filename, sheetName = 'Datos', title, headers, rows = [], columnWidths }) => {
+  const wb = XLSX.utils.book_new();
+
+  const aoa = [];
+  let headerRowIndex = 0;
+
+  if (title) {
+    aoa.push([title]);
+    aoa.push([`Generado: ${new Date().toLocaleDateString('es-ES')}`]);
+    aoa.push([]);
+    headerRowIndex = aoa.length;
+  }
+  aoa.push(headers);
+  aoa.push(...rows);
+
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+  if (Array.isArray(columnWidths) && columnWidths.length) {
+    ws['!cols'] = columnWidths.map((w) => ({ wch: w }));
+  }
+
+  // Autofiltro sobre la fila de encabezados
+  ws['!autofilter'] = {
+    ref: XLSX.utils.encode_range({
+      s: { r: headerRowIndex, c: 0 },
+      e: { r: aoa.length - 1, c: Math.max(headers.length - 1, 0) },
+    }),
+  };
+
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+
+  const data = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  downloadBlob(blob, filename);
+};
+
 export const exportAdminToPDFFile = async (adminData, exclusiveCount, totalLeadsCount, agenciasLeads, agenciasClics) => {
   const doc = await exportAdminToPDF(adminData, exclusiveCount, totalLeadsCount, agenciasLeads, agenciasClics);
   doc.save(`metricas_admin_${new Date().toISOString().slice(0, 10)}.pdf`);
