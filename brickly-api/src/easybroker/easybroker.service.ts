@@ -107,6 +107,15 @@ export class EasybrokerService {
       page++;
     }
 
+    // Verificar que las fotos guardadas en BD existan físicamente
+    // y volver a descargar las que falten
+    await this.sleep(500);
+
+    const imageVerification =
+      await this.ensurePropertyImages(
+        user._id.toString(),
+      );
+
     user.easyBrokerLastSync = new Date();
 
     await user.save();
@@ -114,6 +123,7 @@ export class EasybrokerService {
     return {
       message:
         'Propiedades sincronizadas correctamente',
+      imageVerification,
     };
   }
 
@@ -874,6 +884,181 @@ export class EasybrokerService {
         total: properties.length,
       };
   }
+  async ensurePropertyImages(userId: string) {
+    const user = await this.userModel.findById(userId);
+
+    if (!user) {
+      throw new BadRequestException(
+        'Usuario no encontrado',
+      );
+    }
+
+    if (!user.easyBrokerApiKey) {
+      throw new BadRequestException(
+        'El usuario no tiene API KEY de EasyBroker',
+      );
+    }
+
+    // todas las propiedades con integración EasyBroker
+    const properties = await this.propertyModel.find({
+      userId: new Types.ObjectId(userId),
+      easyBrokerId: {
+        $exists: true,
+        $ne: null,
+      },
+    });
+
+    let propertiesRepaired = 0;
+    let photosReplaced = 0;
+    let photosFailed = 0;
+
+    for (const property of properties) {
+      const photos = Array.isArray(
+        property.media?.photos,
+      )
+        ? property.media.photos
+        : [];
+
+      if (!photos.length) continue;
+
+      let propertyChanged = false;
+      const updatedPhotos: any[] = [];
+
+      for (
+        let index = 0;
+        index < photos.length;
+        index++
+      ) {
+        const photo = photos[index] || {};
+
+        // verificar que la foto exista físicamente
+        const localOk =
+          this.fileManager.existsFile(
+            String(photo.path),
+          ) ||
+          this.fileManager.existsFile(
+            String(photo.thumbnail),
+          );
+
+        if (localOk) {
+          updatedPhotos.push({ ...photo });
+          continue;
+        }
+
+        // re-descargar la foto faltante
+        const replacement =
+          await this.downloadMissingPhoto(
+            user,
+            property,
+            photo,
+            index,
+          );
+
+        if (replacement) {
+          updatedPhotos.push({
+            path: replacement.path,
+            thumbnail: replacement.thumbnail,
+            isMain: index === 0,
+            sourceUrl: replacement.sourceUrl,
+          });
+          propertyChanged = true;
+          photosReplaced++;
+        } else {
+          photosFailed++;
+          updatedPhotos.push({ ...photo });
+        }
+      }
+
+      if (propertyChanged) {
+        await this.propertyModel.updateOne(
+          {
+            _id: property._id,
+          },
+          {
+            $set: {
+              'media.photos': updatedPhotos,
+            },
+          },
+        );
+
+        propertiesRepaired++;
+      }
+    }
+
+    return {
+      message:
+        'Verificación de imágenes completada',
+      totalChecked: properties.length,
+      propertiesRepaired,
+      photosReplaced,
+      photosFailed,
+    };
+  }
+
+  private async downloadMissingPhoto(
+    user: any,
+    property: any,
+    photo: any,
+    index: number,
+  ): Promise<{
+    path: string;
+    thumbnail: string;
+    sourceUrl?: string;
+  } | null> {
+    const folderId =
+      property.folderId ||
+      property._id.toString();
+
+    // prioridad: la url original guardada en la foto
+    let sourceUrl: string | undefined =
+      photo?.sourceUrl;
+
+    // si no hay sourceUrl, intentar obtener el detalle desde EasyBroker
+    if (!sourceUrl) {
+      await this.sleep(500);
+
+      try {
+        const detail =
+          await this.getPropertyDetail(
+            property.easyBrokerId,
+            user.easyBrokerApiKey,
+          );
+
+        sourceUrl =
+          detail?.images?.[index]?.url;
+      } catch (error) {
+        console.error(
+          `Error obteniendo detalle EasyBroker ${property.easyBrokerId}`,
+          error,
+        );
+      }
+    }
+
+    if (!sourceUrl) return null;
+
+    try {
+      const optimized =
+        await this.fileManager.downloadAndOptimizeImage(
+          sourceUrl,
+          `properties/photos/${user._id}/${folderId}`,
+        );
+
+      return {
+        path: optimized.path,
+        thumbnail: optimized.thumbnail,
+        sourceUrl,
+      };
+    } catch (error) {
+      console.error(
+        'Error re-descargando imagen',
+        sourceUrl,
+        error,
+      );
+
+      return null;
+    }
+  }
+
   private sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }

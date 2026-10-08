@@ -14,6 +14,7 @@ import { PartnersModule } from './partners/partners.module'
 import { EasybrokerModule } from './easybroker/easybroker.module';
 import { AssignmentRequestsModule } from './assignment-requests/assignment-requests.module';
 import { BillingModule } from './billing/billing.module';
+import { PhotoCleanupModule } from './photo-cleanup/photo-cleanup.module';
 
 @Module({
   imports: [
@@ -31,7 +32,8 @@ import { BillingModule } from './billing/billing.module';
     PartnersModule,
     EasybrokerModule,
     AssignmentRequestsModule,
-    BillingModule
+    BillingModule,
+    PhotoCleanupModule
   ],
 })
 export class AppModule {}

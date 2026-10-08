@@ -36,4 +36,12 @@ export class EasybrokerController {
       userId,
     );
   }
+  @Post('verify-images/:userId')
+  verifyImages(
+    @Param('userId') userId: string,
+  ) {
+    return this.easybrokerService.ensurePropertyImages(
+      userId,
+    );
+  }
 }
