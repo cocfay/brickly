@@ -1,8 +1,21 @@
-import { Controller, Post, Body, UseGuards, Req, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  UseGuards,
+  Req,
+  NotFoundException,
+} from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { UsersService } from '../users/users.service';
 import { PlanType } from '../common/enums/plan.enum';
-import { AllPlanType, PlanPrices, PlanDescription  } from '../common/enums/pricecost.enum';
+import {
+  AllPlanType,
+  PlanPrices,
+  PlanDescription,
+} from '../common/enums/pricecost.enum';
+import { getPlansCatalog } from '../common/enums/plans-catalog';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { PropertiesService } from '../properties/properties.service';
@@ -15,13 +28,20 @@ export class PaymentsController {
     private readonly propertiesService: PropertiesService,
   ) {}
 
+  /**
+   * Catalogo de planes de suscripcion y paquetes destacados.
+   * Fuente unica de verdad consumida por la vista de Facturacion, para no
+   * mantener precios / periodos / agentes hardcodeados en el frontend.
+   */
+  @Get('plans')
+  getPlans() {
+    return getPlansCatalog();
+  }
+
   @Post('subscribe')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   subscribe(@Req() req, @Body() body: { plan: PlanType }) {
-    return this.paymentsService.createSubscription(
-      req.user,
-      body.plan,
-    );
+    return this.paymentsService.createSubscription(req.user, body.plan);
   }
 
   @Post('retry-checkout')
@@ -29,26 +49,26 @@ export class PaymentsController {
   retryCheckout(@Req() req) {
     return this.paymentsService.createRetryCheckout(req.user.userId);
   }
+
   @Post('featured')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  async featured(@Req() req, @Body() body: {type: string, id: string, plan: string }) {
-
+  async featured(
+    @Req() req,
+    @Body() body: { type: string; id: string; plan: string },
+  ) {
     let amount_cents = 0;
     let title_featured = '';
     const plan = body.plan as AllPlanType;
     const price = PlanPrices[plan];
-    amount_cents = Number(price)*100;
-    if(body.type == 'property'){
-      
+    amount_cents = Number(price) * 100;
+    if (body.type == 'property') {
       const propertyF = await this.propertiesService.findById(body.id);
-      if (
-            !propertyF 
-          ) {
-            throw new NotFoundException('Propiedad encontrada');
-          }
-          title_featured = PlanDescription[plan] + " ( " + propertyF.market.title.toString() + " ) ";
-    }else if(body.type == 'user'){
-
+      if (!propertyF) {
+        throw new NotFoundException('Propiedad no encontrada');
+      }
+      title_featured =
+        PlanDescription[plan] + ' ( ' + propertyF.market.title.toString() + ' ) ';
+    } else if (body.type == 'user') {
       title_featured = PlanDescription[plan];
     }
     return this.paymentsService.createFeaturedCharge(
@@ -57,7 +77,7 @@ export class PaymentsController {
       amount_cents,
       title_featured,
       body.type,
-      plan
+      plan,
     );
   }
 }
