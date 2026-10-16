@@ -57,6 +57,32 @@ function buildPath(type, mode, locationType, location) {
   return `/propiedades/${TYPE_TO_SLUG[type]}-en-${MODE_TO_SLUG[mode]}/${slugifyLocation(locationType, location)}/`;
 }
 
+// ---- Proyectos (detalle): debe coincidir con src/utils/projectRoutes.js ----
+const PROJECT_TIPO_SLUG = {
+  'Edificio': 'edificio',
+  'Bodegas': 'bodega',
+  'Bodega': 'bodega',
+  'Condominio': 'condominio',
+  'Edificio de oficinas': 'edificio-de-oficinas',
+  'Apartamento': 'apartamento',
+};
+
+function getTipoSlug(tipo) {
+  return PROJECT_TIPO_SLUG[tipo] || 'apartamento';
+}
+
+function getProjectSlug(p) {
+  if (!p) return '';
+  return p.projectSlug || p.slug || p._id || p.id || '';
+}
+
+function buildProjectPath(p) {
+  const tipo = p.type || p.tipo;
+  const slug = getProjectSlug(p);
+  if (!slug) return '';
+  return `/proyectos/${getTipoSlug(tipo)}/${slug}`;
+}
+
 // ---- Matriz de 276 combos del documento ----
 function buildFullMatrix() {
   const locations = [];
@@ -116,6 +142,18 @@ async function fetchCombos() {
   return Array.isArray(list) ? list : [];
 }
 
+async function fetchProjects() {
+  try {
+    const res = await fetch(`${API}/projects?status=published`);
+    if (!res.ok) throw new Error(`GET projects falló (${res.status})`);
+    const list = await res.json();
+    return Array.isArray(list) ? list : [];
+  } catch (e) {
+    console.warn(`No se pudieron obtener los proyectos: ${e.message}`);
+    return [];
+  }
+}
+
 function buildCountMap(apiCombos) {
   const map = new Map();
   for (const c of apiCombos) {
@@ -131,20 +169,26 @@ function readSitemap() {
   return fs.readFileSync(file, 'utf8');
 }
 
-function writeSitemap(combos) {
+function writeSitemap(combos, projects = []) {
   const existing = readSitemap();
   const base = existing || '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n</urlset>';
   if (!/<urlset[\s\S]*<\/urlset>/.test(base)) {
     console.warn('sitemap.xml no válido, se omite la generación.');
     return;
   }
-  const urls = combos
+  const landingUrls = combos
     .filter((c) => c.count > 0)
-    .map((c) => `  <url>\n    <loc>${SITE}${buildPath(c.type, c.mode, c.locationType, c.location)}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>`)
-    .join('\n');
+    .map((c) => `  <url>\n    <loc>${SITE}${buildPath(c.type, c.mode, c.locationType, c.location)}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>`);
+
+  const projectUrls = projects
+    .map((p) => buildProjectPath(p))
+    .filter(Boolean)
+    .map((path) => `  <url>\n    <loc>${SITE}${path}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>`);
+
+  const urls = [...landingUrls, ...projectUrls].join('\n');
   const updated = base.replace(/<\/urlset>/, `${urls}\n</urlset>`);
   fs.writeFileSync(path.join(distDir, 'sitemap.xml'), updated, 'utf8');
-  console.log(`sitemap.xml actualizado con ${combos.filter((c) => c.count > 0).length} landings.`);
+  console.log(`sitemap.xml actualizado con ${landingUrls.length} landings y ${projectUrls.length} proyectos.`);
 }
 
 async function prerender(combos, browser) {
@@ -207,6 +251,8 @@ async function main() {
     c.count = countMap.get(`${c.type}|${c.mode}|${c.locationType}|${c.location}`) || 0;
   }
 
+  const projects = await fetchProjects();
+
   await startServer();
   const browser = await puppeteer.launch({
     headless: true,
@@ -215,7 +261,7 @@ async function main() {
 
   try {
     await prerender(matrix, browser);
-    writeSitemap(matrix);
+    writeSitemap(matrix, projects);
   } finally {
     await browser.close();
     await stopServer();

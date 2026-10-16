@@ -30,11 +30,11 @@
     <priority>0.8</priority>
     <changefreq>weekly</changefreq>
   </url> -->
-  <!-- <url>
+  <url>
     <loc>https://www.bricklyhomes.com/proyectos</loc>
     <priority>0.8</priority>
     <changefreq>weekly</changefreq>
-  </url> -->
+  </url>
   <url>
     <loc>https://www.bricklyhomes.com/registro</loc>
     <priority>0.3</priority>
