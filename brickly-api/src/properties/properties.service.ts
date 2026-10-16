@@ -14,6 +14,7 @@ import {
   detectarMunicipio,
   detectarZona,
 } from '../common/guatemala-locations';
+import { reverseGeocode } from '../common/reverse-geocode';
 import { validatePublicFields } from './property-validation';
 
 
@@ -2410,8 +2411,9 @@ export class PropertiesService {
 
   /**
    * Proceso aprobación mayor: revisa todos los borradores, rellena municipio/zona
-   * desde el contenido cuando faltan, valida que cumplan los requisitos de
-   * publicación (incl. que las fotos existan físicamente) y publica los que pasen.
+   * desde el contenido (y, como respaldo, desde las coordenadas GPS), valida que
+   * cumplan los requisitos de publicación (incl. que las fotos existan
+   * físicamente) y publica los que pasen.
    */
   async bulkApproveDrafts() {
     const drafts = await this.propertyModel
@@ -2476,6 +2478,39 @@ export class PropertiesService {
         if (zone && zone !== 'ninguno') {
           location.zone = zone;
           locationUpdated = true;
+        }
+      }
+
+      // Criterio 3 (respaldo): si aún faltan datos, intentar desde las coordenadas.
+      const needDepartment = !String(location.department || '').trim();
+      const needMunicipality = !String(location.municipality || '').trim();
+      const needZone = !String(location.zone || '').trim();
+      const coordsRaw: any = location.coordinates;
+      let coords: number[] | null = null;
+      if (Array.isArray(coordsRaw?.coordinates)) {
+        coords = coordsRaw.coordinates.map((n: any) => Number(n));
+      } else if (typeof coordsRaw === 'string') {
+        coords = coordsRaw.split(',').map((s: string) => Number(s.trim()));
+      }
+      const hasCoords =
+        !!coords && coords.length === 2 && coords.every((n) => Number.isFinite(n));
+
+      if (hasCoords && (needDepartment || needMunicipality || needZone)) {
+        const [lng, lat] = coords as number[];
+        const geo = await reverseGeocode(lat, lng);
+        if (geo) {
+          if (needDepartment && geo.department) {
+            location.department = geo.department;
+            locationUpdated = true;
+          }
+          if (needMunicipality && geo.municipality) {
+            location.municipality = geo.municipality;
+            locationUpdated = true;
+          }
+          if (needZone && geo.zone && geo.zone !== 'ninguno') {
+            location.zone = geo.zone;
+            locationUpdated = true;
+          }
         }
       }
 
