@@ -8,6 +8,7 @@ import logoB from '../assets/images/logos/logo_negro.png';
 import { registerWithEmail, isAuthenticated  } from '../services/authService';
 import { Link, useNavigate } from 'react-router-dom';
 import { getTurnstileSiteKey, getTurnstileToken, resetTurnstileWidget, shouldRequireTurnstileToken } from '../utils/turnstile';
+import SEO from '../components/SEO';
 
 const TURNSTILE_SITE_KEY = getTurnstileSiteKey();
 
@@ -258,6 +259,7 @@ function Register() {
     }, [navigate])
     return (
         <Container className='mt-5' style={{ fontSize: 'clamp(16px, 3vw, 24px)', marginBottom: 'clamp(5rem, 10vw, 9rem)' }}>
+            <SEO />
             <div className="row" style={{ background: '#FAFAFA' }}>
                 <div className="col-lg-7 d-none d-lg-block">
                     <img src={login} className='w-100' alt="image" />

@@ -1,4 +1,6 @@
 import { Helmet } from 'react-helmet-async';
+import { useLocation } from 'react-router-dom';
+import { META_BY_PATH, normalizeMetaPath } from '../utils/metaSitemap';
 
 const SITE_NAME = 'Brickly Homes';
 const SITE_URL = 'https://www.bricklyhomes.com';
@@ -13,7 +15,13 @@ export default function SEO({
   type = 'website',
   noindex = false,
 }) {
-  const fullTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME;
+  // Meta title/description provistos por el Excel del sitemap (tienen prioridad
+  // para las URLs listadas allí). El título del Excel ya incluye la marca.
+  const location = useLocation();
+  const override = META_BY_PATH[normalizeMetaPath(location?.pathname)];
+
+  const fullTitle = override?.title || (title ? `${title} | ${SITE_NAME}` : SITE_NAME);
+  const finalDescription = override?.description || description;
 
   return (
     <Helmet>
@@ -23,9 +31,9 @@ export default function SEO({
       <meta name="twitter:title" content={fullTitle} />
 
       {/* Description */}
-      <meta name="description" content={description} />
-      <meta property="og:description" content={description} />
-      <meta name="twitter:description" content={description} />
+      <meta name="description" content={finalDescription} />
+      <meta property="og:description" content={finalDescription} />
+      <meta name="twitter:description" content={finalDescription} />
 
       {/* Robots */}
       {noindex && <meta name="robots" content="noindex, follow" />}

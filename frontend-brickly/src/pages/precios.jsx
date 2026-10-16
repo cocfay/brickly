@@ -7,6 +7,7 @@ import { Container, Row, Col } from 'react-bootstrap';
 import '../assets/css/precios.css';
 import { getFullUser } from '../services/authService';
 import PlanPricingCards from '../components/PlanPricingCards';
+import SEO from '../components/SEO';
 
 function Precios() {
   // Plan actualmente activo del usuario (si tiene sesión iniciada y su
@@ -27,6 +28,8 @@ function Precios() {
 
   return (
     <Container>
+
+        <SEO />
 
         <div className="mt-4" style={{ fontSize: 'clamp(30px, 3vw, 50px)', marginBottom: 'clamp(2.8rem, 4vw, 4rem)' }}>
           <FormattedMessage id='price.text1' />
