@@ -20,7 +20,7 @@
          url('../fonts/RedHatDisplay-Italic.ttf') format('truetype');
     font-weight: 100 900;
     font-style: italic;
-    font-display: optional;
+    font-display: swap;
 }
 
 #root{

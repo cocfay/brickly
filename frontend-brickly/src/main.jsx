@@ -3,16 +3,16 @@ import 'alertifyjs/build/css/alertify.css';
 import 'alertifyjs/build/css/themes/default.css';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-// FontAwesome: importar base (font-face) + solo los estilos que se usan
-import './assets/fontawesome/css/fontawesome.min.css';
-import './assets/fontawesome/css/solid.min.css';
-import './assets/fontawesome/css/regular.min.css';
-import './assets/fontawesome/css/brands.min.css';
-import './assets/fontawesome/css/duotone.min.css';
+// FontAwesome Pro local: subconjunto generado solo con los iconos usados
+// (regenerar con `npm run icons:build` si se agregan iconos nuevos)
+import './assets/fontawesome/css/fontawesome-subset.css';
 
-import React, { useState, Suspense, lazy } from 'react';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
+
+import React, { useState, Suspense, lazy, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import I18nProvider from './i18n/I18nProvider';
 import { CurrencyProvider } from './context/CurrencyContext';
@@ -23,6 +23,10 @@ import './index.css';
 
 /* Lazy loaded pages - se cargan solo cuando se navega a ellas */
 const Home = lazy(() => import('./pages/home.jsx'));
+const Servicios = lazy(() => import('./pages/servicios.jsx'));
+const Signature = lazy(() => import('./pages/signature.jsx'));
+const Premier = lazy(() => import('./pages/premier.jsx'));
+const Marketing = lazy(() => import('./pages/marketing.jsx'));
 const Propiedades = lazy(() => import('./pages/properties/propiedades.jsx'));
 const SeoLanding = lazy(() => import('./pages/properties/seoLanding.jsx'));
 const UltimasPropiedades = lazy(() => import('./pages/properties/ultimaspropiedades.jsx'));
@@ -106,6 +110,61 @@ function PageLoader() {
   );
 }
 
+const AOSInit = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    AOS.init({
+      once: true,
+      duration: 750,
+      easing: 'ease-out-cubic',
+      offset: 80,
+    });
+  }, []);
+
+  useEffect(() => {
+    let frame = 0;
+
+    const reveal = () => {
+      frame = 0;
+      document
+        .querySelectorAll('[data-aos]:not(.aos-animate)')
+        .forEach((element) => {
+          const rect = element.getBoundingClientRect();
+          if (rect.top >= window.innerHeight - 60) return;
+          const delay = Number(element.dataset.aosDelay || 0);
+          window.setTimeout(
+            () => element.classList.add('aos-animate'),
+            delay
+          );
+        });
+    };
+
+    const requestReveal = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(reveal);
+    };
+
+    const timeout = window.setTimeout(reveal, 250);
+    const timeoutLate = window.setTimeout(reveal, 1200);
+
+    window.addEventListener('scroll', requestReveal, { passive: true });
+    window.addEventListener('resize', requestReveal);
+    window.addEventListener('load', requestReveal);
+
+    return () => {
+      window.clearTimeout(timeout);
+      window.clearTimeout(timeoutLate);
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', requestReveal);
+      window.removeEventListener('resize', requestReveal);
+      window.removeEventListener('load', requestReveal);
+    };
+  }, [location.pathname]);
+
+  return null;
+};
+
 const App = () => {
 
   // Cargar idioma guardado o usar español por defecto
@@ -119,6 +178,7 @@ const App = () => {
     <I18nProvider locale={locale} onLocaleChange={setLocale}>
       <CurrencyProvider>
       <BrowserRouter basename={import.meta.env.VITE_BASE_PATH || '/'}>
+        <AOSInit />
         <ScrollToTop />
         <Suspense fallback={<PageLoader />}>
           <Routes>
@@ -126,6 +186,12 @@ const App = () => {
             <Route path="/" element={<Layout />}>
               <Route index element={<Home />} />
               <Route path="home" element={<Home />} />
+              <Route path="servicios" element={<Servicios />} />
+              <Route path="servicios/signature" element={<Signature />} />
+              <Route path="servicios/premier" element={<Premier />} />
+              <Route path="servicios/marketing" element={<Marketing />} />
+              <Route path="signature" element={<Navigate to="/servicios/signature" replace />} />
+              <Route path="premier" element={<Navigate to="/servicios/premier" replace />} />
               <Route path="propiedades" element={<Propiedades />} />
               <Route path="propiedades/:tipoOp/:ubicacion" element={<SeoLanding />} />
               <Route path="propiedades/:slug" element={<Propiedad />} />

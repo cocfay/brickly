@@ -49,10 +49,10 @@ function Term() {
                 </p>
 
                 <div className="d-flex flex-column gap-4 mt-5">
-                    <div className="d-flex align-items-center gap-3"><i className="fa-graphite fa-thin fa-buildings fs-4"></i><FormattedMessage id='terms.text6' /></div>
-                    <div className="d-flex align-items-center gap-3"><i className="fa-graphite fa-thin fa-location-dot fs-4"></i><FormattedMessage id='terms.text7' /></div>
-                    <div className="d-flex align-items-center gap-3"><i className="fa-graphite fa-thin fa-coins fs-4"></i><FormattedMessage id='terms.text8' /></div>
-                    <div className="d-flex align-items-center gap-3"><i className="fa-graphite fa-thin fa-shield-check fs-4"></i><FormattedMessage id='terms.text9' /></div>
+                    <div className="d-flex align-items-center gap-3"><i className="fa-thin fa-buildings fs-4"></i><FormattedMessage id='terms.text6' /></div>
+                    <div className="d-flex align-items-center gap-3"><i className="fa-thin fa-location-dot fs-4"></i><FormattedMessage id='terms.text7' /></div>
+                    <div className="d-flex align-items-center gap-3"><i className="fa-thin fa-coins fs-4"></i><FormattedMessage id='terms.text8' /></div>
+                    <div className="d-flex align-items-center gap-3"><i className="fa-thin fa-shield-check fs-4"></i><FormattedMessage id='terms.text9' /></div>
                 </div>
 
                 <div className='mt-5'>

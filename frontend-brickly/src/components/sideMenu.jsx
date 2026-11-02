@@ -125,7 +125,7 @@ function sideMenu() {
                 <>
                     <div className='d-flex flex-column align-items-start lh-sm'>
                         {user?.roles?.includes("cliente") && (
-                            <Nav.Link as={NavLink} to="favoritos" onClick={handleClose} className='py-1 text-white d-flex align-items-baseline gap-2'><FormattedMessage id='boxUp.text5' /> <i className="fa-jelly fa-regular fa-heart"></i></Nav.Link>
+                            <Nav.Link as={NavLink} to="favoritos" onClick={handleClose} className='py-1 text-white d-flex align-items-baseline gap-2'><FormattedMessage id='boxUp.text5' /> <i className="fa-regular fa-heart"></i></Nav.Link>
                         )}
                         {user?.showCpanel && (
                             <Nav.Link as={NavLink} to="/cpanel" className='text-white'><FormattedMessage id='boxUp.text6' /></Nav.Link>

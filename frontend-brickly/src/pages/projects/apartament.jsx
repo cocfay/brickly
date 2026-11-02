@@ -328,7 +328,7 @@ function Apartament({ preview = false }) {
                     <div className="position-relative d-none d-lg-block" style={{ marginRight: '7rem', marginBottom: '4px' }}>
                         <div className="position-absolute py-2 px-4 rounded-4" style={{ bottom: '100%', marginBottom: '40px', left: '50%', transform: 'translateX(-50%)', whiteSpace: 'nowrap', border: '1px solid black', fontSize: '22px' }}>{situacionalLabel}</div>
                         <div className="d-flex align-items-center justify-content-center gap-4" style={{ fontSize: '20px' }}>
-                            {tieneValor(project.estructura.niveles) && <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings" style={{ fontSize: '30px' }}></i>{project.estructura.niveles} Niveles</div>}
+                            {tieneValor(project.estructura.niveles) && <div className="d-flex align-items-center gap-2"><i className="fa-thin fa-buildings" style={{ fontSize: '30px' }}></i>{project.estructura.niveles} Niveles</div>}
                             {project.unidades ? (<>
                                 <div style={{ width: '1px', height: '20px', backgroundColor: '#ccc' }}></div>
                                 <div className="d-flex align-items-center gap-2"><i className="fa-sharp fa-light fa-block" style={{ fontSize: '30px' }}></i>{project.unidades} Unidades</div>
@@ -345,7 +345,7 @@ function Apartament({ preview = false }) {
                 <div className="d-lg-none w-100 mt-3 d-flex flex-column align-items-center gap-2">
                     <div style={{ border: '1px solid black' }} className="py-1 px-3 rounded-4" >{situacionalLabel}</div>
                     <div className="d-flex align-items-center justify-content-center gap-4 mb-3">
-                        {tieneValor(project.estructura.niveles) && <div className="d-flex align-items-center gap-2"><i className="fa-graphite fa-thin fa-buildings"></i>{project.estructura.niveles} Niveles</div>}
+                        {tieneValor(project.estructura.niveles) && <div className="d-flex align-items-center gap-2"><i className="fa-thin fa-buildings"></i>{project.estructura.niveles} Niveles</div>}
                         {project.unidades ? (<>
                             <div style={{ width: '1px', height: '18px', backgroundColor: '#ccc' }}></div>
                             <div className="d-flex align-items-center gap-2"><i className="fa-sharp fa-light fa-block"></i>{project.unidades} Unidades</div>

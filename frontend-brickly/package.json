@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "npm run icons:build",
     "build": "vite build",
     "build:seo": "node scripts/inline-critical.mjs && node scripts/prerender.mjs",
     "build:all": "npm run build && npm run build:seo",
+    "icons:build": "node scripts/build-fontawesome-subset.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

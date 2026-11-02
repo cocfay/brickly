@@ -95,7 +95,7 @@ function boxLogin() {
                     <NavDropdown.Item as={Link} to="/perfil" className='text-start px-0 mb-1'><FormattedMessage id='boxUp.text4' /></NavDropdown.Item>
                 }
                 { user?.roles?.includes("cliente") && (
-                    <NavDropdown.Item as={Link} to="/favoritos" className='text-start px-0 d-flex align-items-baseline gap-1'><FormattedMessage id='boxUp.text5' /><i className="fa-jelly fa-regular fa-heart"></i></NavDropdown.Item>
+                    <NavDropdown.Item as={Link} to="/favoritos" className='text-start px-0 d-flex align-items-baseline gap-1'><FormattedMessage id='boxUp.text5' /><i className="fa-regular fa-heart"></i></NavDropdown.Item>
                 )}
             </div>
             <NavDropdown.Divider className='mt-2 mb-3' />
